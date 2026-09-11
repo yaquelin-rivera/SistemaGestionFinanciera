@@ -1,0 +1,611 @@
+﻿@model SistemaGestionFinanciera.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Iniciar sesión - Sistema Financiero</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, Helvetica, sans-serif;
+            background: radial-gradient( circle at top left, rgba(15, 124, 144, .25), transparent 35% ), linear-gradient( 135deg, #032B30 0%, #07434B 50%, #0A525B 100% );
+        }
+
+        /* =========================================
+                   CONTENEDOR GENERAL
+                ========================================= */
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 960px;
+        }
+
+        .login-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: 42% 58%;
+            align-items: stretch;
+            width: 100%;
+            min-height: 520px;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid rgba(15, 90, 99, .12);
+            border-radius: 18px;
+            box-shadow: 0 22px 55px rgba(0, 0, 0, .28);
+            animation: aparecerLogin .45s ease-out;
+        }
+
+            .login-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 5;
+                width: 100%;
+                height: 7px;
+                background: linear-gradient( 90deg, #0F5A63, #16A9B8 );
+            }
+
+        /* =========================================
+                   COLUMNA DEL LOGO
+                ========================================= */
+
+        .login-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 45px 35px;
+            text-align: center;
+            background: linear-gradient( 180deg, #F8FCFD 0%, #EEF8F9 100%);
+            border-right: 2px solid rgba(15,124,144,.10);
+        }
+
+        .logo-container {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .logo-ucad {
+            display: block;
+            width: 100%;
+            max-height: 390px;
+            object-fit: contain;
+            border: 1px solid #e0e7e9;
+            border-radius: 13px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, .13);
+        }
+
+        .brand-name {
+            margin-top: 20px;
+            margin-bottom: 0;
+            color: #0F5A63;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        /* =========================================
+                   COLUMNA DEL FORMULARIO
+                ========================================= */
+
+        .login-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            padding: 46px 52px 32px;
+        }
+
+        .login-header {
+            margin-bottom: 22px;
+        }
+
+        .login-title {
+            margin: 0 0 8px;
+            color: #0F5A63;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            text-align: left;
+        }
+
+        .login-subtitle {
+            margin: 0;
+            color: #69777c;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* =========================================
+                   VALIDACIONES
+                ========================================= */
+
+        .validation-summary-valid {
+            display: none;
+        }
+
+        .validation-summary-errors {
+            margin-bottom: 18px;
+            padding: 11px 14px;
+            color: #b42318;
+            background: #fff1f0;
+            border: 1px solid #ffc9c5;
+            border-radius: 8px;
+            font-size: .88rem;
+        }
+
+            .validation-summary-errors ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+        .validation-message {
+            display: block;
+            min-height: 19px;
+            margin-top: 5px;
+            font-size: .82rem;
+        }
+
+        /* =========================================
+                   CAMPOS
+                ========================================= */
+
+        .form-group-login {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 7px;
+            color: #34454b;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .input-group-text {
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0F5A63;
+            background: #eef7f8;
+            border-color: #cedde0;
+        }
+
+        .form-control {
+            min-width: 0;
+            min-height: 48px;
+            color: #26373c;
+            font-size: 1rem;
+            border-color: #cedde0;
+        }
+
+            .form-control::placeholder {
+                color: #9aa5a9;
+            }
+
+            .form-control:focus {
+                border-color: #16A9B8;
+                box-shadow: 0 0 0 .2rem rgba(22, 169, 184, .16);
+            }
+
+        .btn-password {
+            width: 48px;
+            color: #52656c;
+            background: #ffffff;
+            border-color: #cedde0;
+        }
+
+            .btn-password:hover,
+            .btn-password:focus {
+                color: #0F5A63;
+                background: #eef7f8;
+                border-color: #16A9B8;
+            }
+
+        /* =========================================
+                   BOTÓN
+                ========================================= */
+
+        .btn-login {
+            width: 100%;
+            min-height: 56px;
+            margin-top: 4px;
+            color: #ffffff;
+            background: linear-gradient( 90deg, #0F7C90, #16A9B8 );
+            border: none;
+            border-radius: 8px;
+            font-size: 1.18rem;
+            font-weight: 700;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+            .btn-login:hover,
+            .btn-login:focus {
+                color: #ffffff;
+                background: linear-gradient( 90deg, #0F5A63, #0F7C90 );
+                transform: translateY(-1px);
+                box-shadow: 0 8px 18px rgba(15, 124, 144, .25);
+            }
+
+        /* =========================================
+                   PIE
+                ========================================= */
+
+        .login-footer {
+            margin-top: 22px;
+            padding-top: 14px;
+            color: #879397;
+            border-top: 1px solid #e7ecee;
+            font-size: .76rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        /* =========================================
+                   ANIMACIÓN
+                ========================================= */
+
+        @@keyframes aparecerLogin {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =========================================
+                   LAPTOPS PEQUEÑAS
+                ========================================= */
+
+        @@media (max-width: 900px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-wrapper {
+                max-width: 800px;
+            }
+
+            .login-card {
+                grid-template-columns: 40% 60%;
+                min-height: 480px;
+            }
+
+            .login-brand {
+                padding: 35px 25px;
+            }
+
+            .logo-container {
+                max-width: 235px;
+            }
+
+            .login-content {
+                padding: 38px 38px 28px;
+            }
+
+            .login-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* =========================================
+                   TABLET Y CELULAR
+                ========================================= */
+
+        @@media (max-width: 700px) {
+            body {
+                align-items: flex-start;
+                padding: 15px;
+            }
+
+            .login-card {
+                display: flex;
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .login-brand {
+                padding: 28px 25px 22px;
+                border-right: none;
+                border-bottom: 1px solid #e2ecee;
+            }
+
+            .logo-container {
+                max-width: 145px;
+            }
+
+            .logo-ucad {
+                max-height: 175px;
+            }
+
+            .brand-name {
+                margin-top: 12px;
+                font-size: .9rem;
+            }
+
+            .login-content {
+                padding: 28px 25px 24px;
+            }
+
+            .login-header {
+                margin-bottom: 19px;
+                text-align: center;
+            }
+
+            .login-title {
+                font-size: 1.55rem;
+                text-align: center;
+            }
+
+            .login-subtitle {
+                font-size: .92rem;
+                text-align: center;
+            }
+        }
+
+        @@media (max-width: 400px) {
+            body {
+                padding: 10px;
+            }
+
+            .login-content {
+                padding: 25px 18px 22px;
+            }
+
+            .login-brand {
+                padding: 24px 18px 18px;
+            }
+
+            .login-title {
+                font-size: 1.4rem;
+            }
+
+            .form-label {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-wrapper">
+
+        <section class="login-card">
+
+            <!-- COLUMNA IZQUIERDA: LOGO -->
+            <div class="login-brand">
+
+                <div class="logo-container">
+                    <img src="~/imagines/logo-ucad.png"
+                         alt="Logo de UCAD Santa Ana"
+                         class="logo-ucad" />
+                </div>
+
+                <p class="brand-name">
+                    Unión Cantonal de Asociaciones<br />
+                    de Desarrollo de Santa Ana
+                </p>
+
+            </div>
+
+            <!-- COLUMNA DERECHA: FORMULARIO -->
+            <div class="login-content">
+
+                <div class="login-header">
+
+                    <h1 class="login-title">
+                        Sistema Web de Gestión Financiera
+                    </h1>
+
+                    <p class="login-subtitle">
+                        Ingrese sus credenciales para acceder al sistema.
+                    </p>
+
+                </div>
+
+                <form asp-controller="Acceso"
+                      asp-action="Login"
+                      method="post">
+
+                  
+
+                    <!-- CORREO -->
+                    <div class="form-group-login">
+
+                        <label asp-for="Email"
+                               class="form-label">
+                            Correo electrónico
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+
+                            <input asp-for="Email"
+                                   class="form-control"
+                                   placeholder="Ingrese su correo electrónico"
+                                   autocomplete="username"
+                                   autofocus />
+
+                        </div>
+
+                        <span asp-validation-for="Email"
+                              class="text-danger validation-message">
+                        </span>
+
+                    </div>
+
+                    <!-- CONTRASEÑA -->
+                    <div class="form-group-login">
+
+                        <label asp-for="Password"
+                               class="form-label">
+                            Contraseña
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+
+                            <input asp-for="Password"
+                                   id="Password"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="Ingrese su contraseña"
+                                   autocomplete="current-password" />
+
+                            <button type="button"
+                                    class="btn btn-password"
+                                    id="btnMostrarPassword"
+                                    aria-label="Mostrar u ocultar contraseña">
+
+                                <i class="fas fa-eye"
+                                   id="iconoPassword"></i>
+
+                            </button>
+
+                        </div>
+
+                        <span asp-validation-for="Password"
+                              class="text-danger validation-message">
+                        </span>
+
+                    </div>
+
+                    <!-- BOTÓN -->
+                    <button type="submit"
+                            class="btn btn-login">
+
+                        <i class="fas fa-right-to-bracket me-2"></i>
+
+                        Ingresar al sistema
+
+                    </button>
+
+                </form>
+
+                <footer class="login-footer">
+                    Sistema Web de Gestión Financiera<br />
+                    UCAD Santa Ana · Costa Rica © 2026
+                </footer>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const mensajeLogin = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(
+            ViewBag.LoginMensaje as string ?? ""
+            )
+            );
+
+        const tipoLogin = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(
+            ViewBag.LoginTipo as string ?? "error"
+            )
+            );
+
+        if (mensajeLogin) {
+            Swal.fire({
+                icon: tipoLogin,
+                title: tipoLogin === "warning"
+                    ? "Acceso no disponible"
+                    : "Error al iniciar sesión",
+                text: mensajeLogin,
+                confirmButtonText: "Entendido",
+                confirmButtonColor: "#0F7C90",
+                allowOutsideClick: false,
+                allowEscapeKey: true
+            });
+       
+        }
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const botonPassword =
+            document.getElementById("btnMostrarPassword");
+
+        const campoPassword =
+            document.getElementById("Password");
+
+        const iconoPassword =
+            document.getElementById("iconoPassword");
+
+        botonPassword.addEventListener("click", function () {
+
+            const passwordOculto =
+                campoPassword.type === "password";
+
+            campoPassword.type =
+                passwordOculto ? "text" : "password";
+
+            iconoPassword.classList.toggle(
+                "fa-eye",
+                !passwordOculto
+            );
+
+            iconoPassword.classList.toggle(
+                "fa-eye-slash",
+                passwordOculto
+            );
+        });
+    </script>
+</body>
+</html>

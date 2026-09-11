@@ -1,0 +1,552 @@
+﻿@{
+    ViewData["Title"] = "Reporte de Cierre Contable";
+
+    int anio = ViewBag.Anio ?? DateTime.Now.Year;
+    int mes = ViewBag.Mes ?? 0;
+
+    bool esConsultaAnual =
+        ViewBag.EsConsultaAnual ?? false;
+
+    string nombrePeriodo =
+        ViewBag.NombrePeriodo ?? "";
+
+    string estado =
+        esConsultaAnual
+            ? "Consulta anual"
+            : ViewBag.EstadoPeriodo ?? "Abierto";
+
+    decimal totalIngresos =
+        ViewBag.TotalIngresos ?? 0m;
+
+    decimal totalGastos =
+        ViewBag.TotalGastos ?? 0m;
+
+    decimal resultado =
+        ViewBag.ResultadoPeriodo ?? 0m;
+
+    decimal totalDebe =
+        ViewBag.TotalDebe ?? 0m;
+
+    decimal totalHaber =
+        ViewBag.TotalHaber ?? 0m;
+
+    decimal diferencia =
+        ViewBag.Diferencia ?? 0m;
+
+    int cantidadMovimientos =
+        ViewBag.CantidadMovimientos ?? 0;
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion ?? DateTime.Now;
+}
+
+<div class="container-fluid py-3 reporte-cierre">
+
+    <!-- ========================================================= -->
+    <!-- BOTONES -->
+    <!-- ========================================================= -->
+    <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+
+        <button type="button"
+                onclick="window.print()"
+                class="btn btn-success btn-sm">
+
+            <i class="fa-solid fa-print me-1"></i>
+            Imprimir / Guardar PDF
+        </button>
+
+        <a asp-action="Index"
+           asp-route-anio="@anio"
+           asp-route-mes="@mes"
+           class="btn btn-dark btn-sm">
+
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Volver
+        </a>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- DOCUMENTO -->
+    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0 reporte-documento">
+
+        <div class="card-body p-4 p-md-5">
+
+
+            <!-- ENCABEZADO -->
+            <div class="text-center mb-4">
+
+                <h3 class="fw-bold mb-1"
+                    style="color:#0F5C64;">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+
+                </h3>
+
+                <h5 class="fw-bold mb-2">
+                    <i class="fas fa-book me-1"></i>
+                    Reporte de Cierre Contable
+                </h5>
+
+                <div class="text-muted small">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    Fecha de generación:
+                    @fechaGeneracion.ToString("dd/MM/yyyy hh:mm tt")
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PERÍODO -->
+            <!-- ================================================= -->
+            <div class="titulo-seccion">
+                Período consultado
+            </div>
+
+            <table class="table table-bordered mb-4">
+
+                <tbody>
+
+                    <tr>
+
+                        <th style="width:20%;">
+                            Período
+                        </th>
+
+                        <td style="width:30%;">
+                            @nombrePeriodo
+                        </td>
+
+                        <th style="width:20%;">
+                            Estado
+                        </th>
+
+                        <td style="width:30%;">
+                            @estado
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- ================================================= -->
+            <!-- RESUMEN FINANCIERO -->
+            <!-- ================================================= -->
+            <div class="titulo-seccion">
+                Resumen financiero
+            </div>
+
+            <table class="table table-bordered mb-4">
+
+                <tbody>
+
+                    <tr>
+
+                        <th>
+                            Ingresos
+                        </th>
+
+                        <td class="fw-bold text-success text-end">
+                            ₡@totalIngresos.ToString("N2")
+                        </td>
+
+                        <th>
+                            Gastos
+                        </th>
+
+                        <td class="fw-bold text-danger text-end">
+                            ₡@totalGastos.ToString("N2")
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <th>
+                            Resultado
+                        </th>
+
+                        <td class="fw-bold text-end
+                                   @(resultado >= 0
+                                       ? "text-primary"
+                                       : "text-danger")">
+
+                            @if (resultado >= 0)
+                            {
+                                <span>
+                                    ₡@resultado.ToString("N2")
+                                </span>
+                            }
+                            else
+                            {
+                                <span>
+                                    -₡@Math.Abs(resultado).ToString("N2")
+                                </span>
+                            }
+
+                        </td>
+
+                        <th>
+                            Movimientos contables
+                        </th>
+
+                        <td class="fw-bold text-end">
+                            @cantidadMovimientos
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- ================================================= -->
+            <!-- VALIDACIÓN CONTABLE -->
+            <!-- ================================================= -->
+            <div class="titulo-seccion">
+                Validación contable
+            </div>
+
+            <table class="table table-bordered mb-4">
+
+                <tbody>
+
+                    <tr>
+
+                        <th>
+                            Total Debe
+                        </th>
+
+                        <td class="fw-bold text-end">
+                            ₡@totalDebe.ToString("N2")
+                        </td>
+
+                        <th>
+                            Total Haber
+                        </th>
+
+                        <td class="fw-bold text-end">
+                            ₡@totalHaber.ToString("N2")
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <th>
+                            Diferencia
+                        </th>
+
+                        <td class="fw-bold text-end
+                                   @(diferencia == 0m
+                                       ? "text-success"
+                                       : "text-danger")">
+
+                            ₡@diferencia.ToString("N2")
+
+                        </td>
+
+                        <th>
+                            Estado contable
+                        </th>
+
+                        <td class="fw-bold
+                                   @(diferencia == 0m
+                                       ? "text-success"
+                                       : "text-danger")">
+
+                            @if (cantidadMovimientos == 0)
+                            {
+                                <span class="text-muted">
+                                    Sin movimientos
+                                </span>
+                            }
+                            else if (diferencia == 0m)
+                            {
+                                <span class="text-success">
+                                    Balanceado
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">
+                                    Desbalanceado
+                                </span>
+                            }
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+            @if (!esConsultaAnual)
+            {
+                <div class="resultado-interpretacion">
+
+                    <strong>Resultado del período:</strong>
+
+                    @if (cantidadMovimientos == 0)
+                    {
+                        <span>
+                            No existen movimientos financieros registrados para
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else if (resultado > 0)
+                    {
+                        <span>
+                            Los ingresos superaron los gastos en
+                            <strong>₡@resultado.ToString("N2")</strong>,
+                            generando un resultado positivo durante
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else if (resultado < 0)
+                    {
+                        <span>
+                            Los gastos superaron los ingresos en
+                            <strong>₡@Math.Abs(resultado).ToString("N2")</strong>,
+                            generando un resultado negativo durante
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            Los ingresos y los gastos fueron equivalentes durante
+                            @nombrePeriodo, por lo que el resultado del período
+                            fue de ₡0.00.
+                        </span>
+                    }
+
+                </div>
+            }
+            <!-- ================================================= -->
+            <!-- NOTA -->
+            <!-- ================================================= -->
+            <div class="small text-muted fst-italic mt-4">
+
+                @if (esConsultaAnual)
+                {
+                    <span>
+                        La información corresponde a una consulta
+                        acumulada del año @anio.
+                        No representa un cierre contable anual.
+                    </span>
+                }
+                else if (estado == "Cerrado")
+                {
+                    <span>
+                        La información corresponde a la fotografía
+                        contable almacenada al momento del cierre
+                        del período.
+                    </span>
+                }
+                else
+                {
+                    <span>
+                        La información corresponde al estado actual
+                        del período contable consultado.
+                    </span>
+                }
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PIE -->
+            <!-- ================================================= -->
+            <div class="text-center text-muted small mt-5 pt-3 border-top">
+
+                Sistema de Gestión Financiera
+                <br />
+
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .reporte-documento {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+    }
+
+    .titulo-seccion {
+        background-color: #0F6B73;
+        color: white;
+        font-weight: 700;
+        padding: 8px 12px;
+        margin-top: 20px;
+    }
+
+    .reporte-documento table th {
+        background-color: #F3F7F8;
+        vertical-align: middle;
+    }
+
+    .reporte-documento table td {
+        vertical-align: middle;
+    }
+
+    .resultado-interpretacion {
+        padding: 9px 12px;
+        margin: -5px 0 15px 0;
+        border: 1px solid #b8daff;
+        background-color: #eaf6ff;
+        color: #24445c;
+        font-size: 0.95rem;
+        border-radius: 3px;
+    }
+
+        .resultado-interpretacion strong {
+            font-weight: 700;
+        }
+    /* ============================================================
+           IMPRESIÓN / PDF
+           ============================================================ */
+    @@media print {
+        /* Ocultar elementos del sistema */
+        .no-print,
+        header,
+        nav,
+        footer,
+        aside,
+        .sidebar,
+        .navbar {
+            display: none !important;
+        }
+        /* Quitar espacios que deja el layout */
+        html,
+        body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+        }
+
+        .resultado-interpretacion {
+            padding: 7px 9px !important;
+            margin: -3px 0 12px 0 !important;
+            font-size: 10px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        main,
+        .main-content,
+        .content,
+        .content-wrapper,
+        .container,
+        .container-fluid {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            left: 0 !important;
+        }
+
+        .reporte-cierre {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .reporte-documento {
+            width: 85% !important;
+            max-width: 180mm !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+            .reporte-documento .card-body {
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Evitar que las tablas se salgan */
+            .reporte-documento table {
+                width: 100% !important;
+                table-layout: fixed !important;
+            }
+
+            .reporte-documento th,
+            .reporte-documento td {
+                white-space: normal !important;
+                overflow-wrap: break-word !important;
+            }
+
+        .reporte-documento {
+            font-size: 7px !important;
+        }
+
+            .reporte-documento h3 {
+                font-size: 18px !important;
+            }
+
+            .reporte-documento h5 {
+                font-size: 14px !important;
+            }
+
+            .reporte-documento th,
+            .reporte-documento td {
+                padding: 5px 7px !important;
+            }
+
+        .titulo-seccion {
+            padding: 5px 8px !important;
+        }
+
+        .resultado-interpretacion {
+            padding: 5px 7px !important;
+            font-size: 10px !important;
+        }
+        /* Conservar colores */
+        .titulo-seccion {
+            background-color: #0F6B73 !important;
+            color: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .reporte-documento table th {
+            background-color: #F3F7F8 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        /* Evitar cortes internos */
+        table,
+        tr,
+        td,
+        th {
+            page-break-inside: avoid !important;
+        }
+
+        @@page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+    }
+
+</style>

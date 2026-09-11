@@ -1,0 +1,55 @@
+﻿@model SistemaGestionFinanciera.Models.Usuario
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<h1>Eliminar Usuario</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DEL USUARIO
+    </div>
+
+    <div class="card-body">
+        <div class="alert alert-warning">
+            ¿Desea eliminar este usuario?
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Correo electrónico</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Rol</dt>
+            <dd class="col-sm-9">@Model.Rol?.Nombre</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">
+                @if (Model.Activo)
+                {
+                    <span class="badge bg-success">Activo</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Inactivo</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Fecha de creación</dt>
+            @(Model.FechaCreacion.HasValue ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm") : "Sin fecha")
+        </dl>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="IdUsuario" />
+
+            <input type="submit" value="Eliminar" class="btn btn-danger" />
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Volver al listado
+            </a>
+        </form>
+    </div>
+</div>

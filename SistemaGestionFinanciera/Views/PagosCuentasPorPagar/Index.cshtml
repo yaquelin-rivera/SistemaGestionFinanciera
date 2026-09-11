@@ -1,0 +1,581 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.PagosCuentaPorPagar>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Historial Pagos CxP";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="fw-bold mb-0">Gestionar pagos de cuentas por pagar</h2>
+    <small class="text-muted">
+        Consulta y trazabilidad de los pagos registrados en cuentas por pagar
+    </small>
+
+    
+    <!-- CARDS -->
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card card-resumen border-primary shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <div class="text-muted small mb-1">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <div class="fw-bold">
+                            Total pagado
+                        </div>
+
+                        <h5 class="fw-bold text-primary mb-0">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalPagosActivos)
+                        </h5>
+                    </div>
+
+                    <div class="fs-2 text-secondary opacity-50">
+                        <i class="fas fa-coins"></i>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen border-success shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <div class="text-muted small mb-1">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <div class="fw-bold">
+                            Pagos registrados
+                        </div>
+
+                        <h5 class="fw-bold text-success mb-0">
+                            @ViewBag.CantidadPagos
+                        </h5>
+                    </div>
+
+                    <div class="fs-2 text-secondary opacity-50">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen border-danger shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <div class="text-muted small mb-1">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <div class="fw-bold">
+                            Pagos anulados
+                        </div>
+
+                        <h5 class="fw-bold text-danger mb-0">
+                            @ViewBag.PagosAnulados
+                        </h5>
+                    </div>
+
+                    <div class="fs-2 text-secondary opacity-50">
+                        <i class="fas fa-ban"></i>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen border-warning shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div class="me-2">
+                        <div class="text-muted small mb-1">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <div class="fw-bold">
+                            Métodos utilizados
+                        </div>
+
+                        <div class="small fw-bold text-warning">
+                            @(string.IsNullOrWhiteSpace(ViewBag.MetodosUtilizados)
+                                ? "Sin registros"
+                                : ViewBag.MetodosUtilizados)
+                        </div>
+                    </div>
+
+                    <div class="fs-2 text-secondary opacity-50">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- FIN CARDS -->
+    <!-- FILTROS -->
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+
+                <div class="row mb-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold"><i class="fas fa-search text-muted me-1"></i>Buscar</label>
+                        <input type="text"
+                               name="buscar"
+                               value="@ViewBag.Buscar"
+                               class="form-control"
+                               placeholder="Proveedor o referencia" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">   <i class="fas fa-file-alt text-muted me-1"></i>Tipo documento</label>
+
+                        <select name="tipoDocumento" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            <option value="Obligación"
+                                    selected="@(ViewBag.TipoDocumento=="Obligación")">
+                                Obligación
+                            </option>
+
+                            <option value="Convenio"
+                                    selected="@(ViewBag.TipoDocumento=="Convenio")">
+                                Convenio
+                            </option>
+
+                            <option value="Honorarios"
+                                    selected="@(ViewBag.TipoDocumento=="Honorarios")">
+                                Honorarios
+                            </option>
+
+                            <option value="Préstamo"
+                                    selected="@(ViewBag.TipoDocumento=="Préstamo")">
+                                Préstamo
+                            </option>
+
+                            <option value="Ajuste"
+                                    selected="@(ViewBag.TipoDocumento=="Ajuste")">
+                                Ajuste
+                            </option>
+
+                            <option value="Servicio pendiente"
+                                    selected="@(ViewBag.TipoDocumento=="Servicio pendiente")">
+                                Servicio pendiente
+                            </option>
+
+                            <option value="Otro"
+                                    selected="@(ViewBag.TipoDocumento=="Otro")">
+                                Otro
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"> <i class="fas fa-info-circle text-muted me-1"></i>Estado</label>
+
+                        <select name="estado" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            <option value="Activo"
+                                    selected="@(ViewBag.Estado=="Activo")">
+                                Activo
+                            </option>
+
+                            <option value="Anulado"
+                                    selected="@(ViewBag.Estado=="Anulado")">
+                                Anulado
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"> <i class="fas fa-credit-card text-muted me-1"></i>Método</label>
+
+                        <select name="metodoPago" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            <option value="Efectivo"
+                                    selected="@(ViewBag.MetodoPago=="Efectivo")">
+                                Efectivo
+                            </option>
+
+                            <option value="Transferencia"
+                                    selected="@(ViewBag.MetodoPago=="Transferencia")">
+                                Transferencia
+                            </option>
+
+                            <option value="Depósito"
+                                    selected="@(ViewBag.MetodoPago=="Depósito")">
+                                Depósito
+                            </option>
+
+                            <option value="SINPE Móvil"
+                                    selected="@(ViewBag.MetodoPago=="SINPE Móvil")">
+                                SINPE Móvil
+                            </option>
+
+                            <option value="Cheque"
+                                    selected="@(ViewBag.MetodoPago=="Cheque")">
+                                Cheque
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold"> <i class="fas fa-project-diagram text-muted me-1"></i>Proyecto</label>
+
+                        <select name="proyectoId"
+                                class="form-control"
+                                asp-items="ViewBag.ProyectoId">
+
+                            <option value="">Todos</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">  <i class="fas fa-calendar-alt text-muted me-1"></i>Año</label>
+
+                        <select name="anio" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            @foreach (int item in ViewBag.Anios)
+                            {
+                                <option value="@item"
+                                        selected="@(ViewBag.Anio != null && (int)ViewBag.Anio == item)">
+                                    @item
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+       
+
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold"> <i class="fas fa-calendar text-muted me-1"></i>Mes</label>
+
+                        <select name="mes" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i"
+                                        selected="@(ViewBag.Mes != null && (int)ViewBag.Mes == i)">
+                                    @CultureInfo.GetCultureInfo("es-CR").DateTimeFormat.GetMonthName(i)
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">    <i class="fas fa-calendar-day text-muted me-1"></i>Desde</label>
+
+                        <input type="date"
+                               name="fechaInicio"
+                               value="@ViewBag.FechaInicio"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"> <i class="fas fa-calendar-check text-muted me-1"></i>Hasta</label>
+
+                        <input type="date"
+                               name="fechaFin"
+                               value="@ViewBag.FechaFin"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="d-flex gap-2 ">
+
+                            <button type="submit"
+                                    class="btn btn-primary flex-fill px-5">
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-secondary flex-fill px-5">
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+                            </a>
+
+                        </div>
+
+                        <div class="ms-auto d-flex gap-2">
+
+                            <a asp-action="Reporte"
+                               asp-route-buscar="@ViewBag.Buscar"
+                               asp-route-tipoDocumento="@ViewBag.TipoDocumento"
+                               asp-route-estado="@ViewBag.Estado"
+                               asp-route-metodoPago="@ViewBag.MetodoPago"
+                               asp-route-proyectoId="@ViewBag.ProyectoIdValor"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-fechaInicio="@ViewBag.FechaInicio"
+                               asp-route-fechaFin="@ViewBag.FechaFin"
+                               class="btn btn-info px-4 ">
+
+                                <i class="fas fa-print me-1"></i>
+                                Vista previa PDF
+
+                            </a>
+
+                            <a asp-action="ExportarExcel"
+                               asp-route-buscar="@ViewBag.Buscar"
+                               asp-route-tipoDocumento="@ViewBag.TipoDocumento"
+                               asp-route-estado="@ViewBag.Estado"
+                               asp-route-metodoPago="@ViewBag.MetodoPago"
+                               asp-route-proyectoId="@ViewBag.ProyectoIdValor"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-fechaInicio="@ViewBag.FechaInicio"
+                               asp-route-fechaFin="@ViewBag.FechaFin"
+                               class="btn btn-success px-4">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </a>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <!-- FIN FILTROS -->
+    <!-- TABLA -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-receipt me-2"></i>
+            Historial de pagos de cuentas por pagar
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+            <table id="tablaPagosCxP" class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Fecha de pago
+                            </th>
+
+                            <th>
+                                <i class="fas fa-file-alt me-1"></i>
+                                N.º documento
+                            </th>
+
+                            <th>
+                                <i class="fas fa-tags me-1"></i>
+                                Tipo de documento
+                            </th>
+
+                            <th>
+                                <i class="fas fa-random me-1"></i>
+                                Origen
+                            </th>
+
+                            <th>
+                                <i class="fas fa-truck me-1"></i>
+                                Proveedor
+                            </th>
+
+                            <th>
+                                <i class="fas fa-money-bill-wave me-1"></i>
+                                Monto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-credit-card me-1"></i>
+                                Método
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hashtag me-1"></i>
+                                Referencia
+                            </th>
+
+                            <th>
+                                <i class="fas fa-comment-alt me-1"></i>
+                                Observación
+                            </th>
+
+                            <th>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Estado
+                            </th>
+
+                            <th class="col-acciones">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.FechaPago.ToString("dd/MM/yyyy")</td>
+
+                                <td class="fw-semibold">
+                                    @(item.CuentaPorPagar?.NumeroDocumento ?? "Sin documento")
+                                </td>
+                                <td>
+                                    @(item.CuentaPorPagar?.TipoDocumento ?? "Sin tipo")
+                                </td>
+                            <td>
+                                @* Muestra el origen de la CxP asociada al pago. *@
+                                @if (item.CuentaPorPagar?.Origen == "Factura")
+                                {
+                                    <span class="badge bg-info text-dark">Factura</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Manual</span>
+                                }
+                            </td>
+                            <td>
+                                @(item.CuentaPorPagar?.Proveedor?.Nombre ?? "Sin proveedor")
+                            </td>
+
+                            <td class="fw-bold">
+                                ₡@((item.Monto ?? 0).ToString("N2"))
+                            </td>
+
+                            <td>@item.MetodoPago</td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.Referencia) ? "Sin referencia" : item.Referencia)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.Observacion) ? "Sin observación" : item.Observacion)
+                            </td>
+
+                            <td>
+                                @if (item.Anulado)
+                                {
+                                    <span class="badge bg-secondary">Anulado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Registrado</span>
+                                }
+                            </td>
+
+                            <td class="col-acciones">
+                                <div class="acciones-botones">
+
+
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.IdPagoCuentaPorPagar"
+                                       class="btn btn-primary btn-sm btn-accion">
+                                        <i class="fas fa-eye"></i> Detalles
+                                    </a>
+
+                                    @if (!item.Anulado)
+                                    {
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.IdPagoCuentaPorPagar"
+                                           class="btn btn-danger btn-sm btn-accion">
+                                            <i class="fas fa-trash"></i> Anular
+                                        </a>
+                                    }
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+              
+            </table>
+            </div>
+
+        </div>
+    </div>
+    <!-- FIN TABLA -->
+
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            if ($.fn.DataTable.isDataTable('#tablaPagosCxP')) {
+                $('#tablaPagosCxP').DataTable().destroy();
+            }
+
+            $('#tablaPagosCxP').DataTable({
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [],
+
+                columnDefs: [
+                    {
+                        targets: [10],
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+
+                language: {
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    zeroRecords: "No se encontraron pagos para mostrar",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "No hay pagos registrados",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    search: "Buscar en resultados:",
+                    emptyTable: "No hay pagos registrados",
+                    paginate: {
+                        first: "Primero",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Último"
+                    }
+                }
+            });
+
+        });
+    </script>
+}
+

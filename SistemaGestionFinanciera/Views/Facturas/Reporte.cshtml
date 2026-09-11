@@ -1,0 +1,1297 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Factura>
+
+@using System.Globalization
+
+@{
+    Layout = null;
+
+    ViewData["Title"] = "Reporte de Facturas";
+
+    var culturaCR = new CultureInfo("es-CR");
+
+    decimal totalVentas =
+        ViewBag.TotalVentas != null
+            ? Convert.ToDecimal(ViewBag.TotalVentas)
+            : 0m;
+
+    decimal totalCobrado =
+        ViewBag.TotalCobrado != null
+            ? Convert.ToDecimal(ViewBag.TotalCobrado)
+            : 0m;
+
+    decimal saldoPorCobrar =
+        ViewBag.SaldoPorCobrar != null
+            ? Convert.ToDecimal(ViewBag.SaldoPorCobrar)
+            : 0m;
+
+    decimal totalCompras =
+        ViewBag.TotalCompras != null
+            ? Convert.ToDecimal(ViewBag.TotalCompras)
+            : 0m;
+
+    decimal totalPagadoCompras =
+        ViewBag.TotalPagadoCompras != null
+            ? Convert.ToDecimal(ViewBag.TotalPagadoCompras)
+            : 0m;
+
+    decimal saldoPorPagar =
+        ViewBag.SaldoPorPagar != null
+            ? Convert.ToDecimal(ViewBag.SaldoPorPagar)
+            : 0m;
+
+    decimal saldoTotalPendiente =
+        saldoPorCobrar + saldoPorPagar;
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion != null
+            ? Convert.ToDateTime(ViewBag.FechaGeneracion)
+            : DateTime.Now;
+
+    string nombreMes = "";
+
+    if (ViewBag.Mes != null)
+    {
+        int numeroMes = Convert.ToInt32(ViewBag.Mes);
+
+        nombreMes = culturaCR.DateTimeFormat.GetMonthName(numeroMes);
+
+        if (!string.IsNullOrWhiteSpace(nombreMes))
+        {
+            nombreMes =
+                char.ToUpper(nombreMes[0]) +
+                nombreMes.Substring(1);
+        }
+    }
+
+    var filtros = new List<string>();
+
+    if (!string.IsNullOrWhiteSpace(ViewBag.TipoFactura as string))
+    {
+        filtros.Add($"Tipo de factura: {ViewBag.TipoFactura}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(ViewBag.Estado as string))
+    {
+        filtros.Add($"Estado: {ViewBag.Estado}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(ViewBag.CondicionPago as string))
+    {
+        filtros.Add($"Condición de pago: {ViewBag.CondicionPago}");
+    }
+
+    if (ViewBag.ClienteId != null)
+    {
+        filtros.Add(
+            $"Cliente: {ViewBag.NombreCliente ?? "Sin nombre"}");
+    }
+
+    if (ViewBag.ProveedorId != null)
+    {
+        filtros.Add(
+            $"Proveedor: {ViewBag.NombreProveedor ?? "Sin nombre"}");
+    }
+
+    if (ViewBag.ProyectoId != null)
+    {
+        filtros.Add(
+            $"Proyecto: {ViewBag.NombreProyecto ?? "Sin nombre"}");
+    }
+
+    if (ViewBag.Anio != null)
+    {
+        filtros.Add($"Año: {ViewBag.Anio}");
+    }
+
+    if (ViewBag.Mes != null)
+    {
+        filtros.Add($"Mes: {nombreMes}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(ViewBag.FechaDesde as string))
+    {
+        filtros.Add($"Desde: {ViewBag.FechaDesde}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(ViewBag.FechaHasta as string))
+    {
+        filtros.Add($"Hasta: {ViewBag.FechaHasta}");
+    }
+    @if (ViewBag.ProximasVencer == true)
+    {
+        <span class="filtro-item">
+            <strong>Vencimiento:</strong>
+            Próximos 7 días
+        </span>
+    }
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 15px 0 30px;
+            background: #f4f6f7;
+            color: #212529;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .reporte-container {
+            width: calc(100% - 30px);
+            max-width: none;
+            margin: auto;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #d8dee2;
+            border-radius: 8px;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .acciones-reporte {
+            display: flex;
+            width: calc(100% - 30px);
+            max-width: none;
+            margin: 0 auto 10px;
+            padding-right: 4px;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .encabezado-reporte {
+            width: 100%;
+            margin: auto;
+            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #0f7c90;
+        }
+
+            .encabezado-reporte h2 {
+                margin: 0;
+                color: #15454d;
+                font-size: 1.20rem;
+                font-weight: 800;
+            }
+
+            .encabezado-reporte h4 {
+                margin: 5px 0 0;
+                color: #394b4f;
+                font-size: 1.10rem;
+                font-weight: 700;
+            }
+
+        .fecha-generacion {
+            margin-top: 6px;
+            color: #5e676b;
+            font-size: 0.99rem;
+        }
+
+        .filtros-reporte {
+            width: 100%;
+            margin: 12px auto;
+            padding: 5px 8px;
+            background: #eef6f7;
+            border: 1px solid #c9dde0;
+            border-left: 4px solid #0f7c90;
+            border-radius: 5px;
+        }
+
+        .titulo-filtros {
+            margin-bottom: 4px;
+            color: #15454d;
+            font-size: 1.10rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .lista-filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 16px;
+            font-size: 1rem;
+        }
+
+        .filtro-item strong {
+            color: #15454d;
+        }
+
+        .tarjeta-resumen {
+            height: 100%;
+            padding: 10px 8px;
+            background: #ffffff;
+            border: 1px solid #d5e2e4;
+            border-top: 4px solid #0f7c90;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+            .tarjeta-resumen .icono {
+                margin-bottom: 4px;
+                color: #0f7c90;
+                font-size: 1.1rem;
+            }
+
+            .tarjeta-resumen .titulo {
+                margin-bottom: 3px;
+                color: #59666a;
+                font-size: 0.85rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .tarjeta-resumen .valor {
+                color: #15454d;
+                font-size: 1rem;
+                font-weight: 800;
+            }
+
+        .tarjeta-ventas {
+            border-top-color: #198754;
+        }
+
+            .tarjeta-ventas .icono,
+            .tarjeta-ventas .valor {
+                color: #198754;
+            }
+
+        .tarjeta-compras {
+            border-top-color: #0d6efd;
+        }
+
+            .tarjeta-compras .icono,
+            .tarjeta-compras .valor {
+                color: #0d6efd;
+            }
+
+        .tarjeta-pendiente {
+            border-top-color: #dc3545;
+        }
+
+            .tarjeta-pendiente .icono,
+            .tarjeta-pendiente .valor {
+                color: #b02a37;
+            }
+
+        .table-responsive {
+            width: 100%;
+            margin: 12px auto 0;
+            overflow-x: auto;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+            font-size: 1.15rem;
+        }
+
+            .tabla-reporte th {
+                padding: 6px 4px;
+                background: #0f5c64;
+                color: #ffffff;
+                border: 1px solid #ffffff;
+                text-align: center;
+                vertical-align: middle;
+                white-space: normal;
+            }
+
+            .tabla-reporte td {
+                padding: 5px 4px;
+                border: 1px solid #c8d0d3;
+                vertical-align: middle;
+            }
+
+            .tabla-reporte tbody tr:nth-child(even) {
+                background: #f7f9fa;
+            }
+
+            .tabla-reporte td:nth-child(1),
+            .tabla-reporte td:nth-child(2),
+            .tabla-reporte td:nth-child(3),
+            .tabla-reporte td:nth-child(4),
+            .tabla-reporte td:nth-child(5),
+            .tabla-reporte td:nth-child(8) {
+                text-align: center;
+            }
+
+            .tabla-reporte td:nth-child(9),
+            .tabla-reporte td:nth-child(10),
+            .tabla-reporte td:nth-child(11),
+            .tabla-reporte td:nth-child(12),
+            .tabla-reporte td:nth-child(13),
+            .tabla-reporte td:nth-child(14) {
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .tabla-reporte td:nth-child(12),
+            .tabla-reporte td:nth-child(13),
+            .tabla-reporte td:nth-child(14) {
+                font-weight: 700;
+            }
+
+        .badge-reporte {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .estado-verde {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .estado-amarillo {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .estado-rojo {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .estado-gris {
+            background: #e2e3e5;
+            color: #41464b;
+        }
+
+        .estado-azul {
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        .fila-anulada td {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+        }
+
+        .sin-registros {
+            padding: 22px !important;
+            color: #6c757d;
+            font-size: 1rem;
+            text-align: center !important;
+        }
+
+        .totales-reporte {
+            width: 100%;
+            margin: 10px auto 0;
+            padding: 8px;
+            background: #cfe5e8;
+            border: 1px solid #b8d4d8;
+            border-radius: 5px;
+        }
+
+            .totales-reporte .titulo-total {
+                margin-bottom: 6px;
+                color: #15454d;
+                font-size: 1.15rem;
+                font-weight: 800;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+        .total-item {
+            padding: 4px;
+            text-align: center;
+        }
+
+            .total-item .cantidad {
+                display: block;
+                color: #15454d;
+                font-size: 1.25rem;
+                font-weight: 800;
+            }
+
+            .total-item .descripcion {
+                display: block;
+                color: #5c686c;
+                font-size: 1.25rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+
+        /* =========================================================
+                   FILAS DE TOTALES DE LA TABLA
+                ========================================================= */
+
+        .fila-total-ventas td,
+        .fila-total-compras td {
+            padding: 6px 4px;
+            background: #cfe5e8 !important;
+            color: #123f46;
+            font-size: 1.15rem;
+            font-weight: 800;
+            border: 1px solid #abcbd0;
+        }
+
+        .fila-total-compras td {
+            background: #dce9f8 !important;
+        }
+
+        .etiqueta-total {
+            text-align: right !important;
+            letter-spacing: 0.2px;
+        }
+
+        .monto-total {
+            text-align: right !important;
+            white-space: nowrap;
+        }
+
+        .estado-resumen {
+            width: 100%;
+            margin: 10px auto 0;
+            padding: 8px;
+            background: #eef6f7;
+            border: 1px solid #c9dde0;
+            border-radius: 6px;
+        }
+
+            .estado-resumen h5 {
+                margin: 0 0 7px;
+                color: #15454d;
+                font-size: 1.25rem;
+                font-weight: 800;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+        .resumen-item {
+            padding: 5px;
+            text-align: center;
+        }
+
+            .resumen-item .cantidad {
+                display: block;
+                color: #15454d;
+                font-size: 1.25rem;
+                font-weight: 800;
+            }
+
+            .resumen-item .descripcion {
+                display: block;
+                color: #5c686c;
+                font-size: 1rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+        .etiqueta-total {
+            text-align: right;
+            font-weight: 700;
+            white-space: nowrap;
+            padding-right: 8px !important;
+        }
+
+        .monto-total {
+            text-align: right;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .solo-impresion {
+            display: none;
+        }
+        @@media print {
+
+            @@page {
+                size: A4 landscape;
+                margin: 7mm;
+            }
+            body {
+                padding: 0;
+                background: #ffffff;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-imprimir,
+            .acciones-reporte {
+                display: none !important;
+            }
+
+            .reporte-container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .encabezado-reporte,
+            .filtros-reporte,
+            .cards-reporte,
+            .table-responsive,
+            .estado-resumen {
+                width: 98% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            .cards-reporte {
+                margin-top: 4px !important;
+                margin-bottom: 0 !important;
+                --bs-gutter-x: 4px !important;
+                --bs-gutter-y: 4px !important;
+            }
+
+                .cards-reporte > * {
+                    padding-left: 2px !important;
+                    padding-right: 2px !important;
+                } 
+            .fila-total-ventas td,
+            .fila-total-compras td {
+                padding: 2px 1px;
+                font-size: 8pt;
+                line-height: 1;
+            }
+
+            .encabezado-reporte {
+                padding-bottom: 4px;
+            }
+
+                .encabezado-reporte h2 {
+                    font-size: 10pt;
+                    white-space: nowrap;
+                }
+
+                .encabezado-reporte h4 {
+                    font-size: 9pt;
+                }
+
+            .fecha-generacion,
+            .lista-filtros {
+                font-size: 8pt;
+            }
+
+            .filtros-reporte {
+                margin-top: 4px;
+                margin-bottom: 4px;
+                padding: 3px 5px;
+            }
+
+            .titulo-filtros {
+                font-size: 8pt;
+            }
+
+            .row.g-3 {
+                --bs-gutter-x: 4px !important;
+                --bs-gutter-y: 4px !important;
+            }
+
+            .tarjeta-resumen {
+                padding: 3px;
+                border-top-width: 2px;
+            }
+
+                .tarjeta-resumen .icono {
+                    margin-bottom: 0;
+                    font-size: 8pt;
+                }
+
+                .tarjeta-resumen .titulo {
+                    margin-bottom: 0;
+                    font-size: 7.5pt;
+                }
+
+                .tarjeta-resumen .valor {
+                    font-size: 7.5pt;
+                }
+
+            .table-responsive {
+                margin-top: 4px;
+                overflow: visible !important;
+            }
+
+            .tabla-reporte {
+                width: 100% !important;
+                table-layout: fixed;
+                font-size: 8.5pt;
+            }
+
+                .tabla-reporte th {
+                    padding: 1.5px 1px;
+                    font-size: 8.5pt;
+                    line-height: 1;
+                }
+
+                .tabla-reporte td {
+                    padding: 1.5px 1px;
+                    font-size: 8.5pt;
+                    line-height: 1;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+
+                /* Número */
+                .tabla-reporte th:nth-child(1),
+                .tabla-reporte td:nth-child(1) {
+                    width: 8%;
+                }
+                /* Tipo */
+                .tabla-reporte th:nth-child(2),
+                .tabla-reporte td:nth-child(2) {
+                    width: 4%;
+                }
+                /* Condición */
+                .tabla-reporte th:nth-child(3),
+                .tabla-reporte td:nth-child(3) {
+                    width: 6%;
+                }
+                /* Emisión y vencimiento */
+                .tabla-reporte th:nth-child(4),
+                .tabla-reporte td:nth-child(4),
+                .tabla-reporte th:nth-child(5),
+                .tabla-reporte td:nth-child(5) {
+                    width: 6%;
+                }
+                /* Cliente / proveedor */
+                .tabla-reporte th:nth-child(6),
+                .tabla-reporte td:nth-child(6) {
+                    width: 12%;
+                }
+
+            .columna-proyecto {
+                display: none !important;
+            }
+                /* Estado */
+                .tabla-reporte th:nth-child(8),
+                .tabla-reporte td:nth-child(8) {
+                    width: 7%;
+                }
+                /* Subtotal, descuento, impuesto, total, pagado y saldo */
+                .tabla-reporte th:nth-child(9),
+                .tabla-reporte td:nth-child(9),
+                .tabla-reporte th:nth-child(10),
+                .tabla-reporte td:nth-child(10),
+                .tabla-reporte th:nth-child(11),
+                .tabla-reporte td:nth-child(11),
+                .tabla-reporte th:nth-child(12),
+                .tabla-reporte td:nth-child(12),
+                .tabla-reporte th:nth-child(13),
+                .tabla-reporte td:nth-child(13),
+                .tabla-reporte th:nth-child(14),
+                .tabla-reporte td:nth-child(14) {
+                    width: 8.5%;
+                }
+
+     
+            .badge-reporte {
+                padding: 1px 2px;
+                border-radius: 3px;
+                font-size: 8.5pt;
+                line-height: 1;
+                white-space: normal;
+            }
+
+            .columna-proyecto {
+                display: none !important;
+            }
+            /* =========================================================
+           TOTALES DE LA TABLA EN IMPRESIÓN
+           ========================================================= */
+
+            .fila-total-ventas td,
+            .fila-total-compras td {
+                padding: 3px 2px !important;
+                font-size: 7.5pt !important;
+                line-height: 1.15 !important;
+                vertical-align: middle !important;
+            }
+
+            tfoot .etiqueta-total {
+                padding-right: 5px !important;
+                font-size: 7.5pt !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                text-align: right !important;
+                white-space: nowrap !important;
+            }
+
+            tfoot .monto-total {
+                padding: 3px 2px !important;
+                font-size: 7.5pt !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                text-align: right !important;
+                white-space: nowrap !important;
+            }
+
+         
+
+            .totales-reporte,
+            .estado-resumen {
+                margin-top: 3px;
+                padding: 3px;
+                page-break-inside: avoid;
+            }
+
+                .totales-reporte .titulo-total,
+                .estado-resumen h5 {
+                    margin-bottom: 1px;
+                    font-size: 8pt;
+                }
+
+            .total-item,
+            .resumen-item {
+                padding: 0;
+            }
+
+                .total-item .cantidad,
+                .resumen-item .cantidad {
+                    font-size: 8pt;
+                    line-height: 1;
+                }
+
+                .total-item .descripcion,
+                .resumen-item .descripcion {
+                    font-size: 8pt;
+                    line-height: 1;
+                }
+
+            .solo-pantalla {
+                display: none !important;
+            }
+
+            .solo-impresion {
+                display: table-row !important;
+            }
+
+            tfoot {
+                display: table-row-group !important;
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="acciones-reporte no-imprimir">
+
+        <button type="button"
+                class="btn btn-info px-3"
+                onclick="window.print();">
+
+            <i class="fas fa-print me-1"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <a asp-action="Index"
+           asp-route-tipoFactura="@ViewBag.TipoFactura"
+           asp-route-estado="@ViewBag.Estado"
+           asp-route-condicionPago="@ViewBag.CondicionPago"
+           asp-route-clienteId="@ViewBag.ClienteId"
+           asp-route-proveedorId="@ViewBag.ProveedorId"
+           asp-route-proyectoId="@ViewBag.ProyectoId"
+           asp-route-anio="@ViewBag.Anio"
+           asp-route-mes="@ViewBag.Mes"
+           asp-route-fechaDesde="@ViewBag.FechaDesde"
+           asp-route-fechaHasta="@ViewBag.FechaHasta"
+           asp-route-proximasVencer="@ViewBag.ProximasVencer"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Volver
+        </a>
+
+    </div>
+
+    <div class="reporte-container">
+
+        <div class="encabezado-reporte">
+
+            <h2>
+                <i class="fas fa-chart-pie me-2"></i>
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+            </h2>
+
+            <h4>
+                <i class="fas fa-file-invoice-dollar me-1"></i>
+                Reporte General de Facturas
+            </h4>
+
+            <div class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+
+                Fecha de generación:
+
+                <strong>
+                    @fechaGeneracion.ToString(
+                             "dd/MM/yyyy HH:mm",
+                             culturaCR)
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div class="filtros-reporte">
+
+            <div class="titulo-filtros">
+                <i class="fas fa-filter me-1"></i>
+                Filtros aplicados
+            </div>
+
+            <div class="lista-filtros">
+
+                @if (filtros.Any())
+                {
+                    foreach (var filtro in filtros)
+                    {
+                        <div class="filtro-item">
+                            @filtro
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="filtro-item">
+                        Sin filtros. Se muestran todas las facturas.
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="row g-3 cards-reporte">
+
+            <div class="col-6 col-md-3">
+                <div class="tarjeta-resumen">
+
+                    <div class="icono">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Total registros
+                    </div>
+
+                    <div class="valor">
+                        @ViewBag.TotalRegistros
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="tarjeta-resumen tarjeta-ventas">
+
+                    <div class="icono">
+                        <i class="fas fa-arrow-trend-up"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Total ventas
+                    </div>
+
+                    <div class="valor">
+                        @totalVentas.ToString("C2", culturaCR)
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="tarjeta-resumen tarjeta-compras">
+
+                    <div class="icono">
+                        <i class="fas fa-cart-shopping"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Total compras
+                    </div>
+
+                    <div class="valor">
+                        @totalCompras.ToString("C2", culturaCR)
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="tarjeta-resumen tarjeta-pendiente">
+
+                    <div class="icono">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Saldo total pendiente
+                    </div>
+
+                    <div class="valor">
+                        @saldoTotalPendiente.ToString("C2", culturaCR)
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="tabla-reporte">
+
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Tipo</th>
+                        <th>Condición</th>
+                        <th>Emisión</th>
+                        <th>Vencimiento</th>
+                        <th>Cliente / Proveedor</th>
+                        <th class="columna-proyecto">Proyecto</th>
+                        <th>Estado</th>
+                        <th>Subtotal</th>
+                        <th>Descuento</th>
+                        <th>Impuesto</th>
+                        <th>Total</th>
+                        <th>Pagado</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            string tercero =
+                            item.TipoFactura == "Venta"
+                            ? item.ClienteBeneficiario?.Nombre
+                            ?? "Sin cliente"
+                            : item.Proveedor?.Nombre
+                            ?? "Sin proveedor";
+
+                            string claseEstado =
+                            item.Estado switch
+                            {
+                                "Pagada" => "estado-verde",
+                                "Pendiente" => "estado-amarillo",
+                                "Vencida" => "estado-rojo",
+                                "Anulada" => "estado-gris",
+                                _ => "estado-azul"
+                            };
+
+                            string claseFila =
+                            item.Estado == "Anulada"
+                            ? "fila-anulada"
+                            : "";
+
+                            <tr class="@claseFila">
+
+                                <td>
+                                    @(item.NumeroFactura ?? "Sin número")
+                                </td>
+
+                                <td>
+                                    @(item.TipoFactura ?? "Sin tipo")
+                                </td>
+
+                                <td>
+                                    @(item.CondicionPago ?? "Sin condición")
+                                </td>
+
+                                <td>
+                                    @item.FechaEmision.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    @(item.FechaVencimiento.HasValue
+                                        ? item.FechaVencimiento.Value
+                                        .ToString("dd/MM/yyyy")
+                                        : "Sin vencimiento")
+                                </td>
+
+                                <td>
+                                    @tercero
+                                </td>
+
+                                <td class="columna-proyecto">
+                                    @(item.Proyecto?.Nombre ?? "Sin proyecto")
+                                </td>
+
+                                <td>
+                                    <span class="badge-reporte @claseEstado">
+                                        @(item.Estado ?? "Sin estado")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @item.SubTotal.ToString("C2", culturaCR)
+                                </td>
+
+                                <td>
+                                    @((item.DescuentoTotal ?? 0m)
+                                        .ToString("C2", culturaCR))
+                                </td>
+
+                                <td>
+                                    @item.ImpuestoTotal.ToString("C2", culturaCR)
+                                </td>
+
+                                <td>
+                                    @item.Total.ToString("C2", culturaCR)
+                                </td>
+
+                                <td>
+                                    @item.MontoPagado.ToString("C2", culturaCR)
+                                </td>
+
+                                <td>
+                                    @item.SaldoPendiente.ToString("C2", culturaCR)
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="14"
+                                class="sin-registros">
+
+                                <i class="fas fa-circle-info me-1"></i>
+
+                                No existen facturas que coincidan
+                                con los filtros aplicados.
+
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+                @if (Model != null && Model.Any())
+                {
+                    <tfoot>
+                        @* =====================================================
+                    TOTALES PARA PANTALLA: 14 COLUMNAS
+                    Incluye la columna Proyecto
+                    ===================================================== *@
+
+                        <tr class="fila-total-ventas solo-pantalla">
+                            <td colspan="8"></td>
+
+                            <td colspan="3" class="etiqueta-total">
+                                TOTALES DE VENTAS
+                            </td>
+
+                            <td class="monto-total">
+                                @totalVentas.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @totalCobrado.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @saldoPorCobrar.ToString("C2", culturaCR)
+                            </td>
+                        </tr>
+
+                        <tr class="fila-total-compras solo-pantalla">
+                            <td colspan="8"></td>
+
+                            <td colspan="3" class="etiqueta-total">
+                                TOTALES DE COMPRAS
+                            </td>
+
+                            <td class="monto-total">
+                                @totalCompras.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @totalPagadoCompras.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @saldoPorPagar.ToString("C2", culturaCR)
+                            </td>
+                        </tr>
+
+
+                        @* =====================================================
+                    TOTALES PARA IMPRESIÓN: 13 COLUMNAS
+                    No incluye la columna Proyecto
+                    ===================================================== *@
+
+                        <tr class="fila-total-ventas solo-impresion">
+                            <td colspan="7"></td>
+
+                            <td colspan="3" class="etiqueta-total">
+                                TOTALES DE VENTAS
+                            </td>
+
+                            <td class="monto-total">
+                                @totalVentas.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @totalCobrado.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @saldoPorCobrar.ToString("C2", culturaCR)
+                            </td>
+                        </tr>
+
+                        <tr class="fila-total-compras solo-impresion">
+                            <td colspan="7"></td>
+
+                            <td colspan="3" class="etiqueta-total">
+                                TOTALES DE COMPRAS
+                            </td>
+
+                            <td class="monto-total">
+                                @totalCompras.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @totalPagadoCompras.ToString("C2", culturaCR)
+                            </td>
+
+                            <td class="monto-total">
+                                @saldoPorPagar.ToString("C2", culturaCR)
+                            </td>
+                        </tr>
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+        <div class="estado-resumen">
+
+            <h5>
+                <i class="fas fa-chart-pie me-1"></i>
+                Resumen del estado de las facturas
+            </h5>
+
+            <div class="row g-1 cards-reporte">
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadVentas
+                        </span>
+                        <span class="descripcion">
+                            Ventas
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadCompras
+                        </span>
+                        <span class="descripcion">
+                            Compras
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadPagadas
+                        </span>
+                        <span class="descripcion">
+                            Pagadas
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadPendientes
+                        </span>
+                        <span class="descripcion">
+                            Pendientes
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadVencidas
+                        </span>
+                        <span class="descripcion">
+                            Vencidas
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="resumen-item">
+                        <span class="cantidad">
+                            @ViewBag.CantidadAnuladas
+                        </span>
+                        <span class="descripcion">
+                            Anuladas
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"
+            asp-append-version="true">
+    </script>
+
+</body>
+
+</html>

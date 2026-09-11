@@ -1,0 +1,1165 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Proyecto>
+
+@{
+    Layout = null;
+
+    var proyectos = Model?.ToList()
+                    ?? new List<SistemaGestionFinanciera.Models.Proyecto>();
+
+    string nombreFiltro = ViewBag.Nombre as string;
+    string estadoFiltro = ViewBag.Estado as string;
+
+    DateOnly? fechaInicioFiltro = ViewBag.FechaInicio;
+    DateOnly? fechaFinFiltro = ViewBag.FechaFin;
+
+    int totalProyectos = ViewBag.TotalProyectos ?? proyectos.Count;
+
+    int totalActivos = ViewBag.TotalActivos
+                       ?? proyectos.Count(p => p.Activo);
+
+    int totalInactivos = ViewBag.TotalInactivos
+                         ?? proyectos.Count(p => !p.Activo);
+
+    decimal presupuestoTotal = ViewBag.PresupuestoTotal
+                               ?? proyectos.Sum(p =>
+                                   p.PresupuestoAsignado ?? 0);
+
+    int proyectosConPresupuestoAprobado =
+        ViewBag.ProyectosConPresupuestoAprobado
+        ?? proyectos.Count(p =>
+            p.PresupuestosMensuales != null &&
+            p.PresupuestosMensuales.Any(pm =>
+                pm.EstadoAprobacion == "Aprobado"));
+
+    bool hayFiltros =
+  !string.IsNullOrWhiteSpace(nombreFiltro) ||
+  !string.IsNullOrWhiteSpace(estadoFiltro) ||
+  fechaInicioFiltro.HasValue ||
+  fechaFinFiltro.HasValue;
+
+    DateTime fechaGeneracion = ViewBag.FechaGeneracion
+                               ?? DateTime.Now;
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Reporte de proyectos</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+   
+</head>
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f4f6f7;
+        color: #253238;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* =====================================================
+           BOTONES
+        ===================================================== */
+
+    .acciones-superiores {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 8px 15px 0;
+    }
+
+        .acciones-superiores .btn {
+            min-width: 0;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+    /* =====================================================
+           CONTENEDOR
+        ===================================================== */
+
+    .reporte-contenedor {
+        width: calc(100% - 14px);
+        margin: 8px auto 20px;
+        padding: 18px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .reporte-documento {
+        width: 100%;
+    }
+
+    /* =====================================================
+           ENCABEZADO
+        ===================================================== */
+    .encabezado-reporte {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        text-align: center;
+        border-bottom: 3px solid #0f7c90;
+    }
+
+    .nombre-institucion {
+        margin: 0;
+        color: #15454d; /* verde institucional */
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .titulo-reporte {
+        margin: 4px 0 0;
+        color: #394b4f; /* gris oscuro */
+        font-size: 0.35rem; /* aproximadamente la mitad */
+        font-weight: 500;
+        line-height: 1.1;
+    }
+
+    .fecha-generacion {
+        margin-top: 3px;
+        color: #5e676b;
+        font-size: 0.85rem;
+        line-height: 1.1;
+    }
+
+
+
+    /* =====================================================
+           FILTROS
+        ===================================================== */
+
+    .seccion-reporte {
+        margin-bottom: 12px;
+        padding: 10px;
+        background: #f5f8f8;
+        border: 1px solid #cedadd;
+        border-left: 4px solid #0f7c90;
+        border-radius: 5px;
+    }
+
+    .filtros-compactos {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+    }
+
+    .titulo-seccion {
+        color: #0f5c64;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .filtros-detalle {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px 14px;
+        font-size: 0.99rem;
+    }
+
+    .filtro-compacto {
+        color: #253238;
+        white-space: nowrap;
+    }
+
+        .filtro-compacto strong {
+            color: #0f5c64;
+        }
+
+    .sin-filtros {
+        color: #5f6b70;
+        font-size: 0.99rem;
+    }
+
+    /* =====================================================
+           TÍTULOS DE SECCIÓN
+        ===================================================== */
+
+    .seccion-titulo {
+        margin: 8px 0 7px;
+        color: #0f5c64;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    /* =====================================================
+           TARJETAS
+        ===================================================== */
+
+    .resumen-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(150px, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .resumen-card {
+        height: 100%;
+        min-height: 88px;
+        padding: 10px 7px;
+        text-align: center;
+        background: #ffffff;
+        border: 1px solid #d5e2e4;
+        border-top: 4px solid #0f7c90;
+        border-radius: 6px;
+    }
+
+    .icono-resumen {
+        display: block;
+        margin-bottom: 3px;
+        color: #0f7c90;
+        font-size: 1.05rem;
+    }
+
+    .resumen-label {
+        display: block;
+        margin-bottom: 3px;
+        color: #59666a;
+        font-size: 0.80rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .resumen-valor {
+        color: #15454d;
+        font-size: 0.95rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .resumen-valor.moneda {
+            font-size: 0.90rem;
+        }
+
+    .resumen-card.activos {
+        border-top-color: #198754;
+    }
+
+        .resumen-card.activos .icono-resumen,
+        .resumen-card.activos .resumen-valor {
+            color: #198754;
+        }
+
+    .resumen-card.inactivos {
+        border-top-color: #6c757d;
+    }
+
+        .resumen-card.inactivos .icono-resumen,
+        .resumen-card.inactivos .resumen-valor {
+            color: #6c757d;
+        }
+
+    .resumen-card.aprobados {
+        border-top-color: #0d6efd;
+    }
+
+        .resumen-card.aprobados .icono-resumen,
+        .resumen-card.aprobados .resumen-valor {
+            color: #0d6efd;
+        }
+
+    .resumen-card.presupuesto {
+        border-top-color: #f0ad00;
+    }
+
+        .resumen-card.presupuesto .icono-resumen,
+        .resumen-card.presupuesto .resumen-valor {
+            color: #a66b00;
+        }
+
+    /* =====================================================
+           TABLA
+        ===================================================== */
+
+    .tabla-contenedor {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .tabla-reporte {
+        width: 100%;
+        min-width: 1150px;
+        margin-bottom: 0;
+        border-collapse: collapse;
+        font-size: 1.15rem;
+        vertical-align: middle;
+    }
+
+        .tabla-reporte thead th {
+            padding: 8px 5px;
+            color: #ffffff !important;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+            background: #0f5c64 !important;
+            border: 1px solid #0b484e;
+        }
+
+        .tabla-reporte tbody td {
+            padding: 7px 5px;
+            vertical-align: middle;
+            border: 1px solid #d9e0e2;
+        }
+
+        .tabla-reporte tbody tr:nth-child(even) {
+            background-color: #f7f9fa;
+        }
+
+    .columna-nombre {
+        min-width: 180px;
+        font-weight: 700;
+    }
+
+    .columna-descripcion {
+        min-width: 250px;
+    }
+
+    .columna-fecha {
+        min-width: 105px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .columna-estado {
+        min-width: 100px;
+        text-align: center;
+    }
+
+    .columna-presupuestario {
+        min-width: 175px;
+        text-align: center;
+    }
+
+    .columna-monto {
+        min-width: 150px;
+        text-align: right;
+        white-space: nowrap;
+        font-weight: 700;
+    }
+
+    .columna-cantidad {
+        min-width: 125px;
+        text-align: center;
+    }
+
+    /* =====================================================
+           FILAS SEGÚN ESTADO
+        ===================================================== */
+
+    .fila-inactiva td {
+        color: #842029 !important;
+        background-color: #f8d7da !important;
+    }
+
+    .fila-planificacion td {
+        background-color: #fff3cd !important;
+    }
+
+    .fila-sin-presupuesto td {
+        background-color: #f1f3f5 !important;
+    }
+
+    .fila-aprobada td {
+        background-color: #ffffff;
+    }
+
+    /* =====================================================
+           BADGES
+        ===================================================== */
+
+    .badge-reporte {
+        display: inline-block;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .badge-activo {
+        color: #0f5132;
+        background: #d1e7dd;
+    }
+
+    .badge-inactivo {
+        color: #842029;
+        background: #f8d7da;
+        border: 1px solid #f1aeb5;
+    }
+
+    .badge-aprobado {
+        color: #0f5132;
+        background: #d1e7dd;
+    }
+
+    .badge-planificacion {
+        color: #664d03;
+        background: #fff3cd;
+    }
+
+    .badge-sin-presupuesto {
+        color: #41464b;
+        background: #e2e3e5;
+    }
+
+    .fila-sin-datos td {
+        padding: 25px;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .fila-total td {
+        color: #123f46;
+        background: #d9edef !important;
+        border-top: 2px solid #0f5c64;
+        font-weight: 700;
+    }
+
+    /* =====================================================
+           PIE
+        ===================================================== */
+
+    .pie-reporte {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 14px;
+        padding-top: 7px;
+        color: #6c757d;
+        font-size: 0.82rem;
+        border-top: 1px solid #adb5bd;
+    }
+
+    /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+    @@media (max-width: 1100px) {
+
+        .resumen-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+
+        .reporte-contenedor {
+            width: calc(100% - 10px);
+            margin: 5px auto;
+            padding: 12px;
+        }
+
+        .nombre-institucion {
+            font-size: 1.25rem;
+        }
+
+        .titulo-reporte {
+            font-size: 0.55rem;
+        }
+
+       
+        .resumen-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .acciones-superiores {
+            flex-wrap: wrap;
+        }
+
+        .pie-reporte {
+            flex-direction: column;
+            gap: 4px;
+        }
+    }
+
+    /* =====================================================
+           IMPRESIÓN
+        ===================================================== */
+
+    @@media print {
+
+        @@page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
+
+        html,
+        body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .acciones-superiores {
+            display: none !important;
+        }
+
+        .reporte-contenedor {
+            width: 98% !important;
+            max-width: none !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .reporte-documento {
+            width: 100% !important;
+        }
+        /* ENCABEZADO IGUAL A CUENTAS CONTABLES */
+
+        .encabezado-reporte {
+            margin-bottom: 4px !important;
+            padding-bottom: 3px !important;
+            border-bottom-width: 1px !important;
+        }
+
+        .nombre-institucion {
+            margin: 0 0 2px !important;
+            font-size: 14pt !important;
+            line-height: 1.1 !important;
+            white-space: nowrap !important;
+        }
+
+        .titulo-reporte {
+            margin: 0 0 1px !important;
+            font-size: 9pt !important;
+            line-height: 1.1 !important;
+        }
+
+        .fecha-generacion {
+            margin-top: 1px !important;
+            font-size: 7pt !important;
+            line-height: 1 !important;
+        }
+        /* FILTROS */
+
+        .seccion-reporte {
+            margin-bottom: 6px !important;
+            padding: 5px !important;
+            font-size: 10px !important;
+        }
+
+        .filtros-compactos {
+            gap: 3px 10px !important;
+        }
+
+        .titulo-seccion,
+        .filtros-detalle,
+        .filtro-compacto,
+        .sin-filtros {
+            font-size: 10px !important;
+        }
+        /* TÍTULOS */
+
+        .seccion-titulo {
+            margin: 3px 0 !important;
+            font-size: 10px !important;
+        }
+        /* CARDS */
+
+        .resumen-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 5px !important;
+            margin-bottom: 6px !important;
+        }
+
+        .resumen-card {
+            min-height: 0 !important;
+            padding: 3px !important;
+            border-top-width: 2px !important;
+            border-radius: 3px !important;
+            box-shadow: none !important;
+        }
+
+        .icono-resumen {
+            margin-bottom: 0 !important;
+            font-size: 8.5pt !important;
+            line-height: 1 !important;
+        }
+
+        .resumen-label {
+            margin-bottom: 0 !important;
+            font-size: 8.5pt !important;
+            line-height: 1 !important;
+        }
+
+        .resumen-valor,
+        .resumen-valor.moneda {
+            font-size: 8.5pt !important;
+            line-height: 1 !important;
+        }
+        /* TABLA */
+
+        .tabla-contenedor {
+            width: 100% !important;
+            overflow: visible !important;
+        }
+
+        .tabla-reporte {
+            width: 98% !important;
+            min-width: 0 !important;
+            margin: 0 auto !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+        }
+
+            .tabla-reporte th,
+            .tabla-reporte td {
+                padding: 3px !important;
+                font-size: 10px !important;
+                line-height: 1.08 !important;
+                vertical-align: middle !important;
+                overflow-wrap: break-word !important;
+            }
+
+            .tabla-reporte thead th {
+                color: #ffffff !important;
+                background-color: #0f5c64 !important;
+                font-size: 10px !important;
+                white-space: normal !important;
+            }
+
+            .tabla-reporte th:nth-child(1),
+            .tabla-reporte td:nth-child(1) {
+                width: 15%;
+            }
+
+            .tabla-reporte th:nth-child(2),
+            .tabla-reporte td:nth-child(2) {
+                width: 25%;
+            }
+
+            .tabla-reporte th:nth-child(3),
+            .tabla-reporte td:nth-child(3),
+            .tabla-reporte th:nth-child(4),
+            .tabla-reporte td:nth-child(4) {
+                width: 9%;
+            }
+
+            .tabla-reporte th:nth-child(5),
+            .tabla-reporte td:nth-child(5) {
+                width: 8%;
+            }
+
+            .tabla-reporte th:nth-child(6),
+            .tabla-reporte td:nth-child(6) {
+                width: 14%;
+            }
+
+            .tabla-reporte th:nth-child(7),
+            .tabla-reporte td:nth-child(7) {
+                width: 12%;
+            }
+
+            .tabla-reporte th:nth-child(8),
+            .tabla-reporte td:nth-child(8) {
+                width: 8%;
+            }
+        /* COLORES DE FILAS EN PDF */
+
+        .fila-inactiva td {
+            color: #842029 !important;
+            background-color: #f8d7da !important;
+        }
+        .fila-planificacion td {
+            color: #664d03 !important;
+            background-color: #fff3cd !important;
+        }
+
+        .fila-sin-presupuesto td {
+            color: #41464b !important;
+            background-color: #f1f3f5 !important;
+        }
+
+        .fila-aprobada td {
+            background-color: #ffffff !important;
+        }
+        /* BADGES VISIBLES EN PDF */
+
+        .badge-reporte {
+            padding: 1px 3px !important;
+            border-radius: 3px !important;
+            font-size: 9.5px !important;
+            font-weight: 700 !important;
+        }
+
+        .badge-activo,
+        .badge-aprobado {
+            color: #0f5132 !important;
+            background-color: #d1e7dd !important;
+        }
+
+        .badge-inactivo {
+            color: #842029 !important;
+            background-color: #f8d7da !important;
+            border: 1px solid #f1aeb5 !important;
+        }
+
+        .badge-sin-presupuesto {
+            color: #41464b !important;
+            background-color: #e2e3e5 !important;
+        }
+        .badge-planificacion {
+            color: #664d03 !important;
+            background-color: #fff3cd !important;
+        }
+
+        .fila-total td {
+            color: #123f46 !important;
+            background-color: #d9edef !important;
+        }
+
+        .pie-reporte {
+            margin-top: 7px !important;
+            padding-top: 4px !important;
+            font-size: 7.5px !important;
+            page-break-inside: avoid !important;
+        }
+
+        tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+    }
+
+</style>
+<body>
+
+    <div class="reporte-contenedor">
+
+        <div class="reporte-documento">
+
+            <!-- =================================================
+                 BOTONES SUPERIORES
+            ================================================== -->
+            <div class="acciones-superiores">
+
+                <button type="button"
+                        class="btn btn-info btn-sm"
+                        onclick="window.print();">
+
+                    <i class="fas fa-print me-1"></i>
+                    Imprimir / Guardar PDF
+                </button>
+
+                <a asp-controller="Proyectos"
+                   asp-action="Index"
+                   class="btn btn-secondary btn-sm">
+
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Volver
+                </a>
+
+            </div>
+
+
+            <!-- =================================================
+                 ENCABEZADO INSTITUCIONAL
+            ================================================== -->
+            <header class="encabezado-reporte">
+
+                <h1 class="nombre-institucion">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+                </h1>
+
+                <h2 class="titulo-reporte">
+                    <i class="fas fa-diagram-project me-1"></i>
+                    Reporte de Proyectos
+                </h2>
+
+                <div class="fecha-generacion">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    Generado el @fechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                </div>
+
+            </header>
+
+            <!-- =================================================
+                 FILTROS
+            ================================================== -->
+
+            <div class="seccion-reporte filtros-compactos">
+
+                <div class="titulo-seccion">
+                    <i class="fas fa-filter me-1"></i>
+                    Filtros aplicados:
+                </div>
+
+                @if (hayFiltros)
+                {
+                    <div class="filtros-detalle">
+
+                        @if (!string.IsNullOrWhiteSpace(nombreFiltro))
+                        {
+                            <span class="filtro-compacto">
+                                <strong>Nombre:</strong>
+                                @nombreFiltro
+                            </span>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(estadoFiltro))
+                        {
+                            <span class="filtro-compacto">
+                                <strong>Estado:</strong>
+                                @estadoFiltro
+                            </span>
+                        }
+
+                        @if (fechaInicioFiltro.HasValue)
+                        {
+                            <span class="filtro-compacto">
+                                <strong>Fecha de inicio desde:</strong>
+                                @fechaInicioFiltro.Value.ToString("dd/MM/yyyy")
+                            </span>
+                        }
+
+                        @if (fechaFinFiltro.HasValue)
+                        {
+                            <span class="filtro-compacto">
+                                <strong>Fecha de finalización hasta:</strong>
+                                @fechaFinFiltro.Value.ToString("dd/MM/yyyy")
+                            </span>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <span class="sin-filtros">
+                        No se aplicaron filtros. El reporte muestra todos los proyectos registrados.
+                    </span>
+                }
+
+            </div>
+
+            <!-- =================================================
+                 RESUMEN
+            ================================================== -->
+
+            <section>
+
+                <div class="seccion-titulo">
+                    <i class="fas fa-chart-column me-1"></i>
+                    Resumen general
+                </div>
+
+                <div class="resumen-grid">
+
+                    <div class="resumen-card">
+
+                        <i class="fas fa-diagram-project icono-resumen"></i>
+
+                        <span class="resumen-label">
+                            Total de proyectos
+                        </span>
+
+                        <span class="resumen-valor">
+                            @totalProyectos
+                        </span>
+
+                    </div>
+
+                    <div class="resumen-card activos">
+
+                        <i class="fas fa-circle-check icono-resumen"></i>
+
+                        <span class="resumen-label">
+                            Proyectos activos
+                        </span>
+
+                        <span class="resumen-valor">
+                            @totalActivos
+                        </span>
+
+                    </div>
+
+                    <div class="resumen-card inactivos">
+
+                        <i class="fas fa-circle-xmark icono-resumen"></i>
+
+                        <span class="resumen-label">
+                            Proyectos inactivos
+                        </span>
+
+                        <span class="resumen-valor">
+                            @totalInactivos
+                        </span>
+
+                    </div>
+
+                    <div class="resumen-card aprobados">
+
+                        <i class="fas fa-file-circle-check icono-resumen"></i>
+
+                        <span class="resumen-label">
+                            Presupuestos aprobados
+                        </span>
+
+                        <span class="resumen-valor">
+                            @proyectosConPresupuestoAprobado
+                        </span>
+
+                    </div>
+
+                    <div class="resumen-card presupuesto">
+
+                        <i class="fas fa-coins icono-resumen"></i>
+
+                        <span class="resumen-label">
+                            Presupuesto total
+                        </span>
+
+                        <span class="resumen-valor moneda">
+                            ₡@presupuestoTotal.ToString("N2")
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =================================================
+                 TABLA
+            ================================================== -->
+
+            <section>
+
+                <div class="seccion-titulo">
+                    <i class="fas fa-table-list me-1"></i>
+                    Detalle de proyectos
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table class="tabla-reporte">
+
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Fecha inicio</th>
+                                <th>Fecha fin</th>
+                                <th>Estado</th>
+                                <th>Estado presupuestario</th>
+                                <th>Presupuesto asignado</th>
+                                <th>Presupuestos registrados</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @if (proyectos.Any())
+                            {
+                                foreach (var proyecto in proyectos)
+                                {
+                                    bool tieneAprobado =
+                                    proyecto.PresupuestosMensuales != null &&
+                                    proyecto.PresupuestosMensuales.Any(pm =>
+                                    pm.EstadoAprobacion == "Aprobado");
+
+                                    bool tienePlanificacion =
+                                    proyecto.PresupuestosMensuales != null &&
+                                    proyecto.PresupuestosMensuales.Any();
+
+                                    string estadoPresupuestario;
+                                    string claseEstadoPresupuestario;
+
+                        @if (tieneAprobado)
+{
+    estadoPresupuestario = "Presupuesto aprobado";
+    claseEstadoPresupuestario = "badge-aprobado";
+}
+else if (tienePlanificacion)
+{
+    estadoPresupuestario = "En planificación";
+    claseEstadoPresupuestario = "badge-planificacion";
+}
+else
+{
+    estadoPresupuestario = "Sin presupuesto";
+    claseEstadoPresupuestario = "badge-sin-presupuesto";
+}
+
+string claseFila;
+
+if (!proyecto.Activo)
+{
+    claseFila = "fila-inactiva";
+}
+else if (tieneAprobado)
+{
+    claseFila = "fila-aprobada";
+}
+else if (tienePlanificacion)
+{
+    claseFila = "fila-planificacion";
+}
+else
+{
+    claseFila = "fila-sin-presupuesto";
+}
+
+
+                                    <tr class="@claseFila">
+
+                                        <td class="columna-nombre">
+                                            @proyecto.Nombre
+                                        </td>
+
+                                        <td class="columna-descripcion">
+                                            @(string.IsNullOrWhiteSpace(
+                                                proyecto.Descripcion)
+                                                ? "Sin descripción"
+                                                : proyecto.Descripcion)
+                                        </td>
+
+                                        <td class="columna-fecha">
+                                            @(proyecto.FechaInicio.HasValue
+                                                ? proyecto.FechaInicio.Value
+                                                .ToString("dd/MM/yyyy")
+                                                : "Sin fecha")
+                                        </td>
+
+                                        <td class="columna-fecha">
+                                            @(proyecto.FechaFin.HasValue
+                                                ? proyecto.FechaFin.Value
+                                                .ToString("dd/MM/yyyy")
+                                                : "Sin fecha")
+                                        </td>
+
+                                        <td class="columna-estado">
+
+                                            @if (proyecto.Activo)
+                                            {
+                                                <span class="badge-reporte badge-activo">
+                                                    Activo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-reporte badge-inactivo">
+                                                    Inactivo
+                                                </span>
+                                            }
+
+                                        </td>
+
+                                        <td class="columna-presupuestario">
+
+                                            <span class="badge-reporte @claseEstadoPresupuestario">
+                                                @estadoPresupuestario
+                                            </span>
+
+                                        </td>
+
+                                        <td class="columna-monto">
+                                            ₡@((proyecto.PresupuestoAsignado ?? 0)
+                                               .ToString("N2"))
+                                        </td>
+
+                                        <td class="columna-cantidad">
+                                            @(proyecto.PresupuestosMensuales?.Count
+                                                ?? 0)
+                                        </td>
+
+                                    </tr>
+                                }
+
+                                <tr class="fila-total">
+
+                                    <td colspan="6"
+                                        class="text-end">
+                                        Presupuesto total:
+                                    </td>
+
+                                    <td class="columna-monto">
+                                        ₡@presupuestoTotal.ToString("N2")
+                                    </td>
+
+                                    <td></td>
+
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr class="fila-sin-datos">
+                                    <td colspan="8">
+                                        <i class="fas fa-circle-info me-1"></i>
+
+                                        No se encontraron proyectos con los
+                                        filtros seleccionados.
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <!-- =================================================
+                 PIE
+            ================================================== -->
+
+            <div class="pie-reporte">
+
+                <div>
+                    Sistema Web de Gestión Financiera
+                </div>
+
+                <div>
+                    UCAD Santa Ana
+                </div>
+
+                <div>
+                    Generado:
+                    @(((DateTime)ViewBag.FechaGeneracion)
+                        .ToString("dd/MM/yyyy HH:mm"))
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

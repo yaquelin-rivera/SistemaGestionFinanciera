@@ -1,0 +1,85 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasContable
+
+@{
+    ViewData["Title"] = "Crear cuenta contable";
+}
+
+<h1>Crear cuenta contable</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DE CUENTA CONTABLE
+    </div>
+
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+
+                <form asp-action="Create">
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group">
+                        <label asp-for="Codigo" class="control-label">Código</label>
+                        <input asp-for="Codigo" class="form-control" />
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Nombre" class="control-label">Nombre</label>
+                        <input asp-for="Nombre" class="form-control" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="TipoCuenta" class="control-label">Tipo de cuenta</label>
+                        <select asp-for="TipoCuenta" class="form-control">
+                            <option value="">Seleccione un tipo de cuenta</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Pasivo">Pasivo</option>
+                            <option value="Patrimonio">Patrimonio</option>
+                            <option value="Ingreso">Ingreso</option>
+                            <option value="Gasto">Gasto</option>
+                        </select>
+                        <span asp-validation-for="TipoCuenta" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Naturaleza" class="control-label">Naturaleza</label>
+                        <select asp-for="Naturaleza" class="form-control">
+                            <option value="">Seleccione la naturaleza</option>
+                            <option value="Deudora">Deudora</option>
+                            <option value="Acreedora">Acreedora</option>
+                        </select>
+                        <span asp-validation-for="Naturaleza" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="SaldoInicial" class="control-label">Saldo inicial</label>
+                        <input asp-for="SaldoInicial" class="form-control" />
+                        <span asp-validation-for="SaldoInicial" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-3 d-flex gap-2">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+
+

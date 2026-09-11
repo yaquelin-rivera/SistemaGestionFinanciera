@@ -1,0 +1,379 @@
+﻿@model SistemaGestionFinanciera.Models.Factura
+
+@{
+    ViewData["Title"] = "Anular Factura";
+
+    string claseEstado = Model.Estado == "Pagada" ? "bg-success" :
+                         Model.Estado == "Vencida" ? "bg-danger" :
+                         Model.Estado == "Anulada" ? "bg-secondary" :
+                         "bg-warning text-dark";
+
+    string nombreTercero = Model.TipoFactura == "Venta"
+        ? (Model.ClienteBeneficiario?.Nombre ?? "No aplica")
+        : (Model.Proveedor?.Nombre ?? "No aplica");
+
+    string tituloTercero = Model.TipoFactura == "Venta"
+        ? "Cliente"
+        : "Proveedor";
+
+    string categoriaFinanciera = Model.TipoFactura == "Venta"
+        ? Model.CategoriaIngreso?.Nombre
+        : Model.CategoriaGasto?.Nombre;
+
+    string tituloCategoria = Model.TipoFactura == "Venta"
+        ? "Categoría de ingreso"
+        : "Categoría de gasto";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <div class="card shadow-sm border-0 detalle-factura-card">
+
+    <div class="card-header text-white" style="background-color:#0F7C90;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Anular Factura</h4>
+            <span class="badge @claseEstado fs-6">@Model.Estado</span>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        <div class="alert alert-warning">
+            ¿Está seguro que desea anular esta factura? Esta acción cambiará el estado del registro a <strong>Anulada</strong>.
+        </div>
+
+        <h5 class="text-primary mb-3">Información de la Factura</h5>
+        <hr class="mb-4" />
+
+        <div class="row mb-4">
+
+            <div class="col-md-3 mb-4">
+                <strong>Número de factura:</strong><br />
+                <span class="fs-5 fw-bold text-primary">@Model.NumeroFactura</span>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <strong>Tipo de factura:</strong><br />
+                @Model.TipoFactura
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <strong>Condición de pago:</strong><br />
+                @Model.CondicionPago
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <strong>Días de crédito:</strong><br />
+                @(Model.DiasCredito.HasValue ? Model.DiasCredito + " días" : "No aplica")
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <strong>@tituloTercero:</strong><br />
+                @nombreTercero
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <strong>Fecha de emisión:</strong><br />
+                @Model.FechaEmision.ToString("dd/MM/yyyy")
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <strong>Fecha de vencimiento:</strong><br />
+                @(Model.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "No aplica")
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <strong>Estado:</strong><br />
+                <span class="badge @claseEstado fs-6">@Model.Estado</span>
+            </div>
+
+        </div>
+
+            <h5 class="text-primary mt-3 mb-2">Clasificación financiera</h5>
+            <hr />
+
+            <div class="row mb-3">
+
+                <div class="col-lg-3 col-md-4 mb-3">
+                    <strong>@tituloCategoria:</strong><br />
+                    @(categoriaFinanciera ?? "No aplica")
+                </div>
+
+                <div class="col-lg-3 col-md-4 mb-3">
+                    <strong>Tipo de ingreso:</strong><br />
+                    @(Model.TipoFactura == "Venta" ? (Model.TipoIngreso ?? "No aplica") : "No aplica")
+                </div>
+
+                <div class="col-lg-3 col-md-4 mb-3">
+                    <strong>Proyecto:</strong><br />
+                    @(Model.Proyecto?.Nombre ?? "No aplica")
+                </div>
+                <div class="col-lg-3 col-md-4 mb-3">
+                    <strong>Período presupuestario:</strong><br />
+
+                    @if (Model.PresupuestoMensualRegistro != null)
+                    {
+                        string nombreMes = new DateTime(
+                        Model.PresupuestoMensualRegistro.Anio,
+                        Model.PresupuestoMensualRegistro.Mes,
+                        1)
+                        .ToString(
+                        "MMMM",
+                        new System.Globalization.CultureInfo("es-CR"));
+
+                        nombreMes =
+                        char.ToUpper(nombreMes[0]) +
+                        nombreMes.Substring(1);
+
+                        <span>
+                            @nombreMes @Model.PresupuestoMensualRegistro.Anio
+                        </span>
+
+                        <br />
+
+                        @if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Aprobado")
+                        {
+                            <span class="badge bg-success mt-1">
+                                Aprobado
+                            </span>
+                        }
+                        else if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Borrador")
+                        {
+                            <span class="badge bg-secondary mt-1">
+                                Borrador
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger mt-1">
+                                @Model.PresupuestoMensualRegistro.EstadoAprobacion
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">
+                            Sin período presupuestario
+                        </span>
+                    }
+                </div>
+                <div class="col-lg-3 col-md-4 mb-3">
+                    <strong>Centro de costo:</strong><br />
+                    @(Model.CentroCosto?.Nombre ?? "No aplica")
+                </div>
+
+            </div>
+
+            <h5 class="text-primary mt-3 mb-2">Detalle de factura</h5>
+            <hr />
+
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Detalle</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">Descuento</th>
+                            <th class="text-end">Impuesto</th>
+                            <th class="text-end">Total línea</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.FacturaDetalles != null && Model.FacturaDetalles.Any(d => d.Activo))
+                        {
+                            foreach (var item in Model.FacturaDetalles.Where(d => d.Activo))
+                            {
+                                <tr>
+                                    <td>@item.Descripcion</td>
+                                    <td class="text-center">@item.Cantidad</td>
+                                    <td class="text-end">₡@item.PrecioUnitario.ToString("N2")</td>
+                                    <td class="text-end">₡@item.Descuento.ToString("N2")</td>
+                                    <td class="text-end">₡@item.Impuesto.ToString("N2")</td>
+                                    <td class="text-end fw-bold">₡@item.TotalLinea.ToString("N2")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    No hay líneas registradas para esta factura.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        <div class="row mt-4">
+
+            <div class="col-md-6">
+
+                <h5 class="text-primary mb-3">Resumen financiero</h5>
+
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th style="width:40%;">Subtotal</th>
+                            <td class="text-end">₡@Model.SubTotal.ToString("N2")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Descuento</th>
+                            <td class="text-end">₡@((Model.DescuentoTotal ?? 0).ToString("N2"))</td>
+                        </tr>
+
+                        <tr>
+                            <th>Tipo de impuesto</th>
+                            <td class="text-end">@(Model.TipoImpuesto ?? "Sin impuesto")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Impuesto</th>
+                            <td class="text-end">₡@Model.ImpuestoTotal.ToString("N2")</td>
+                        </tr>
+
+                        <tr class="table-light">
+                            <th>Total</th>
+                            <td class="text-end fw-bold">₡@Model.Total.ToString("N2")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Monto pagado</th>
+                            <td class="text-end">₡@Model.MontoPagado.ToString("N2")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Saldo pendiente</th>
+                            <td class="text-end fw-bold @(Model.SaldoPendiente > 0 ? "text-danger" : "text-success")">
+                                ₡@Model.SaldoPendiente.ToString("N2")
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+                <div class="col-lg-4 col-md-8 mb-2">
+
+                <h5 class="mb-3">Descripción / Observación</h5>
+
+                <div class="border rounded p-3 bg-light"
+                     style="min-height: 230px;">
+                    @(string.IsNullOrWhiteSpace(Model.Observacion)
+                        ? "Sin observaciones registradas."
+                        : Model.Observacion)
+                </div>
+
+            </div>
+
+        </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center w-100">
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>    Volver al listado
+                    </a>
+
+                    <form asp-action="Delete"
+                          method="post"
+                          id="formAnularFactura"
+                          data-numero="@Model.NumeroFactura">
+
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IdFactura" />
+
+                        <button type="submit"
+                                class="btn btn-danger fw-bold">
+                            <i class="fas fa-trash me-1"></i> Anular factura
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+  </div>
+ </div>
+</div>
+<style>
+    .detalle-factura-card {
+        font-size: 0.92rem;
+    }
+
+        .detalle-factura-card h5 {
+            font-size: 1rem;
+            margin-bottom: 0.35rem !important;
+        }
+
+        .detalle-factura-card hr {
+            margin-top: 0.35rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .detalle-factura-card .card-body {
+            padding: 1rem 1.25rem;
+        }
+
+        .detalle-factura-card .mb-3 {
+            margin-bottom: 0.65rem !important;
+        }
+
+        .detalle-factura-card table th,
+        .detalle-factura-card table td {
+            padding: 0.45rem 0.6rem;
+            vertical-align: middle;
+        }
+
+        .detalle-factura-card .observacion-box {
+            padding: 0.75rem 0.9rem !important;
+            min-height: 120px;
+            font-size: 0.92rem;
+        }
+
+        .detalle-factura-card .card-footer {
+            padding: 0.65rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+            .detalle-factura-card .card-footer .btn {
+                font-size: 0.9rem;
+                font-weight: 600;
+                padding: 0.45rem 0.8rem;
+            }
+</style>
+
+@section Scripts {
+    <script>
+        const formAnularFactura =
+            document.getElementById("formAnularFactura");
+
+        if (formAnularFactura) {
+
+            formAnularFactura.addEventListener("submit", function (e) {
+
+                e.preventDefault();
+
+                const numero =
+                    formAnularFactura.dataset.numero || "seleccionada";
+
+                Swal.fire({
+                    title: "¿Anular factura?",
+                    html: `La factura <strong>${numero}</strong> será anulada.<br><br>
+                                   El sistema aplicará las reversiones financieras y contables correspondientes.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, anular",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        formAnularFactura.submit();
+                    }
+
+                });
+
+            });
+
+        }
+    </script>
+}

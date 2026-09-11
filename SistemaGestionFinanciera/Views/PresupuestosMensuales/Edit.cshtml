@@ -1,0 +1,227 @@
+﻿@model SistemaGestionFinanciera.Models.PresupuestosMensuale
+
+@{
+    ViewData["Title"] =
+        "Modificar Presupuesto Mensual";
+
+    bool tieneIngresos =
+        ViewBag.TieneIngresosReales == true;
+
+    bool tieneGastos =
+        ViewBag.TieneGastosAprobados == true;
+
+    bool bloqueadoTotal =
+        ViewBag.BloqueadoTotal == true;
+
+    bool bloquearPeriodo =
+        ViewBag.BloquearPeriodo == true;
+
+        string rol =
+    Context.Session.GetString("Rol") ?? "";
+
+bool puedeVerOrientacionRechazo =
+    rol == "Auxiliar Contable" ||
+    rol == "Contador";
+
+bool estaRechazado =
+    Model.EstadoAprobacion == "Rechazado";
+   
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold">Modificar Presupuesto Mensual</h2>
+    <p class="text-muted">
+        Actualización de montos planificados para ingresos y gastos por proyecto.
+    </p>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Complete la información del presupuesto
+        </div>
+
+        <div class="card-body">
+            @if (estaRechazado && puedeVerOrientacionRechazo)
+            {
+                <div class="alert alert-danger">
+                    <div class="fw-bold mb-2">
+                        <i class="fas fa-circle-exclamation me-1"></i>
+                        Este presupuesto fue rechazado por el Administrador.
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(
+                   Model.ObservacionRevision))
+                    {
+                        <div class="mb-2">
+                            <strong>Motivo del rechazo:</strong>
+                            @Model.ObservacionRevision
+                        </div>
+                    }
+
+                    <div>
+                        Corrija la información indicada y guarde nuevamente.
+                        El presupuesto volverá automáticamente al estado
+                        <strong>Borrador</strong> para una nueva revisión.
+                    </div>
+                </div>
+            }
+            <div class="alert alert-secondary">
+                Al modificar el presupuesto, el sistema recalculará automáticamente los ingresos reales,
+                gastos reales, diferencias, saldo disponible y estado del presupuesto.
+            </div>
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="IdPresupuestoMensual" />
+                @if (bloquearPeriodo)
+                {
+                    <input type="hidden" asp-for="ProyectoId" />
+                    <input type="hidden" asp-for="Anio" />
+                    <input type="hidden" asp-for="Mes" />
+                }
+                <p class="text-primary fw-bold mb-2">Información general</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4">
+                        <label asp-for="ProyectoId" class="form-label">Proyecto</label>
+                        <select asp-for="ProyectoId"
+                                class="form-select"
+                                asp-items="ViewBag.ProyectoId"
+                                disabled="@bloquearPeriodo">
+                            <option value="">-- Seleccione un proyecto --</option>
+                        </select>
+                   
+                        <span asp-validation-for="ProyectoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Anio" class="form-label">Año</label>
+                        <input asp-for="Anio"
+                               class="form-control"
+                               type="number"
+                               min="2000"
+                               max="@(DateTime.Today.Year + 10)"
+                               readonly="@bloquearPeriodo" />
+                        
+                        <span asp-validation-for="Anio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Mes" class="form-label">Mes</label>
+                        <select asp-for="Mes"
+                                class="form-select"
+                                disabled="@bloquearPeriodo">
+                            <option value="">-- Seleccione el mes --</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                       
+                        <span asp-validation-for="Mes" class="text-danger"></span>
+                    </div>
+
+                </div>
+                
+                <p class="text-primary fw-bold mt-4 mb-2">Montos planificados</p>
+                <hr />
+              
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="MontoIngresadoPlanificado" class="form-label">
+                            Ingreso planificado
+                        </label>
+                        <input asp-for="MontoIngresadoPlanificado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               readonly="@bloqueadoTotal"
+                               placeholder="Ej: 1000000.00" />
+                        <span asp-validation-for="MontoIngresadoPlanificado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Monto que se espera recibir durante el mes seleccionado.
+                        </small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="MontoGastoPlanificado" class="form-label">
+                            Gasto planificado
+                        </label>
+                        <input asp-for="MontoGastoPlanificado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               readonly="@bloqueadoTotal"
+                               placeholder="Ej: 750000.00" />
+                        <span asp-validation-for="MontoGastoPlanificado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Monto máximo estimado para gastos del mes seleccionado.
+                        </small>
+                    </div>
+
+                </div>
+
+                @if (bloqueadoTotal)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-lock me-1"></i>
+
+                        Este presupuesto posee gastos aprobados asociados.
+                        No se permite modificar el proyecto, el período ni
+                        los montos planificados.
+                    </div>
+                }
+                else if (tieneIngresos)
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+
+                        Este presupuesto posee ingresos reales registrados.
+                        Puede modificar los montos planificados, pero el
+                        proyecto, el año y el mes permanecen bloqueados.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        Puede modificar el proyecto, el año, el mes y los
+                        montos mientras no existan movimientos reales.
+                    </div>
+                }
+                @if (!bloqueadoTotal)
+                {
+                    <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i> Volver al listado</a>
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        Guardar
+                    </button>
+                }
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

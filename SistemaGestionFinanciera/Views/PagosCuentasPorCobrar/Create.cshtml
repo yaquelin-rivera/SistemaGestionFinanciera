@@ -1,0 +1,376 @@
+﻿@model SistemaGestionFinanciera.Models.PagosCuentaPorCobrar
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Registrar Pago CxC";
+}
+
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Registrar Pago de Cuenta por Cobrar</h2>
+        <small class="text-muted">Registro de abonos o pagos aplicados a cuentas por cobrar</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            Complete la información del pago recibido
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary mb-4">
+                El pago se aplicará a la cuenta por cobrar seleccionada y actualizará automáticamente el saldo pendiente.
+            </div>
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mb-2">Información de la cuenta</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="CuentaPorCobrarId" class="form-label">Cuenta por cobrar</label>
+                        <select asp-for="CuentaPorCobrarId"
+                                class="form-control"
+                                asp-items="ViewBag.CuentaPorCobrarId">
+                            <option value="">-- Seleccione una cuenta por cobrar --</option>
+                        </select>
+                        <span asp-validation-for="CuentaPorCobrarId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha de pago</label>
+                        <input class="form-control"
+                               value="@DateOnly.FromDateTime(DateTime.Today).ToString("dd/MM/yyyy")"
+                               readonly />
+                    </div>
+
+                    <div id="resumenCuenta" class="alert alert-secondary mt-3 d-none">
+                        <strong>Resumen de la cuenta seleccionada</strong>
+                        <hr />
+
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <strong>Cliente</strong>
+                                <div id="resumenCliente"></div>
+                            </div>
+
+                            <div class="col-md-1">
+                                <strong>Documento</strong>
+                                <div id="resumenDocumento"></div>
+                            </div>
+                            <div class="col-md-1">
+                                <strong>Tipo</strong>
+                                <div id="resumenTipo"></div>
+                            </div>
+
+                            <div class="col-md-2">
+                                  <strong>Fecha emisión</strong>
+                                  <div id="resumenFechaEmision"></div>
+                            </div>
+                            <div class="col-md-2">
+                                  <strong>Fecha vencimiento</strong>
+                                  <div id="resumenFechaVencimiento"></div>
+                            </div>
+
+                            
+                            <div class="col-md-2">
+                                <strong>Días de crédito</strong>
+                                <div id="resumenDiasCredito"></div>
+                            </div>
+                            <div class="col-md-2">
+                                <strong id="resumenTituloVencimiento">
+                                    Días para vencer
+                                </strong>
+
+                                <div id="resumenDiasRestantes"></div>
+                            </div>
+                            
+
+                            <div class="row mb-3"> 
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <strong>Monto original</strong>
+                                <div id="resumenMontoOriginal" class="fw-bold"></div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <strong>Monto pagado</strong>
+                                <div id="resumenMontoPagado" class="fw-bold text-success"></div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <strong>Saldo pendiente</strong>
+                                <div id="resumenSaldo" class="fw-bold text-danger"></div>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Estado</strong>
+                                <div id="resumenEstado"></div>
+                            </div> <div class="col-md-2">
+                                <strong>Pagos realizados</strong>
+                                <div id="resumenPagosRealizados"></div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <strong>Último pago</strong>
+                                <div id="resumenUltimoPago"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Datos del pago</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Monto" class="form-label">Monto del pago</label>
+                        <input asp-for="Monto"
+                               type="text"
+                               class="form-control"
+                               placeholder="Ej: 50000.00"
+                               oninput="this.value = this.value.replace(',', '.')" />
+                        <span asp-validation-for="Monto" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="MetodoPago" class="form-label">Método de pago</label>
+                        <select asp-for="MetodoPago"
+                                class="form-control"
+                                asp-items="ViewBag.MetodosPago">
+                            <option value="">-- Seleccione método de pago --</option>
+                        </select>
+                        <span asp-validation-for="MetodoPago" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Referencia" class="form-label">Referencia</label>
+                        <input asp-for="Referencia"
+                               class="form-control"
+                               placeholder="Ej: SINPE 10254, comprobante o recibo" />
+                        <span asp-validation-for="Referencia" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Observación</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="Observacion" class="form-label">Observación</label>
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Observaciones del pago registrado"></textarea>
+                        <span asp-validation-for="Observacion" class="text-danger"></span>
+                        <small class="text-muted">
+                            Puede indicar detalles del comprobante, acuerdo de pago o cualquier aclaración del abono.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <div>
+                        <a asp-controller="CuentasPorCobrar"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>   Regresar a Cuentas por Cobrar
+                        </a>
+
+                        <a id="btnVerCuenta"
+                           href="#"
+                           class="btn btn-info ms-2 disabled">
+                            👁 Ver detalle de la cuenta
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>  Guardar 
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        const cuentasResumen = @Html.Raw(ViewBag.CuentasResumenJson);
+
+        const comboCuenta = document.getElementById("CuentaPorCobrarId");
+        const resumenCuenta = document.getElementById("resumenCuenta");
+
+        function formatoMoneda(valor) {
+            return "₡" + Number(valor).toLocaleString("es-CR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Devuelve el texto correspondiente según la fecha de vencimiento.
+        function textoDiasRestantes(dias) {
+
+            dias = Number(dias);
+
+            if (isNaN(dias)) {
+                return "No disponible";
+            }
+
+            if (dias > 1) {
+                return "Vence en " + dias + " días";
+            }
+
+            if (dias === 1) {
+                return "Vence en 1 día";
+            }
+
+            if (dias === 0) {
+                return "Vence hoy";
+            }
+
+            if (dias === -1) {
+                return "Vencida hace 1 día";
+            }
+
+            return "Vencida hace " + Math.abs(dias) + " días";
+        }
+        // Cambia el título según la situación actual del vencimiento.
+        function tituloDiasRestantes(dias) {
+
+            dias = Number(dias);
+
+            if (isNaN(dias)) {
+                return "Vencimiento";
+            }
+
+            if (dias < 0) {
+                return "Días de atraso";
+            }
+
+            if (dias === 0) {
+                return "Vencimiento";
+            }
+
+            return "Días para vencer";
+        }
+
+        function badgeEstado(estado) {
+            if (estado === "Pendiente") {
+                return '<span class="badge bg-warning text-dark">Pendiente</span>';
+            }
+
+            if (estado === "Parcial" || estado === "Parcialmente pagada") {
+                return '<span class="badge bg-info text-dark">Parcial</span>';
+            }
+
+            if (estado === "Vencida") {
+                return '<span class="badge bg-danger">Vencida</span>';
+            }
+
+            if (estado === "Cancelada") {
+                return '<span class="badge bg-success">Cancelada</span>';
+            }
+
+            return '<span class="badge bg-secondary">' + estado + '</span>';
+        }
+
+        function cargarResumenCuenta() {
+
+         
+
+            const btnVerCuenta = document.getElementById("btnVerCuenta");
+
+            const cuenta = cuentasResumen.find(c => c.id == comboCuenta.value);
+
+            if (!cuenta) {
+                resumenCuenta.classList.add("d-none");
+                btnVerCuenta.classList.add("disabled");
+                btnVerCuenta.href = "#";
+                 return;
+            }
+
+            btnVerCuenta.classList.remove("disabled");
+            btnVerCuenta.href = "/CuentasPorCobrar/Details/" + cuenta.id + "?origen=PagosCxC&retorno=Create";
+
+            document.getElementById("resumenCliente").innerText = cuenta.cliente;
+            document.getElementById("resumenDocumento").innerText = cuenta.documento;
+            document.getElementById("resumenTipo").innerText = cuenta.tipo;
+            document.getElementById("resumenDiasCredito").innerText = cuenta.diasCredito + " días";
+
+            document.getElementById("resumenFechaEmision").innerText = cuenta.fechaEmision;
+            document.getElementById("resumenFechaVencimiento").innerText =
+                cuenta.fechaVencimiento;
+
+            // Cambia dinámicamente el título:
+            // "Días para vencer", "Vencimiento" o "Días de atraso".
+            document.getElementById("resumenTituloVencimiento").innerText =
+                tituloDiasRestantes(cuenta.diasRestantes);
+
+            // Muestra cuántos días faltan o cuántos días lleva vencida.
+            const elementoDias =
+                document.getElementById("resumenDiasRestantes");
+
+            elementoDias.innerText =
+                textoDiasRestantes(cuenta.diasRestantes);
+
+            // Aplica un color según la situación del vencimiento.
+            elementoDias.classList.remove(
+                "text-success",
+                "text-warning",
+                "text-danger",
+                "text-muted"
+            );
+
+            const diasRestantes = Number(cuenta.diasRestantes);
+
+            if (isNaN(diasRestantes)) {
+                elementoDias.classList.add("text-muted");
+            }
+            else if (diasRestantes < 0) {
+                elementoDias.classList.add("text-danger", "fw-bold");
+            }
+            else if (diasRestantes === 0) {
+                elementoDias.classList.add("text-warning", "fw-bold");
+            }
+            else {
+                elementoDias.classList.add("text-success", "fw-bold");
+            }
+
+            document.getElementById("resumenEstado").innerHTML =
+                badgeEstado(cuenta.estado);
+
+            document.getElementById("resumenMontoOriginal").innerText = formatoMoneda(cuenta.montoOriginal);
+            document.getElementById("resumenMontoPagado").innerText = formatoMoneda(cuenta.montoPagado);
+            document.getElementById("resumenSaldo").innerText = formatoMoneda(cuenta.saldoPendiente);
+            document.getElementById("resumenPagosRealizados").innerText =
+                cuenta.pagosRealizados > 0 ? cuenta.pagosRealizados : "No registra pagos";
+            document.getElementById("resumenUltimoPago").innerText =
+                cuenta.ultimoPago ? cuenta.ultimoPago : "Sin pagos registrados";
+
+            resumenCuenta.classList.remove("d-none");
+        }
+        comboCuenta.addEventListener("change", cargarResumenCuenta);
+
+        setTimeout(function () {
+            cargarResumenCuenta();
+        }, 200);
+    </script>
+}

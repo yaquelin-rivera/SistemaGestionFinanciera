@@ -1,0 +1,129 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasContable
+
+@{
+    ViewData["Title"] = "Modificar cuenta contable";
+    bool tieneMovimientos = ViewBag.TieneMovimientos == true;
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold mb-1">Modificar cuenta contable</h2>
+    <small class="text-muted">Actualización controlada del catálogo contable</small>
+
+    @if (tieneMovimientos)
+    {
+        <div class="alert alert-warning mt-3">
+            Esta cuenta ya posee movimientos contables. Por seguridad contable, solo se permite modificar el nombre.
+        </div>
+    }
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            <i class="fas fa-book me-2"></i>Datos de cuenta contable
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <input type="hidden" asp-for="IdCuentaContable" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label asp-for="Codigo" class="form-label"></label>
+                        <input asp-for="Codigo"
+                               class="form-control"
+                               readonly="@(tieneMovimientos)" />
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <input asp-for="Nombre" class="form-control" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TipoCuenta" class="form-label"></label>
+
+                        @if (tieneMovimientos)
+                        {
+                            <input type="text" class="form-control" value="@Model.TipoCuenta" readonly />
+                            <input type="hidden" asp-for="TipoCuenta" />
+                        }
+                        else
+                        {
+                            <select asp-for="TipoCuenta" class="form-control">
+                                <option value="">Seleccione un tipo de cuenta</option>
+                                <option value="Activo">Activo</option>
+                                <option value="Pasivo">Pasivo</option>
+                                <option value="Patrimonio">Patrimonio</option>
+                                <option value="Ingreso">Ingreso</option>
+                                <option value="Gasto">Gasto</option>
+                            </select>
+                        }
+
+                        <span asp-validation-for="TipoCuenta" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Naturaleza" class="form-label"></label>
+
+                        @if (tieneMovimientos)
+                        {
+                            <input type="text" class="form-control" value="@Model.Naturaleza" readonly />
+                            <input type="hidden" asp-for="Naturaleza" />
+                        }
+                        else
+                        {
+                            <select asp-for="Naturaleza" class="form-control">
+                                <option value="">Seleccione la naturaleza</option>
+                                <option value="Deudora">Deudora</option>
+                                <option value="Acreedora">Acreedora</option>
+                            </select>
+                        }
+
+                        <span asp-validation-for="Naturaleza" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="SaldoInicial" class="form-label"></label>
+                        <input asp-for="SaldoInicial"
+                               class="form-control"
+                               readonly="@(tieneMovimientos)" />
+                        <span asp-validation-for="SaldoInicial" class="text-danger"></span>
+                    </div> 
+
+                    <div class="col-md-4">
+                        <label class="form-label">Estado</label>
+                        <input type="text"
+                               class="form-control"
+                               value="@(Model.Activo ? "Activa" : "Inactiva")"
+                               readonly />
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        Guardar cambios
+                    </button>
+
+                  
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

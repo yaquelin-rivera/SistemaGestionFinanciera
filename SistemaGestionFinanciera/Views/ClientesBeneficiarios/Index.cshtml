@@ -1,0 +1,855 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.ClientesBeneficiario>
+
+@{
+    ViewData["Title"] = "Clientes / Beneficiarios";
+
+    int total = Model.Count();
+    int activos = Model.Count(c => c.Activo);
+    int inactivos = Model.Count(c => !c.Activo);
+    int clientes = Model.Count(c => c.Tipo == "Cliente");
+    int beneficiarios = Model.Count(c => c.Tipo == "Beneficiario");
+
+    int clientesConSaldo =
+    ViewBag.ClientesConSaldo ?? 0;
+
+    int clientesConVencidas =
+        ViewBag.ClientesConCuentasVencidas ?? 0;
+
+    decimal saldoTotalPendiente =
+        ViewBag.SaldoTotalPendiente ?? 0m;
+
+    decimal saldoTotalVencido =
+        ViewBag.SaldoTotalVencido ?? 0m;
+}
+<style>
+    /* ============================================================
+       TARJETAS CLICABLES
+       ============================================================ */
+
+    .card-enlace {
+        cursor: pointer;
+        transition: transform 0.18s ease,
+                    box-shadow 0.18s ease,
+                    border-color 0.18s ease;
+    }
+
+    .card-enlace:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.65rem 1.25rem rgba(0, 0, 0, 0.16) !important;
+    }
+
+    .card-enlace:hover .icono-enlace {
+        transform: scale(1.12);
+        opacity: 0.9 !important;
+    }
+
+    .icono-enlace {
+        transition: transform 0.18s ease,
+                    opacity 0.18s ease;
+    }
+
+    .texto-enlace-card {
+        font-size: 0.76rem;
+        font-weight: 600;
+    }
+</style>
+<div class="container-fluid mt-4">
+
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Clientes / Beneficiarios</h2>
+            <small class="text-muted">
+                Administración de clientes y beneficiarios vinculados a facturación, ingresos y cuentas por cobrar.
+            </small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus-circle me-1"></i> Registrar 
+        </a>
+    </div>
+    @if (clientesConVencidas > 0)
+    {
+        <div class="alert alert-danger d-flex flex-wrap
+                justify-content-between align-items-center
+                shadow-sm mb-3"
+             role="alert">
+
+            <div>
+                <i class="fas fa-exclamation-triangle me-2"></i>
+
+                Se encontraron
+                <strong>
+                    @clientesConVencidas
+                    @(clientesConVencidas == 1
+                        ? "cliente con cuentas vencidas"
+                        : "clientes con cuentas vencidas")
+                </strong>,
+
+                por un saldo vencido total de
+
+                <strong>
+                    @saldoTotalVencido.ToString("C2",
+                             new System.Globalization.CultureInfo("es-CR"))
+                </strong>.
+            </div>
+
+            <a asp-controller="CuentasPorCobrar"
+               asp-action="Index"
+               asp-route-estado="Vencida"
+               class="btn btn-danger btn-sm ms-2">
+
+                <i class="fas fa-eye me-1"></i>
+                Ver vencidas en CxC
+            </a>
+        </div>
+    }
+    <div class="row g-3 mb-4">
+
+        <!-- Total -->
+        <div class="col">
+            <div class="card shadow-sm  h-100 border-0 card-resumen  border-start border-primary border-4">
+      
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold">Total</small>
+                        <h3 class="fw-bold text-primary mb-0">@total</h3>
+                    </div>
+                    <i class="fas fa-users fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activos -->
+        <div class="col">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-info border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold">Activos</small>
+                        <h3 class="fw-bold text-info mb-0">@activos</h3>
+                    </div>
+                    <i class="fas fa-user-check fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inactivos -->
+        <div class="col">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-warning border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold">Inactivos</small>
+                        <h3 class="fw-bold text-warning mb-0">@inactivos</h3>
+                    </div>
+                    <i class="fas fa-user-slash fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div class="col">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-orange border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold">Clientes</small>
+                        <h3 class="fw-bold text-orange mb-0">@clientes</h3>
+                    </div>
+                    <i class="fas fa-handshake fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beneficiarios -->
+        <div class="col">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-success border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">Beneficiarios</small>
+                        <h3 class="fw-bold text-success mb-0">@beneficiarios</h3>
+                    </div>
+                    <i class="fas fa-hand-holding-heart fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Clientes con saldo -->
+        <div class="col">
+            <a asp-controller="CuentasPorCobrar"
+               asp-action="Index"
+               asp-route-conSaldo="true"
+               class="text-decoration-none"
+               title="Ver clientes con saldo en Cuentas por Cobrar">
+
+                <div class="card shadow-sm h-100 card-resumen card-enlace
+                    border-0 border-start border-warning border-4">
+
+                    <div class="card-body d-flex
+                        justify-content-between align-items-center">
+
+                        <div>
+                            <small class="fw-bold text-dark">
+                                Clientes con saldo
+                            </small>
+
+                            <h3 class="fw-bold text-warning mb-0">
+                                @clientesConSaldo
+                            </h3>
+
+                            <small class="text-muted d-block">
+                                @saldoTotalPendiente.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+                            </small>
+
+                            <small class="texto-enlace-card text-warning">
+                                Ver cartera
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </small>
+                        </div>
+
+                        <i class="fas fa-hand-pointer fa-2x
+                          text-muted opacity-50 icono-enlace"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header bg-light fw-bold">
+            <i class="fas fa-filter me-1"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-search text-muted me-1"></i>
+                        Buscar
+                    </label>
+
+                    <input type="text"
+                           id="buscarCliente"
+                           class="form-control"
+                           placeholder="Nombre, identificación, correo o teléfono" />
+
+                </div>
+
+                <!-- TIPO -->
+                <div class="col-md-1">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-id-badge text-muted me-1"></i>
+                        Tipo
+                    </label>
+
+                    <select id="filtroTipoCliente"
+                            class="form-select">
+
+                        <option value="">Todos</option>
+                        <option value="Cliente">Cliente</option>
+                        <option value="Beneficiario">Beneficiario</option>
+
+                    </select>
+
+                </div>
+
+                <!-- ESTADO -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-toggle-on text-muted me-1"></i>
+                        Estado
+                    </label>
+
+                    <select id="filtroEstadoCliente"
+                            class="form-select">
+
+                        <option value="">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+
+                    </select>
+
+                </div>
+
+                <!-- SITUACIÓN FINANCIERA -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-chart-line text-muted me-1"></i>
+                        Situación financiera
+                    </label>
+
+                    <select id="filtroSituacionFinanciera"
+                            class="form-select">
+
+                        <option value="">Todas</option>
+                        <option value="Sin movimientos">Sin movimientos</option>
+                        <option value="Al día">Al día</option>
+                        <option value="Saldo pendiente">Saldo pendiente</option>
+                        <option value="Cuenta vencida">Cuenta vencida</option>
+
+                    </select>
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="col-md-5">
+
+                    <div class="d-flex flex-wrap
+                            justify-content-between
+                            align-items-end gap-2">
+
+                        <!-- Buscar y limpiar -->
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    id="btnFiltrarCliente"
+                                    class="btn btn-primary btn-filtro px-5">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnLimpiarCliente"
+                                    class="btn btn-secondary btn-filtro px-5">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+
+                            </button>
+
+                        </div>
+
+                        <!-- PDF y Excel -->
+                        <div class="d-flex gap-2 ms-auto">
+
+                            <button type="button"
+                                    id="btnReporteClientes"
+                                    class="btn btn-info btn-filtro px-4">
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnExcelClientes"
+                                    class="btn btn-success btn-filtro px-4">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-users me-1"></i> Lista de clientes / beneficiarios registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="tablaClientes"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-user me-1"></i>Nombre</th>
+                            <th><i class="fas fa-id-badge me-1"></i>Tipo</th>
+                            <th><i class="fas fa-id-card me-1"></i>Identificación</th>
+                            <th><i class="fas fa-phone me-1"></i>Teléfono principal</th>
+                            <th><i class="fas fa-envelope me-1"></i>Correo principal</th>
+                            <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                            <th>
+                                <i class="fas fa-chart-line me-1"></i>
+                                Situación financiera
+                            </th>
+                            <th class="text-center"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    No se encontraron clientes o beneficiarios registrados.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@item.Nombre</td>
+                                    <td>@item.Tipo</td>
+                                    <td>@item.Identificacion</td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.Telefono) ? "No registrado" : item.Telefono)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.Email) ? "No registrado" : item.Email)</td>
+
+                                    <td>
+                                        @if (item.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                   
+                                    <td data-search="@item.SituacionFinanciera"
+                                        data-order="@item.SituacionFinanciera">
+                                            @switch (item.SituacionFinanciera)
+                                        {
+                                            case "Cuenta vencida":
+                                                <a asp-controller="CuentasPorCobrar"
+                                                   asp-action="Index"
+                                                   asp-route-clienteId="@item.IdClienteBeneficiario"
+                                                   asp-route-estado="Vencida"
+                                                   class="text-decoration-none"
+                                                   title="Ver cuentas vencidas de este cliente">
+
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                                        Cuenta vencida
+                                                    </span>
+                                                </a>
+
+                                                <div class="small text-danger fw-semibold mt-1">
+                                                    @item.SaldoTotalVencido.ToString(
+                                                             "C2",
+                                                             new System.Globalization.CultureInfo("es-CR"))
+                                                </div>
+                                                break;
+
+                                            case "Saldo pendiente":
+                                                <a asp-controller="CuentasPorCobrar"
+                                                   asp-action="Index"
+                                                   asp-route-clienteId="@item.IdClienteBeneficiario"
+                                                   asp-route-conSaldo="true"
+                                                   class="text-decoration-none"
+                                                   title="Ver cuentas pendientes de este cliente">
+
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        Saldo pendiente
+                                                    </span>
+                                                </a>
+
+                                                <div class="small text-warning-emphasis fw-semibold mt-1">
+                                                    @item.SaldoTotalPendiente.ToString(
+                                                             "C2",
+                                                             new System.Globalization.CultureInfo("es-CR"))
+                                                </div>
+                                                break;
+
+                                            case "Al día":
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    Al día
+                                                </span>
+                                                break;
+
+                                            default:
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-minus-circle me-1"></i>
+                                                    Sin movimientos
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1 flex-wrap">
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.IdClienteBeneficiario"
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-eye"></i> Detalles
+                                            </a>
+
+                                            @if (item.Activo)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@item.IdClienteBeneficiario"
+                                                   class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-edit"></i> Modificar
+                                                </a>
+
+                                                <form asp-action="Delete"
+                                                      asp-route-id="@item.IdClienteBeneficiario"
+                                                      method="post"
+                                                      class="d-inline form-desactivar-cliente"
+                                                      data-nombre="@item.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-ban"></i> Desactivar
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Reactivar"
+                                                      asp-route-id="@item.IdClienteBeneficiario"
+                                                      method="post"
+                                                      class="d-inline form-reactivar-cliente"
+                                                      data-nombre="@item.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check"></i> Reactivar
+                                                    </button>
+                                                </form>
+                                            }
+
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".form-desactivar-cliente").forEach(form => {
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const nombre = form.dataset.nombre;
+
+                Swal.fire({
+                    title: "¿Desactivar cliente?",
+                    html: `El cliente/beneficiario <strong>${nombre}</strong> quedará inactivo.<br>
+                                   No será eliminado del sistema.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, desactivar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+
+                });
+            });
+
+        });
+
+
+        document.querySelectorAll(".form-reactivar-cliente").forEach(form => {
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const nombre = form.dataset.nombre;
+
+                Swal.fire({
+                    title: "¿Reactivar cliente?",
+                    html: `El cliente/beneficiario <strong>${nombre}</strong> volverá a estar disponible en el sistema.`,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, reactivar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#198754",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+
+                });
+            });
+
+        });
+
+        // ================================================================
+        // DATATABLES - CLIENTES / BENEFICIARIOS
+        // ================================================================
+        let tablaClientes = null;
+
+        if ($.fn.DataTable &&
+            document.getElementById("tablaClientes")) {
+
+            tablaClientes = $("#tablaClientes").DataTable({
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                ordering: true,
+                order: [],
+
+                searching: true,
+                paging: true,
+                info: true,
+                autoWidth: false,
+                scrollX: false,
+
+                columnDefs: [
+                    {
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+
+                language: {
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    search: "Buscar en la tabla:",
+                    zeroRecords: "No se encontraron clientes o beneficiarios.",
+                    emptyTable: "No hay clientes o beneficiarios registrados.",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros)",
+                    paginate: {
+                        first: "Primero",
+                        last: "Último",
+                        next: "Siguiente",
+                        previous: "Anterior"
+                    }
+                }
+            });
+        }
+        // ================================================================
+        // FILTROS AUTOMÁTICOS - CLIENTES / BENEFICIARIOS
+        // ================================================================
+        const buscarCliente =
+            document.getElementById("buscarCliente");
+
+        const filtroTipoCliente =
+            document.getElementById("filtroTipoCliente");
+
+        const filtroEstadoCliente =
+            document.getElementById("filtroEstadoCliente");
+
+        const filtroSituacionFinanciera =
+            document.getElementById("filtroSituacionFinanciera");
+
+        function aplicarFiltrosClientes() {
+
+            if (!tablaClientes) {
+                return;
+            }
+
+            const texto = buscarCliente.value.trim();
+            const tipo = filtroTipoCliente.value;
+            const estado = filtroEstadoCliente.value;
+            const situacion = filtroSituacionFinanciera.value;
+
+            // Búsqueda general:
+            // nombre, identificación, teléfono, correo, etc.
+            tablaClientes.search(texto);
+
+            // Tipo: columna 1
+            tablaClientes
+                .column(1)
+                .search(
+                    tipo
+                        ? "^" +
+                        $.fn.dataTable.util.escapeRegex(tipo) +
+                        "$"
+                        : "",
+                    true,
+                    false
+                );
+
+            // Estado: columna 5
+            tablaClientes
+                .column(5)
+                .search(
+                    estado
+                        ? "^" +
+                        $.fn.dataTable.util.escapeRegex(estado) +
+                        "$"
+                        : "",
+                    true,
+                    false
+                );
+            // Situación financiera: columna 6
+            tablaClientes
+                .column(6)
+                .search(
+                    situacion
+                        ? "^" +
+                        $.fn.dataTable.util.escapeRegex(situacion) +
+                        "$"
+                        : "",
+                    true,
+                    false
+                );
+
+            tablaClientes.draw();
+        }
+
+        // Automático mientras se escribe
+        buscarCliente.addEventListener(
+            "input",
+            aplicarFiltrosClientes
+        );
+
+        // Automático al cambiar Tipo
+        filtroTipoCliente.addEventListener(
+            "change",
+            aplicarFiltrosClientes
+        );
+
+        // Automático al cambiar Estado
+        filtroEstadoCliente.addEventListener(
+            "change",
+            aplicarFiltrosClientes
+        );
+        // Automático al cambiar Situación financiera
+        filtroSituacionFinanciera.addEventListener(
+            "change",
+            aplicarFiltrosClientes
+        );
+        // El botón Filtrar también continúa funcionando
+        document
+            .getElementById("btnFiltrarCliente")
+            .addEventListener(
+                "click",
+                aplicarFiltrosClientes
+            );
+
+        // Limpiar sin recargar la página
+        document
+            .getElementById("btnLimpiarCliente")
+            .addEventListener("click", function () {
+
+                buscarCliente.value = "";
+                filtroTipoCliente.selectedIndex = 0;
+                filtroEstadoCliente.selectedIndex = 0;
+                filtroSituacionFinanciera.selectedIndex = 0;
+
+                if (tablaClientes) {
+                    tablaClientes.search("");
+                    tablaClientes.columns().search("");
+                    tablaClientes.draw();
+                }
+
+                buscarCliente.focus();
+                
+            });
+            // ================================================================
+                // REPORTE PDF Y EXCEL
+                // ================================================================
+                function obtenerFiltrosReporteClientes() {
+
+                    const buscar =
+                        document.getElementById("buscarCliente")
+                            .value
+                            .trim();
+
+                    const tipo =
+                        document.getElementById("filtroTipoCliente")
+                            .value;
+
+                    const estado =
+                        document.getElementById("filtroEstadoCliente")
+                            .value;
+            const situacionFinanciera =
+                document
+                    .getElementById(
+                        "filtroSituacionFinanciera")
+                    .value;
+
+            return new URLSearchParams({
+                buscar: buscar,
+                tipo: tipo,
+                estado: estado,
+                situacionFinanciera:
+                    situacionFinanciera
+            });
+                }
+
+                document
+                    .getElementById("btnReporteClientes")
+                    .addEventListener("click", function () {
+
+                        const parametros =
+                            obtenerFiltrosReporteClientes();
+
+                        const url =
+                            '@Url.Action("Reporte", "ClientesBeneficiarios")'
+                            + "?"
+                            + parametros.toString();
+                        window.location.href = url;
+                    });
+
+                document
+                    .getElementById("btnExcelClientes")
+                    .addEventListener("click", function () {
+
+                        const parametros =
+                            obtenerFiltrosReporteClientes();
+
+                        const url =
+                            '@Url.Action("ExportarExcel", "ClientesBeneficiarios")'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+        // ================================================================
+        // RESTAURAR FILTROS DE DATATABLES
+        // ================================================================
+        function restaurarFiltrosClientes() {
+
+            if (!tablaClientes) {
+                return;
+            }
+
+            aplicarFiltrosClientes();
+        }
+
+        // Se ejecuta al cargar normalmente
+        // y también al volver desde el historial del navegador.
+        window.addEventListener("pageshow", function () {
+            restaurarFiltrosClientes();
+        });
+    </script>
+}

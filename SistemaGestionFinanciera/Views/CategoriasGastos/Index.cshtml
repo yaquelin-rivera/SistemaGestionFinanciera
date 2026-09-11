@@ -1,0 +1,1067 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.ViewModels.CategoriaGastoControlViewModel>
+
+@{
+    ViewData["Title"] = "Categorías de gastos";
+
+    var totalCategorias =
+    Model.Count();
+
+    var totalActivas =
+        Model.Count(x =>
+            x.Categoria.Activo);
+
+    var totalInactivas =
+        Model.Count(x =>
+            !x.Categoria.Activo);
+
+    var totalLimiteMensual =
+        Model.Where(x =>
+                x.Categoria.Activo)
+            .Sum(x =>
+                x.Categoria.LimiteMensual);
+
+    string periodoTexto =
+        Convert.ToString(
+            ViewBag.PeriodoTexto)
+        ?? "Mes actual";
+
+    int cantidadProximas =
+    Convert.ToInt32(
+        ViewBag.CantidadProximas ?? 0);
+
+    decimal montoConsumidoProximas =
+        Convert.ToDecimal(
+            ViewBag.MontoConsumidoProximas ?? 0m);
+
+    int cantidadExcedidas =
+        Convert.ToInt32(
+            ViewBag.CantidadExcedidas ?? 0);
+
+    decimal excesoAcumulado =
+        Convert.ToDecimal(
+            ViewBag.ExcesoAcumulado ?? 0m);
+
+    int cantidadAlertas =
+        (cantidadProximas > 0 ? 1 : 0) +
+        (cantidadExcedidas > 0 ? 1 : 0);
+
+    string columnaAlerta =
+        cantidadAlertas == 1
+            ? "col-lg-12"
+            : "col-lg-6";
+}
+
+
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Gestión de categorías de gastos</h2>
+            <small class="text-muted">
+                Catálogo utilizado para clasificar gastos, límites mensuales y cuentas contables.
+            </small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+    @if (cantidadAlertas > 0)
+    {
+        <div class="row g-2 mb-3">
+
+            <!-- CATEGORÍAS PRÓXIMAS AL LÍMITE -->
+            @if (cantidadProximas > 0)
+            {
+                <div class="@columnaAlerta">
+
+                    <div class="alert alerta-proxima-limite
+                            d-flex flex-wrap
+                            justify-content-between
+                            align-items-center
+                            h-100 mb-0 py-2 px-3"
+                         role="alert">
+
+                        <div class="me-2">
+
+                            <div>
+                                <i class="fas fa-chart-line me-2"></i>
+
+                                <strong>
+                                    @cantidadProximas
+                                    @(cantidadProximas == 1
+                                        ? " categoría próxima al límite mensual"
+                                        : " categorías próximas al límite mensual")
+                                </strong>
+                            </div>
+
+                            <small class="d-block mt-1">
+                                Consumo mensual entre
+                                <strong>80 % y 100 %</strong>
+                                <small class="d-block mt-1">
+                                    Período:
+                                    <strong>@periodoTexto</strong>
+                                </small>
+                            </small>
+
+                            <small class="d-block fw-semibold mt-1">
+                                Monto consumido:
+                                @montoConsumidoProximas.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+                            </small>
+
+                        </div>
+
+                        <a asp-action="Index"
+                           asp-route-estadoLimite="Proxima"
+                           asp-route-anio="@ViewBag.AnioAplicado"
+                           asp-route-mes="@ViewBag.MesAplicado"
+                           class="btn btn-alerta-proxima-limite btn-sm fw-bold">
+
+                            <i class="fas fa-search me-1"></i>
+                            Revisar
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+            <!-- CATEGORÍAS EXCEDIDAS -->
+            @if (cantidadExcedidas > 0)
+            {
+                <div class="@columnaAlerta">
+
+                    <div class="alert alert-danger
+                            d-flex flex-wrap
+                            justify-content-between
+                            align-items-center
+                            h-100 mb-0 py-2 px-3"
+                         role="alert">
+
+                        <div class="me-2">
+
+                            <div>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+
+                                <strong>
+                                    @cantidadExcedidas
+                                    @(cantidadExcedidas == 1
+                                        ? " categoría excedió su límite mensual"
+                                        : " categorías excedieron su límite mensual")
+                                </strong>
+                            </div>
+
+                            <small class="d-block fw-semibold mt-1">
+                                Exceso acumulado:
+                                <small class="d-block mt-1">
+                                    Período:
+                                    <strong>@periodoTexto</strong>
+                                </small>
+                                @excesoAcumulado.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+
+                            </small>
+
+                        </div>
+
+                        <a asp-action="Index"
+                           asp-route-estadoLimite="Excedida"
+                           asp-route-anio="@ViewBag.AnioAplicado"
+                           asp-route-mes="@ViewBag.MesAplicado"
+                           class="btn btn-danger btn-sm fw-bold">
+
+                            <i class="fas fa-eye me-1"></i>
+                            Ver excedidas
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold mb-1">Categorías registradas</small>
+                        <h5 class="fw-bold text-primary mb-0">@totalCategorias</h5>
+                    </div>
+
+                    <i class="fas fa-tags fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold mb-1">Categorías activas</small>
+                        <h5 class="fw-bold text-success mb-0">@totalActivas</h5>
+                    </div>
+
+                    <i class="fas fa-check-circle fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-secondary border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold mb-1">Categorías inactivas</small>
+                        <h5 class="fw-bold text-secondary mb-0">@totalInactivas</h5>
+                    </div>
+
+                    <i class="fas fa-ban fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold mb-1">Límite mensual activo</small>
+                        <h5 class="fw-bold text-warning mb-0">
+                            @totalLimiteMensual.ToString("C2")
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-coins fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+
+                        <i class="fas fa-search text-muted me-1"></i>
+                        Buscar
+
+                    </label>
+
+                    <input type="text"
+                           id="filtroTexto"
+                           class="form-control"
+                           placeholder="Nombre o descripción..." />
+
+                </div>
+
+                <!-- CUENTA CONTABLE -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        <i class="fas fa-book text-muted me-1"></i>
+                        Cuenta contable
+
+                    </label>
+
+                    <input type="text"
+                           id="filtroCuenta"
+                           class="form-control"
+                           placeholder="Código o nombre..." />
+
+                </div>
+                <!-- LÍMITE -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        <i class="fas fa-coins text-muted me-1"></i>
+                        Límite mensual
+
+                    </label>
+
+                    <select id="filtroLimite"
+                            class="form-select">
+
+                        <option value="">Todos</option>
+                        <option value="ConLimite">Con límite</option>
+                        <option value="SinLimite">Sin límite</option>
+
+                    </select>
+
+                </div>
+                <!-- ESTADO -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-info-circle text-muted me-1"></i>
+                        Estado
+                    </label>
+
+                    <select id="filtroEstado"
+                            class="form-select">
+
+                        <option value=""
+                                selected="@(string.IsNullOrWhiteSpace(ViewBag.Estado as string))">
+                            Todos
+                        </option>
+
+                        <option value="Activo"
+                                selected="@(ViewBag.Estado as string == "Activo")">
+                            Activo
+                        </option>
+
+                        <option value="Inactivo"
+                                selected="@(ViewBag.Estado as string == "Inactivo")">
+                            Inactivo
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- MES -->
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar text-muted me-1"></i>
+                        Mes
+                    </label>
+                    <select id="filtroMes"
+                            class="form-select">
+                        <option value="">Actual</option>
+                        @{
+                            string[] meses =
+                            {
+                        "Enero",
+                        "Febrero",
+                        "Marzo",
+                        "Abril",
+                        "Mayo",
+                        "Junio",
+                        "Julio",
+                        "Agosto",
+                        "Septiembre",
+                        "Octubre",
+                        "Noviembre",
+                        "Diciembre"
+                                        };
+                        }
+                        @for (int numeroMes = 1;
+                        numeroMes <= 12;
+                        numeroMes++)
+                        {
+                            <option value="@numeroMes"
+                                    selected="@(ViewBag.Mes != null &&
+                                Convert.ToInt32(ViewBag.Mes) == numeroMes)">
+                                @meses[numeroMes - 1]
+                            </option>
+                        }
+                    </select>
+                </div>
+                <!-- AÑO -->
+                <div class="col-md-1">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                        Año
+                    </label>
+                    <select id="filtroAnio"
+                            class="form-select">
+
+                        <option value="">Actual</option>
+
+                        @for (int anio = DateTime.Today.Year;
+                        anio >= DateTime.Today.Year - 5;
+                        anio--)
+                        {
+                            <option value="@anio"
+                                    selected="@(ViewBag.Anio != null &&
+                                Convert.ToInt32(ViewBag.Anio) == anio)">
+                                @anio
+                            </option>
+                        }
+                    </select>
+                </div>  
+                @if (!string.IsNullOrWhiteSpace(ViewBag.EstadoLimite as string))
+                {
+                    <div class="col-12">
+
+                        <div class="d-flex align-items-center gap-2
+                    px-3 py-2
+                    rounded
+                    border
+                    bg-light">
+
+                            <i class="fas fa-filter text-primary"></i>
+
+                            <span class="fw-semibold">
+                                Control mensual aplicado:
+                            </span>
+
+                            @if (ViewBag.EstadoLimite == "Proxima")
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    Categorías próximas al límite
+                                </span>
+                            }
+                            else if (ViewBag.EstadoLimite == "Excedida")
+                            {
+                                <span class="badge bg-danger">
+                                    Categorías con límite excedido
+                                </span>
+                            }
+
+                            <span class="text-muted ms-2">
+                                Período:
+                                <strong>@periodoTexto</strong>
+                            </span>
+
+                        </div>
+
+                    </div>
+                }
+                <!-- BOTONES -->
+                <div class="col-md-12">
+
+                    <div class="d-flex align-items-end gap-2 w-100">
+
+                        <!-- GRUPO IZQUIERDO -->
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    id="btnBuscar"
+                                    class="btn btn-primary btn-filtro px-5">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnLimpiar"
+                                    class="btn btn-secondary btn-filtro px-5">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+
+                            </button>
+
+                        </div>
+
+                        <!-- GRUPO DERECHO -->
+                        <div class="d-flex gap-2 ms-auto">
+
+                            <button type="button"
+                                    id="btnReporteCategoriasGastos"
+                                    class="btn btn-info btn-filtro px-4">
+
+                                <i class="fas fa-file-pdf me-1 "></i>
+                                Vista previa PDF
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnExcelCategoriasGastos"
+                                    class="btn btn-success btn-filtro px-4">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-list me-2"></i>
+            Lista de categorías de gastos registradas
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="tablaCategoriasGastos" class="table table-hover align-middle w-100 tabla-sistema">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <i class="fas fa-tag me-1"></i>
+                                    Nombre
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-align-left me-1"></i>
+                                    Descripción
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-coins me-1"></i>
+                                    Límite mensual
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-money-bill-wave me-1"></i>
+                                    Gasto del período
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-percent me-1"></i>
+                                    Consumido
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-chart-pie me-1"></i>
+                                    Estado del límite
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-book me-1"></i>
+                                    Cuenta contable
+                                </th>
+
+                                <th>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Estado
+                                </th>
+
+                                <th class="text-end">
+                                    <i class="fas fa-cogs me-1"></i>
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                var categoria =
+                                item.Categoria;
+
+                                <tr>
+
+                                    <td class="fw-semibold">
+                                        @categoria.Nombre
+                                    </td>
+
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(
+                                       categoria.Descripcion))
+                                        {
+                                            @categoria.Descripcion
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin descripción
+                                            </span>
+                                        }
+                                    </td>
+                                    <!-- LÍMITE MENSUAL -->
+                                    <td>
+                                        @if (categoria.LimiteMensual > 0)
+                                        {
+                                            <span class="fw-semibold">
+                                                @categoria.LimiteMensual.ToString(
+                                                         "C2",
+                                                         new System.Globalization.CultureInfo("es-CR"))
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Sin límite
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <!-- GASTO DEL PERÍODO -->
+                                    <td class="fw-semibold">
+                                        @item.GastoPeriodo.ToString(
+                                                 "C2",
+                                                 new System.Globalization.CultureInfo("es-CR"))
+                                    </td>
+
+                                    <!-- PORCENTAJE CONSUMIDO -->
+                                    <td>
+                                        @if (categoria.LimiteMensual > 0)
+                                        {
+                                            <span class="fw-semibold">
+                                                @($"{item.PorcentajeConsumido:N2} %")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No aplica
+                                            </span>
+                                        }
+                                    </td>
+
+
+                                    <td>
+                                        @switch (item.EstadoLimite)
+                                        {
+                                            case "Excedida":
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-triangle-exclamation me-1"></i>
+                                                    Excedida
+                                                </span>
+
+                                                <small class="d-block text-danger fw-semibold mt-1">
+                                                    Exceso:
+                                                    @item.Exceso.ToString(
+                                                             "C2",
+                                                             new System.Globalization
+                                                             .CultureInfo("es-CR"))
+                                                </small>
+                                                break;
+
+                                            case "Próxima al límite":
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    Próxima al límite
+                                                </span>
+                                                break;
+
+                                            case "Dentro del límite":
+                                                <span class="badge bg-success">
+                                                    Dentro del límite
+                                                </span>
+                                                break;
+
+                                            case "Sin límite":
+                                                <span class="badge bg-secondary">
+                                                    Sin límite
+                                                </span>
+                                                break;
+
+                                            case "Inactiva":
+                                                <span class="badge bg-secondary">
+                                                    Inactiva
+                                                </span>
+                                                break;
+
+                                            default:
+                                                <span class="badge bg-light text-dark border">
+                                                    Sin consumo
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (categoria.CuentaContable != null)
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @categoria.CuentaContable.Codigo
+                                                -
+                                                @categoria.CuentaContable.Nombre
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Sin cuenta asociada
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (categoria.Activo)
+                                        {
+                                            <span class="badge bg-success">
+                                                Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Inactivo
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="d-inline-flex gap-1">
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@categoria.IdCategoriaGasto"
+                                               class="btn btn-sm btn-primary">
+
+                                                <i class="fas fa-eye me-1"></i>
+                                                Detalles
+                                            </a>
+
+                                            @if (categoria.Activo)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@categoria.IdCategoriaGasto"
+                                                   class="btn btn-sm btn-warning">
+
+                                                    <i class="fas fa-pen-to-square me-1"></i>
+                                                    Modificar
+                                                </a>
+
+                                                <form asp-action="Delete"
+                                                      asp-route-id="@categoria.IdCategoriaGasto"
+                                                      method="post"
+                                                      class="d-inline form-desactivar-categoria-gasto"
+                                                      data-nombre="@categoria.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-danger">
+
+                                                        <i class="fas fa-ban me-1"></i>
+                                                        Desactivar
+                                                    </button>
+
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-warning"
+                                                        disabled>
+
+                                                    <i class="fas fa-pen-to-square me-1"></i>
+                                                    Modificar
+                                                </button>
+
+                                                <form asp-action="Activar"
+                                                      asp-route-id="@categoria.IdCategoriaGasto"
+                                                      method="post"
+                                                      class="d-inline form-activar-categoria-gasto"
+                                                      data-nombre="@categoria.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-success">
+
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Activar
+                                                    </button>
+
+                                                </form>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+                </table>
+            </div>
+            <div id="mensajeSinResultados" class="alert alert-info mt-3 mb-0 d-none">
+                No se encontraron categorías con los filtros aplicados.
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info mt-3 mb-0">
+                    No existen categorías de gastos registradas.
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>
+ <style>
+    .alerta-proxima-limite {
+    background-color: #fff4e5;
+    border: 1px solid #f5b66b;
+    color: #9a4d00;
+    }
+
+    .btn-alerta-proxima-limite {
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+    color: #ffffff;
+    }
+
+    .btn-alerta-proxima-limite:hover,
+    .btn-alerta-proxima-limite:focus {
+    background-color: #d97706;
+    border-color: #d97706;
+    color: #ffffff;
+    }
+     </style>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            const tabla = $('#tablaCategoriasGastos').DataTable({
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [[0, 'asc']],
+
+                columnDefs: [
+                    {
+                        targets: [8],
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+
+                language: {
+                    emptyTable: "No existen categorías de gastos registradas",
+                    zeroRecords: "No se encontraron categorías de gastos",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ categorías",
+                    infoEmpty: "No hay categorías para mostrar",
+                    infoFiltered: "(filtrado de _MAX_ categorías totales)",
+                    lengthMenu: "Mostrar _MENU_ categorías",
+                    search: "Buscar:",
+                    loadingRecords: "Cargando...",
+                    processing: "Procesando...",
+                    paginate: {
+                        first: "Primero",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Último"
+                    }
+                }
+            });
+
+                function obtenerParametrosIndex() {
+
+                    const estadoLimiteActivo =
+                        '@(ViewBag.EstadoLimite ?? "")';
+
+                    return new URLSearchParams({
+                        buscar:
+                            document
+                                .getElementById("filtroTexto")
+                                .value
+                                .trim(),
+
+                        cuenta:
+                            document
+                                .getElementById("filtroCuenta")
+                                .value
+                                .trim(),
+
+                        estado:
+                            document
+                                .getElementById("filtroEstado")
+                                .value,
+
+                        limite:
+                            document
+                                .getElementById("filtroLimite")
+                                .value,
+
+                        anio:
+                            document
+                                .getElementById("filtroAnio")
+                                .value,
+
+                        mes:
+                            document
+                                .getElementById("filtroMes")
+                                .value,
+
+                        estadoLimite:
+                            estadoLimiteActivo
+                    });
+                }
+
+                document
+                    .getElementById("btnBuscar")
+                    .addEventListener("click", function () {
+
+                        const parametros =
+                            obtenerParametrosIndex();
+
+                        const url =
+                            '@Url.Action("Index", "CategoriasGastos")'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+
+                document
+                    .getElementById("btnLimpiar")
+                    .addEventListener("click", function () {
+
+                        window.location.href =
+                            '@Url.Action("Index", "CategoriasGastos")';
+                    });
+
+
+            // =====================================================
+            // REPORTE PDF Y EXCEL
+            // =====================================================
+            function obtenerFiltrosReporteCategoriasGastos() {
+
+                const buscar =
+                    document
+                        .getElementById("filtroTexto")
+                        .value
+                        .trim();
+
+                const cuenta =
+                    document
+                        .getElementById("filtroCuenta")
+                        .value
+                        .trim();
+
+                const estado =
+                    document
+                        .getElementById("filtroEstado")
+                        .value;
+
+                const limite =
+                    document
+                        .getElementById("filtroLimite")
+                        .value;
+                    const anio =
+                        document
+                            .getElementById("filtroAnio")
+                            .value;
+
+                    const mes =
+                        document
+                            .getElementById("filtroMes")
+                            .value;
+
+                        const estadoLimiteActivo =
+    '@(ViewBag.EstadoLimite ?? "")';
+
+                    return new URLSearchParams({
+                        buscar: buscar,
+                        cuenta: cuenta,
+                        estado: estado,
+                        limite: limite,
+                        anio: anio,
+                        mes: mes,
+                        estadoLimite: estadoLimiteActivo
+                    });
+            }
+
+            document
+                .getElementById("btnReporteCategoriasGastos")
+                .addEventListener("click", function () {
+
+                    const parametros =
+                        obtenerFiltrosReporteCategoriasGastos();
+
+                    const url =
+                        '@Url.Action("Reporte", "CategoriasGastos")'
+                        + "?"
+                        + parametros.toString();
+
+                    window.location.href = url;
+                });
+
+            document
+                .getElementById("btnExcelCategoriasGastos")
+                .addEventListener("click", function () {
+
+                    const parametros =
+                        obtenerFiltrosReporteCategoriasGastos();
+
+                    const url =
+                        '@Url.Action("ExportarExcel", "CategoriasGastos")'
+                        + "?"
+                        + parametros.toString();
+
+                    window.location.href = url;
+                });
+            document
+                .querySelectorAll(".form-desactivar-categoria-gasto")
+                .forEach(form => {
+
+                    form.addEventListener("submit", function (e) {
+                        e.preventDefault();
+
+                        const nombre = form.dataset.nombre;
+
+                        Swal.fire({
+                            title: "¿Desactivar categoría de gasto?",
+                            html: `La categoría <strong>${nombre}</strong> quedará inactiva.<br><br>
+                                           No será eliminada del sistema.`,
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Sí, desactivar",
+                            cancelButtonText: "Cancelar",
+                            confirmButtonColor: "#dc3545",
+                            cancelButtonColor: "#6c757d"
+                        }).then((result) => {
+
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+
+                        });
+                    });
+
+                });
+
+
+            document
+                .querySelectorAll(".form-activar-categoria-gasto")
+                .forEach(form => {
+
+                    form.addEventListener("submit", function (e) {
+                        e.preventDefault();
+
+                        const nombre = form.dataset.nombre;
+
+                        Swal.fire({
+                            title: "¿Activar categoría de gasto?",
+                            html: `La categoría <strong>${nombre}</strong> volverá a estar disponible en el sistema.`,
+                            icon: "question",
+                            showCancelButton: true,
+                            confirmButtonText: "Sí, activar",
+                            cancelButtonText: "Cancelar",
+                            confirmButtonColor: "#198754",
+                            cancelButtonColor: "#6c757d"
+                        }).then((result) => {
+
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+
+                        });
+                    });
+
+                });
+
+        });
+    </script>
+}

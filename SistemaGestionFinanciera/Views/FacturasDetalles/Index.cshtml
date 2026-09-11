@@ -1,0 +1,729 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.FacturaDetalle>
+
+@{
+    ViewData["Title"] = "Catálogo de servicios";
+
+    var totalServicios = Model.Count();
+    var totalActivos = Model.Count(d => d.Activo);
+    var totalInactivos = Model.Count(d => !d.Activo);
+    var precioPromedio = Model.Any() ? Model.Average(d => d.PrecioUnitario) : 0;
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Gestión del catálogo de servicios para factura</h2>
+            <small class="text-muted">
+                Administración de servicios o productos disponibles para los detalles de facturación.
+            </small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+    @*CARDS*@
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-primary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total servicios
+                        </small>
+
+                        <h5 class="fw-bold text-primary mb-0 mt-1">
+                            @totalServicios
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-list-alt fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-success h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Activos
+                        </small>
+
+                        <h5 class="fw-bold text-success mb-0 mt-1">
+                            @totalActivos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-check-circle fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-secondary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Inactivos
+                        </small>
+
+                        <h5 class="fw-bold text-secondary mb-0 mt-1">
+                            @totalInactivos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-ban fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-warning h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Precio promedio
+                        </small>
+
+                        <h5 class="fw-bold text-warning mb-0 mt-1">
+                            ₡@precioPromedio.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-coins fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+        <div class="card shadow-sm border-0 mb-3">
+
+            <div class="card-header text-white fw-bold"
+                 style="background-color:#0F5C64;">
+
+                <i class="fas fa-filter me-2"></i>
+                Buscar servicios
+
+            </div>
+
+            <div class="card-body">
+
+                <form asp-action="Index"
+                      method="get"
+                      id="formFiltrosServicios"
+                      class="row g-3 align-items-end">
+
+                    <!-- BUSCAR -->
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-bold">
+
+                            <i class="fas fa-search text-muted me-1"></i>
+                            Nombre o descripción
+
+                        </label>
+
+                        <input type="text"
+                               id="filtroBuscar"
+                               name="buscar"
+                               value="@ViewBag.Buscar"
+                               class="form-control"
+                               placeholder="Buscar por nombre o descripción..." />
+
+                    </div>
+
+                    <!-- ESTADO -->
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-bold">
+
+                            <i class="fas fa-info-circle text-muted me-1"></i>
+                            Estado
+
+                        </label>
+
+                        <select id="filtroEstado"
+                                name="estado"
+                                class="form-select">
+
+                            <option value="">Todos</option>
+
+                            <option value="Activo"
+                                    selected="@(ViewBag.Estado == "Activo")">
+                                Activo
+                            </option>
+
+                            <option value="Inactivo"
+                                    selected="@(ViewBag.Estado == "Inactivo")">
+                                Inactivo
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- BOTONES -->
+                    <div class="col-md-7">
+
+                        <div class="d-flex align-items-end gap-2 w-100">
+
+                            <!-- BOTONES DE FILTRO -->
+                            <div class="d-flex gap-2">
+
+                                <button type="submit"
+                                        class="btn btn-primary px-5">
+
+                                    <i class="fas fa-search me-1"></i>
+                                    Buscar
+
+                                </button>
+
+                                <a asp-action="Index"
+                                   class="btn btn-secondary px-5">
+
+                                    <i class="fas fa-eraser me-1"></i>
+                                    Limpiar
+
+                                </a>
+
+                            </div>
+
+                            <!-- BOTONES DE REPORTE -->
+                            <div class="d-flex gap-2 ms-auto">
+
+                                <button type="button"
+                                        id="btnReporteServicios"
+                                        class="btn btn-info">
+
+                                    <i class="fas fa-file-pdf me-1"></i>
+                                    Vista previa PDF
+
+                                </button>
+
+                                <button type="button"
+                                        id="btnExcelServicios"
+                                        class="btn btn-success">
+
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    Exportar Excel
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-list me-2"></i>
+            Lista de servicios registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="tablaServicios"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th class ="text-center">
+                                <i class="fas fa-tag me-1"></i>
+                                Nombre
+                            </th>
+
+                            <th class ="text-center">
+                                <i class="fas fa-align-left me-1"></i>
+                                Descripción
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-coins me-1"></i>
+                                Precio unitario
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Estado
+                            </th>
+
+                            <th class="col-acciones text-center">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.Nombre</td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.Descripcion))
+                                    {
+                                        @item.Descripcion
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin descripción</span>
+                                    }
+                                </td>
+
+                                <td class="fw-semibold"
+                                    data-order="@item.PrecioUnitario">
+
+                                    ₡@item.PrecioUnitario.ToString("N2")
+                                </td>
+                                <td>
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="col-acciones">
+                                    <div class="acciones-botones">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdFacturaDetalle"
+                                           class="btn btn-sm btn-primary text-white">
+                                            <i class="fas fa-eye"></i> Detalles
+                                        </a>
+
+                                        @if (item.Activo)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.IdFacturaDetalle"
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-pen-to-square me-1"></i> Modificar
+                                            </a>
+
+                                            <form asp-action="CambiarEstado"
+                                                  asp-route-id="@item.IdFacturaDetalle"
+                                                  method="post"
+                                                  class="d-inline form-desactivar-servicio"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-ban me-1"></i> Desactivar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-warning"
+                                                    disabled
+                                                    title="Primero debe activar el servicio para poder modificarlo.">
+                                                <i class="fas fa-pen-to-square me-1"></i> Modificar
+                                            </button>
+
+                                            <form asp-action="CambiarEstado"
+                                                  asp-route-id="@item.IdFacturaDetalle"
+                                                  method="post"
+                                                  class="d-inline form-activar-servicio"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check me-1"></i> Activar
+                                                </button>
+                                            </form>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info mt-3 mb-0">
+                    No existen servicios registrados.
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>
+<style>
+    .icono-card {
+        color: #adb5bd !important;
+        opacity: .85;
+    }
+
+    #tablaServicios {
+        min-width: 1000px;
+    }
+
+        #tablaServicios thead th {
+            background-color: #d8f0f3;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #tablaServicios .col-acciones {
+            min-width: 260px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter {
+        margin-bottom: 12px;
+    }
+
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin-top: 12px;
+    }
+</style>
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // =====================================================
+            // DATATABLE
+            // =====================================================
+            if (typeof $ !== "undefined" &&
+                $.fn.DataTable &&
+                document.getElementById("tablaServicios")) {
+
+                if ($.fn.DataTable.isDataTable("#tablaServicios")) {
+
+                    $("#tablaServicios")
+                        .DataTable()
+                        .destroy();
+                }
+
+                $("#tablaServicios").DataTable({
+
+                    pageLength: 10,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+
+                    order: [[0, "asc"]],
+
+                    autoWidth: false,
+                    responsive: false,
+
+                    columnDefs: [
+                        {
+                            targets: [4],
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+
+                        emptyTable:
+                            "No existen servicios registrados.",
+
+                        info:
+                            "Mostrando _START_ a _END_ de _TOTAL_ servicios",
+
+                        infoEmpty:
+                            "Mostrando 0 a 0 de 0 servicios",
+
+                        infoFiltered:
+                            "(filtrado de _MAX_ servicios totales)",
+
+                        lengthMenu:
+                            "Mostrar _MENU_ servicios",
+
+                        search:
+                            "Buscar:",
+
+                        searchPlaceholder:
+                            "Buscar servicio...",
+
+                        zeroRecords:
+                            "No se encontraron servicios.",
+
+                        paginate: {
+
+                            first:
+                                "Primero",
+
+                            last:
+                                "Último",
+
+                            next:
+                                "Siguiente",
+
+                            previous:
+                                "Anterior"
+                        }
+                    }
+                });
+            }
+
+            // =====================================================
+            // FILTROS
+            // =====================================================
+            const inputBuscar =
+                document.getElementById("filtroBuscar");
+
+            const selectEstado =
+                document.getElementById("filtroEstado");
+
+            const formFiltros =
+                document.getElementById(
+                    "formFiltrosServicios"
+                );
+
+            if (selectEstado && formFiltros) {
+
+                selectEstado.addEventListener(
+                    "change",
+                    function () {
+
+                        formFiltros.submit();
+                    });
+            }
+
+            if (inputBuscar && formFiltros) {
+
+                let temporizador;
+
+                inputBuscar.addEventListener(
+                    "input",
+                    function () {
+
+                        clearTimeout(temporizador);
+
+                        temporizador = setTimeout(
+                            function () {
+
+                                formFiltros.submit();
+                            },
+                            600
+                        );
+                    });
+            }
+
+            // =====================================================
+            // OBTENER FILTROS PARA PDF Y EXCEL
+            // =====================================================
+            function obtenerParametrosReporteServicios() {
+
+                const buscar =
+                    inputBuscar
+                        ? inputBuscar.value.trim()
+                        : "";
+
+                const estado =
+                    selectEstado
+                        ? selectEstado.value
+                        : "";
+
+                return new URLSearchParams({
+
+                    buscar: buscar,
+                    estado: estado
+                });
+            }
+
+            // =====================================================
+            // VISTA PREVIA PDF
+            // =====================================================
+            const btnReporteServicios =
+                document.getElementById(
+                    "btnReporteServicios"
+                );
+
+            if (btnReporteServicios) {
+
+                btnReporteServicios.addEventListener(
+                    "click",
+                    function () {
+
+                        const parametros =
+                            obtenerParametrosReporteServicios();
+
+                        const url =
+                            '@Url.Action(
+            "Reporte",
+                "FacturasDetalles"
+                )'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+            }
+
+            // =====================================================
+            // EXPORTAR EXCEL
+            // =====================================================
+            const btnExcelServicios =
+                document.getElementById(
+                    "btnExcelServicios"
+                );
+
+            if (btnExcelServicios) {
+
+                btnExcelServicios.addEventListener(
+                    "click",
+                    function () {
+
+                        const parametros =
+                            obtenerParametrosReporteServicios();
+
+                        const url =
+                            '@Url.Action(
+            "ExportarExcel",
+                "FacturasDetalles"
+                )'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+            }
+
+            // =====================================================
+            // DESACTIVAR SERVICIO
+            // =====================================================
+            document
+                .querySelectorAll(
+                    ".form-desactivar-servicio"
+                )
+                .forEach(form => {
+
+                    form.addEventListener(
+                        "submit",
+                        function (e) {
+
+                            e.preventDefault();
+
+                            const nombre =
+                                form.dataset.nombre;
+
+                            Swal.fire({
+
+                                title:
+                                    "¿Desactivar servicio o producto?",
+
+                                html:
+                                    `El registro <strong>${nombre}</strong> quedará inactivo.<br><br>
+                                             No será eliminado y ya no estará disponible para nuevos detalles de factura.`,
+
+                                icon:
+                                    "warning",
+
+                                showCancelButton:
+                                    true,
+
+                                confirmButtonText:
+                                    "Sí, desactivar",
+
+                                cancelButtonText:
+                                    "Cancelar",
+
+                                confirmButtonColor:
+                                    "#dc3545",
+
+                                cancelButtonColor:
+                                    "#6c757d"
+
+                            }).then((result) => {
+
+                                if (result.isConfirmed) {
+
+                                    form.submit();
+                                }
+                            });
+                        });
+                });
+
+            // =====================================================
+            // ACTIVAR SERVICIO
+            // =====================================================
+            document
+                .querySelectorAll(
+                    ".form-activar-servicio"
+                )
+                .forEach(form => {
+
+                    form.addEventListener(
+                        "submit",
+                        function (e) {
+
+                            e.preventDefault();
+
+                            const nombre =
+                                form.dataset.nombre;
+
+                            Swal.fire({
+
+                                title:
+                                    "¿Activar servicio o producto?",
+
+                                html:
+                                    `El registro <strong>${nombre}</strong> volverá a estar disponible para nuevos detalles de factura.`,
+
+                                icon:
+                                    "question",
+
+                                showCancelButton:
+                                    true,
+
+                                confirmButtonText:
+                                    "Sí, activar",
+
+                                cancelButtonText:
+                                    "Cancelar",
+
+                                confirmButtonColor:
+                                    "#198754",
+
+                                cancelButtonColor:
+                                    "#6c757d"
+
+                            }).then((result) => {
+
+                                if (result.isConfirmed) {
+
+                                    form.submit();
+                                }
+                            });
+                        });
+                });
+
+        });
+
+    </script>
+}

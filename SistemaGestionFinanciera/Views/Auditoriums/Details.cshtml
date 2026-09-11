@@ -1,0 +1,99 @@
+﻿@model SistemaGestionFinanciera.Models.Auditorium
+
+@{
+    ViewData["Title"] = "Detalle de Auditoría";
+}
+@{
+    string claseBadge = "bg-secondary";
+
+    if (Model.Accion.Contains("Inicio", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-success";
+    }
+    else if (Model.Accion.Contains("Cierre", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-dark";
+    }
+    else if (Model.Accion.Contains("Crear", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-success";
+    }
+    else if (Model.Accion.Contains("Modificar", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-primary";
+    }
+    else if (Model.Accion.Contains("Activar", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-info text-dark";
+    }
+    else if (Model.Accion.Contains("Desactivar", StringComparison.OrdinalIgnoreCase) ||
+    Model.Accion.Contains("Anular", StringComparison.OrdinalIgnoreCase) ||
+    Model.Accion.Contains("Eliminar", StringComparison.OrdinalIgnoreCase))
+    {
+        claseBadge = "bg-danger";
+    }
+}
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Detalle de Auditoría</h2>
+
+
+        <small class="text-muted">
+            Consulta individual del evento registrado en el sistema
+        </small>
+    </div>
+  
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Información del evento
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Fecha y hora</div>
+                <div class="col-md-8">@Model.Fecha.ToString("dd/MM/yyyy hh:mm tt")</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Responsable</div>
+                <div class="col-md-8">
+                    @Model.Usuario.Nombre - @Model.Usuario.Rol.Nombre
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Módulo</div>
+                <div class="col-md-8">@Model.Tabla</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Acción</div>
+                <div class="col-md-8">
+                    <span class="badge @claseBadge">
+                        @Model.Accion
+                    </span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Registro asociado</div>
+                <div class="col-md-8">@Model.RegistroId</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-muted">Descripción</div>
+                <div class="col-md-8">@Model.Descripcion</div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,314 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasPorPagar
+
+@{
+    ViewData["Title"] = "Anular Cuenta por Pagar";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Anular Cuenta por Pagar</h2>
+        <small class="text-muted">Confirme la anulación del registro seleccionado</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-danger text-white fw-bold">
+            Confirmación de anulación
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+                <strong>Importante:</strong> La cuenta por pagar no será eliminada de la base de datos.
+                El sistema únicamente cambiará su estado a <strong>Anulada</strong> para conservar el historial financiero.
+            </div>
+
+            <p class="text-primary fw-bold mb-2">Información general</p>
+            <hr />
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>N° Documento</strong>
+                    <div>@Model.NumeroDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Tipo de documento</strong>
+                    <div>@Model.TipoDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Factura proveedor</strong>
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(Model.NumeroFactura))
+                        {
+                            @Model.NumeroFactura
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin factura registrada</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Proveedor</strong>
+                    <div>@Model.Proveedor?.Nombre</div>
+                </div>
+
+            </div>
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>Proyecto</strong>
+                    <div>
+                        @if (Model.Proyecto != null)
+                        {
+                            @Model.Proyecto.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin proyecto</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <strong>Período presupuestario</strong>
+
+                    <div>
+                        @if (Model.PresupuestoMensualRegistro != null)
+                        {
+                            @(
+                                new DateTime(
+                                Model.PresupuestoMensualRegistro.Anio,
+                                Model.PresupuestoMensualRegistro.Mes,
+                                1
+                                ).ToString(
+                                "MMMM yyyy",
+                                new System.Globalization.CultureInfo("es-CR"))
+                                )
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                Sin período asociado
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <strong>Fecha emisión</strong>
+                    <div>@Model.FechaEmision.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Fecha vencimiento</strong>
+                    <div>@Model.FechaVencimiento.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado actual</strong>
+                    <div>
+                        @if (Model.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else if (Model.Estado == "Parcial")
+                        {
+                            <span class="badge text-white" style="background-color:#0FB7C9;">Parcial</span>
+                        }
+                        else if (Model.Estado == "Cancelada")
+                        {
+                            <span class="badge bg-success">Cancelada</span>
+                        }
+                        else if (Model.Estado == "Vencida")
+                        {
+                            <span class="badge bg-danger">Vencida</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">@Model.Estado</span>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Resumen financiero</p>
+            <hr />
+
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <strong>Monto original</strong>
+                    <div>₡@Model.MontoOriginal.ToString("N2")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Monto pagado</strong>
+                    <div>₡@((Model.MontoPagado ?? 0).ToString("N2"))</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Saldo pendiente</strong>
+                    <div class="fw-bold text-danger">
+                        ₡@Model.SaldoPendiente.ToString("N2")
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Concepto</strong>
+                    <div>@Model.Concepto</div>
+                </div>
+
+            </div>
+
+            <form asp-action="Delete"
+                  asp-route-id="@Model.IdCuentaPorPagar"
+                  method="post"
+                  id="formAnularCxP">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="IdCuentaPorPagar" />
+                <div class="row mb-4">
+                    <div class="col-md-7">
+                        <label asp-for="MotivoAnulacion" class="form-label fw-bold">
+                            Motivo de anulación
+                        </label>
+                        <textarea id="motivoAnulacion"
+                                  name="motivoAnulacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Explique el motivo por el cual se anula esta cuenta por pagar"></textarea>
+                        <span id="errorMotivo" class="text-danger"></span>
+                        @if (TempData["MensajeError"] != null)
+                        {
+                            <div class="text-danger mt-2">
+                                @TempData["MensajeError"]
+                            </div>
+                        }
+                        <small class="text-muted">
+                            Este motivo quedará guardado para control y auditoría del registro.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    @if (Model.Estado != "Anulada")
+                    {
+                        <button type="submit"
+                                class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>   Confirmar anulación
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-times-circle me-1"></i>Cuenta ya anulada
+                        </button>
+                    }
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        const formAnularCxP =
+            document.getElementById("formAnularCxP");
+
+        const motivo =
+            document.getElementById("motivoAnulacion");
+
+        const errorMotivo =
+            document.getElementById("errorMotivo");
+
+        function validarMotivo() {
+
+            const valor = motivo.value.trim();
+
+            const regex =
+                /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s,.;:()/#-]+$/;
+
+            if (valor.length === 0) {
+                errorMotivo.textContent =
+                    "Debe ingresar el motivo de anulación.";
+                return false;
+            }
+
+            if (!regex.test(valor)) {
+                errorMotivo.textContent =
+                    "El motivo contiene caracteres no permitidos.";
+                return false;
+            }
+
+            if (valor.length < 5) {
+                errorMotivo.textContent =
+                    "El motivo debe contener al menos 5 caracteres.";
+                return false;
+            }
+
+            if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(valor)) {
+                errorMotivo.textContent =
+                    "El motivo debe contener al menos una letra.";
+                return false;
+            }
+
+            errorMotivo.textContent = "";
+            return true;
+        }
+
+        if (motivo) {
+            motivo.addEventListener("input", validarMotivo);
+        }
+
+        if (formAnularCxP) {
+
+            formAnularCxP.addEventListener("submit", function (e) {
+
+                e.preventDefault();
+
+                if (!validarMotivo()) {
+                    motivo.focus();
+                    return;
+                }
+
+                Swal.fire({
+                    title: "¿Anular cuenta por pagar?",
+                    html: `La cuenta por pagar será anulada.<br><br>
+                                   También se revertirán los movimientos financieros y contables asociados.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, anular",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        formAnularCxP.submit();
+                    }
+
+                });
+
+            });
+
+        }
+    </script>
+}

@@ -1,0 +1,157 @@
+﻿@model SistemaGestionFinanciera.Models.CategoriasIngreso
+
+@{
+    ViewData["Title"] = "Modificar categoría de ingreso";
+
+    bool tieneRegistrosAsociados =
+        ViewBag.TieneMovimientosAsociados != null
+        && (bool)ViewBag.TieneMovimientosAsociados;
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Modificar categoría de ingreso</h2>
+        <small class="text-muted">
+            Actualice la información de la categoría manteniendo las reglas contables del sistema.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos de la categoría de ingreso
+        </div>
+
+        <div class="card-body">
+
+            @if (tieneRegistrosAsociados)
+            {
+                <div class="alert alert-warning">
+                    
+                    Esta categoría ya tiene registros asociados, por lo tanto la cuenta contable no puede modificarse.
+                </div>
+            }
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <input type="hidden" asp-for="IdCategoriaIngreso" />
+                <input type="hidden" asp-for="Activo" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-semibold">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="100"
+                               autocomplete="off" />
+
+                        <small class="text-muted">
+                            Solo letras y espacios. Mínimo 3 caracteres.
+                        </small>
+
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="CuentaContableId" class="form-label fw-semibold">
+                            Cuenta contable <span class="text-danger">*</span>
+                        </label>
+
+                        @if (tieneRegistrosAsociados)
+                        {
+                            <select asp-for="CuentaContableId"
+                                    class="form-select"
+                                    asp-items="ViewBag.CuentaContableId"
+                                    disabled>
+                            </select>
+
+                            <input type="hidden" asp-for="CuentaContableId" />
+
+                            <small class="text-muted">
+                                La cuenta contable está bloqueada porque la categoría ya tiene ingresos o presupuesto asociado.
+                            </small>
+                        }
+                        else
+                        {
+                            <select asp-for="CuentaContableId"
+                                    class="form-select"
+                                    asp-items="ViewBag.CuentaContableId">
+                                <option value="">-- Seleccione la cuenta contable --</option>
+                            </select>
+
+                            <small class="text-muted">
+                                Puede modificar la cuenta contable mientras no existan registros asociados.
+                            </small>
+                        }
+
+                        <span asp-validation-for="CuentaContableId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">
+                            Descripción
+                        </label>
+
+                        <textarea asp-for="Descripcion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="250"
+                                  autocomplete="off"></textarea>
+
+                        <small class="text-muted">
+                            Campo opcional. Permite letras, números, espacios y signos básicos: . , ; : ( ) / -
+                        </small>
+
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>  Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar 
+                    </button>
+
+                   
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const nombre = document.getElementById("Nombre");
+            const descripcion = document.getElementById("Descripcion");
+
+            if (nombre) {
+                nombre.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
+                });
+            }
+
+            if (descripcion) {
+                descripcion.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.,;:()\/-]/g, "");
+                });
+            }
+        });
+    </script>
+}

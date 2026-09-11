@@ -1,0 +1,43 @@
+﻿@model SistemaGestionFinanciera.Models.RolesPermiso
+
+@{
+    ViewData["Title"] = "Modificar";
+}
+<h1>Modificar Rol/Permiso </h1>
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DEL REGISTRO
+    </div>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="IdRolPermiso" />
+            <div class="form-group">
+                <label asp-for="RolId" class="control-label"></label>
+                <select asp-for="RolId" class="form-control" asp-items="ViewBag.RolId"></select>
+                <span asp-validation-for="RolId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PermisoId" class="control-label"></label>
+                <select asp-for="PermisoId" class="form-control" asp-items="ViewBag.PermisoId"></select>
+                <span asp-validation-for="PermisoId" class="text-danger"></span>
+            </div>
+
+                    <div class="form-group mt-3 d-flex gap-2">
+                        <input type="submit" value="Guardar" class="btn btn-success" />
+
+                        <a asp-action="Index" class="btn btn-secondary">
+                            Volver al listado
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

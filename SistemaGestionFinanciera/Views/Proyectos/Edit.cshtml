@@ -1,0 +1,247 @@
+﻿@model SistemaGestionFinanciera.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Modificar proyecto";
+    bool tieneRegistros =
+    ViewBag.TieneRegistros == true;
+
+    bool proyectoNoIniciado =
+        ViewBag.ProyectoNoIniciado == true;
+
+    bool bloquearEstructura =
+        ViewBag.BloquearEstructura == true;
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Modificar proyecto</h2>
+        <small class="text-muted">Actualización controlada de proyectos financieros</small>
+    </div>
+
+    @if (tieneRegistros)
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+
+            Este proyecto posee registros asociados.
+            Puede modificar el nombre, la descripción y ajustar
+            el presupuesto asignado bajo control.
+
+            Las fechas y el estado permanecen bloqueados.
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Datos del proyecto
+        </div>
+
+        <div class="card-body">
+            @if (tieneRegistros)
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+
+            Este proyecto posee registros asociados. Solo puede modificar
+            el nombre, la descripción y el presupuesto asignado.
+            Las fechas y el estado permanecen bloqueados.
+        </div>
+    }
+    else if (proyectoNoIniciado)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-1"></i>
+
+            Este proyecto todavía no ha iniciado. Puede modificar el nombre,
+            la descripción y el presupuesto asignado. Las fechas y el estado
+            permanecen bloqueados.
+        </div>
+    }
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="IdProyecto" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-bold"></label>
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="150"
+                               placeholder="Ejemplo: Festival Cultural de Santa Ana" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Estado" class="form-label fw-bold"></label>
+                        <select asp-for="Estado"
+                                class="form-control"
+                                disabled="@(bloquearEstructura ? "disabled" : null)">
+                            <option value="">Seleccione...</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-bold"></label>
+                        <textarea asp-for="Descripcion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Describa brevemente el objetivo del proyecto"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        <small class="text-muted">
+                            Máximo 500 caracteres. Use una descripción clara y sin símbolos innecesarios.
+                        </small>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="FechaInicio" class="form-label fw-bold"></label>
+                        <input asp-for="FechaInicio"
+                               type="date"
+                               class="form-control"
+                               disabled="@(bloquearEstructura ? "disabled" : null)" />
+                    
+                        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="FechaFin" class="form-label fw-bold"></label>
+                        <input asp-for="FechaFin"
+                               type="date"
+                               class="form-control"
+                               disabled="@(bloquearEstructura ? "disabled" : null)" />
+                    
+                        <span asp-validation-for="FechaFin" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="PresupuestoAsignado"
+                               class="form-label fw-bold"></label>
+
+                        <input asp-for="PresupuestoAsignado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               value="@(Model.PresupuestoAsignado.HasValue
+           ? Model.PresupuestoAsignado.Value.ToString("0.##")
+           : "")"
+                               placeholder="Ejemplo: 300000" />
+
+                        <span asp-validation-for="PresupuestoAsignado"
+                              class="text-danger"></span>
+
+                        @if (tieneRegistros)
+                        {
+                            <small class="text-muted">
+                                Puede ajustar el presupuesto, pero no reducirlo
+                                por debajo de lo comprometido en presupuestos
+                                mensuales.
+                            </small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">
+                                Ingrese el monto global aprobado para el proyecto.
+                            </small>
+                        }
+                    </div>
+                    @if (tieneRegistros)
+                    {
+                        <div class="col-md-12">
+                            <label asp-for="MotivoAjustePresupuesto"
+                                   class="form-label fw-bold"></label>
+
+                            <textarea asp-for="MotivoAjustePresupuesto"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="300"
+                                      placeholder="Indique el motivo únicamente si modifica el presupuesto asignado."></textarea>
+
+                            <span asp-validation-for="MotivoAjustePresupuesto"
+                                  class="text-danger"></span>
+
+                            <small class="text-muted">
+                                El motivo será obligatorio cuando cambie el
+                                presupuesto y quedará registrado en Auditoría.
+                            </small>
+                        </div>
+                    }
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    El presupuesto asignado corresponde al monto global del proyecto. La distribución mensual se gestiona desde el módulo de Presupuestos.
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
+
+                    
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $("input, select, textarea").on("input change", function () {
+            $(this).valid();
+        });
+
+        function validarFechasProyecto() {
+            const fechaInicioValor = $("#FechaInicio").val();
+            const fechaFinValor = $("#FechaFin").val();
+
+            if (fechaInicioValor && fechaFinValor) {
+                const fechaInicio = new Date(fechaInicioValor);
+                const fechaFin = new Date(fechaFinValor);
+
+                fechaInicio.setHours(0, 0, 0, 0);
+                fechaFin.setHours(0, 0, 0, 0);
+
+                if (fechaFin < fechaInicio) {
+                    $("[data-valmsg-for='FechaFin']")
+                        .text("La fecha final no puede ser menor que la fecha de inicio.");
+                } else {
+                    $("[data-valmsg-for='FechaFin']").text("");
+                }
+            }
+        }
+
+        function limpiarTextoBasico(selector) {
+            $(selector).on("input", function () {
+                let valor = $(this).val();
+
+                valor = valor.replace(/\s{2,}/g, " ");
+                valor = valor.replace(/(.)\1{8,}/g, "$1$1$1");
+
+                $(this).val(valor);
+            });
+        }
+
+        $("#FechaInicio, #FechaFin").on("change input", function () {
+            validarFechasProyecto();
+        });
+
+        limpiarTextoBasico("#Nombre");
+        limpiarTextoBasico("#Descripcion");
+    </script>
+}

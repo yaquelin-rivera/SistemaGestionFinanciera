@@ -1,0 +1,132 @@
+﻿@model SistemaGestionFinanciera.Models.Role
+
+@{
+    ViewData["Title"] = "Modificar Rol";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Modificar Rol</h2>
+        <small class="text-muted">
+            Actualice la información del rol seleccionado.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-user-edit me-2"></i>
+            Información del rol
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post" novalidate>
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"></div>
+
+                <input type="hidden" asp-for="IdRol" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Nombre"
+                               class="form-label fw-semibold"></label>
+
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="100"
+                               placeholder="Nombre del rol" />
+
+                        <span asp-validation-for="Nombre"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Estado
+                        </label>
+
+                        <input class="form-control"
+                               value="@(Model.Activo ? "Activo" : "Inactivo")"
+                               readonly />
+
+                        <small class="text-muted">
+                            El estado se administra desde el listado mediante las opciones Activar y Desactivar.
+                        </small>
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label asp-for="Descripcion"
+                               class="form-label fw-semibold"></label>
+<textarea asp-for="Descripcion"
+          class="form-control"
+          rows="4"
+          maxlength="250"
+          placeholder="Descripción del rol"></textarea>
+
+                        <span asp-validation-for="Descripcion"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Fecha de creación
+                        </label>
+
+                        <input class="form-control"
+                               value="@(Model.FechaCreacion.HasValue ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm") : "")"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Volver al listado
+
+                    </a>
+
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="fas fa-save me-1"></i>
+                        Guardar cambios
+
+                    </button>
+
+                  
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

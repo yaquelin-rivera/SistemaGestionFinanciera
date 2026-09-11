@@ -1,0 +1,982 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Ingreso>
+
+@{
+    // La vista no utiliza el menú lateral ni el Layout general,
+    // porque está diseñada para imprimir o guardar como PDF.
+    Layout = null;
+
+    ViewData["Title"] = "Reporte de ingresos";
+
+    // ===========================================================
+    // TOTALES RECIBIDOS DESDE INGRESOSCONTROLLER
+    // ===========================================================
+
+    decimal totalEsperado = ViewBag.TotalEsperado ?? 0m;
+    decimal totalRecibido = ViewBag.TotalRecibido ?? 0m;
+    decimal diferenciaTotal = ViewBag.DiferenciaTotal ?? 0m;
+
+    // Detecta si el usuario aplicó algún filtro.
+    bool hayFiltros =
+        !string.IsNullOrWhiteSpace(ViewBag.Buscar as string) ||
+        !string.IsNullOrWhiteSpace(ViewBag.Tipo as string) ||
+        !string.IsNullOrWhiteSpace(ViewBag.Estado as string) ||
+        !string.IsNullOrWhiteSpace(ViewBag.Origen as string) ||
+        ViewBag.ProyectoId != null ||
+        ViewBag.Anio != null ||
+        ViewBag.Mes != null ||
+        !string.IsNullOrWhiteSpace(ViewBag.FechaInicio as string) ||
+        !string.IsNullOrWhiteSpace(ViewBag.FechaFin as string);
+
+    // Convierte el número del mes a su nombre.
+    string nombreMes = "";
+
+    if (ViewBag.Mes != null)
+    {
+        int numeroMes = Convert.ToInt32(ViewBag.Mes);
+
+        nombreMes = new DateTime(2000, numeroMes, 1)
+            .ToString(
+                "MMMM",
+                new System.Globalization.CultureInfo("es-CR"));
+
+        nombreMes =
+            char.ToUpper(nombreMes[0]) +
+            nombreMes.Substring(1);
+    }
+}
+
+<link rel="stylesheet"
+      href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+<link rel="stylesheet"
+      href="~/css/site.css"
+      asp-append-version="true" />
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+<div class="container-fluid reporte-contenedor">
+
+    <!-- 
+         BOTONES DE CONTROL
+         No aparecen cuando el reporte se imprime.
+        -->
+    <div class="d-flex justify-content-end gap-2 mb-3 no-imprimir">
+
+        <button type="button"
+                class="btn btn-info btn-lg px-4 shadow-sm"
+                onclick="window.print();">
+
+            <i class="fas fa-file-pdf me-2"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary btn-lg px-4 shadow-sm"
+                onclick="history.back();">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver
+
+        </button>
+
+    </div>
+
+    <!-- 
+         ENCABEZADO DEL REPORTE
+          -->
+    <div class="encabezado-reporte text-center">
+
+        <h2>
+            <i class="fas fa-chart-pie me-2"></i>
+            Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+        </h2>
+
+        <h4>
+            <i class="fas fa-file-invoice-dollar me-1"></i>
+            Reporte de Ingresos
+        </h4>
+
+        <div class="fecha-generacion">
+            <i class="fas fa-calendar-alt me-1"></i>
+            Fecha de generación:
+
+            <strong>
+                @(((DateTime)ViewBag.FechaGeneracion)
+                    .ToString("dd/MM/yyyy HH:mm"))
+            </strong>
+        </div>
+
+    </div>
+
+    <!-- ======================================================
+         FILTROS APLICADOS
+         ====================================================== -->
+    <div class="seccion-reporte">
+
+        <div class="titulo-seccion">
+            <i class="fas fa-filter me-1"></i>
+            Filtros aplicados
+        </div>
+
+        @if (hayFiltros)
+        {
+            <div class="row g-2 small">
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Buscar as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Búsqueda:</strong>
+                        @ViewBag.Buscar
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Tipo as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Tipo:</strong>
+                        @ViewBag.Tipo
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Estado as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Estado:</strong>
+                        @ViewBag.Estado
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Origen as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Origen:</strong>
+                        @ViewBag.Origen
+                    </div>
+                }
+
+                @if (ViewBag.ProyectoId != null)
+                {
+                    <div class="col-md-4">
+                        <strong>Proyecto:</strong>
+                        Código @ViewBag.ProyectoId
+                    </div>
+                }
+
+                @if (ViewBag.Anio != null)
+                {
+                    <div class="col-md-4">
+                        <strong>Año:</strong>
+                        @ViewBag.Anio
+                    </div>
+                }
+
+                @if (ViewBag.Mes != null)
+                {
+                    <div class="col-md-4">
+                        <strong>Mes:</strong>
+                        @nombreMes
+                    </div>
+                }
+                @if (ViewBag.PendientePresupuesto == true)
+                {
+                    <span>
+                        Pendientes de asignación presupuestaria
+                    </span>
+                }
+                @if (!string.IsNullOrWhiteSpace(ViewBag.FechaInicio as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Desde:</strong>
+                        @ViewBag.FechaInicio
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.FechaFin as string))
+                {
+                    <div class="col-md-4">
+                        <strong>Hasta:</strong>
+                        @ViewBag.FechaFin
+                    </div>
+                }
+
+            </div>
+        }
+        else
+        {
+            <span class="text-muted">
+                No se aplicaron filtros. El reporte muestra todos los ingresos registrados.
+            </span>
+        }
+
+    </div>
+
+    <!-- ======================================================
+         RESUMEN DEL REPORTE
+         ====================================================== -->
+    <div class="row row-cols-1 row-cols-md-4 g-2 mb-3 cards-reporte">
+
+        <div class="col">
+            <div class="resumen-reporte card-registros">
+
+                <div class="icono">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+
+                <small>Total de registros</small>
+
+                <div class="fw-bold">
+                    @ViewBag.TotalRegistros
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="resumen-reporte card-esperado">
+
+                <div class="icono">
+                    <i class="fas fa-coins"></i>
+                </div>
+
+                <small>Total esperado</small>
+
+                <div class="fw-bold">
+                    ₡@totalEsperado.ToString("N2")
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="resumen-reporte card-recibido">
+
+                <div class="icono">
+                    <i class="fas fa-money-bill-transfer"></i>
+                </div>
+
+                <small>Total recibido</small>
+
+                <div class="fw-bold">
+                    ₡@totalRecibido.ToString("N2")
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="resumen-reporte card-diferencia">
+
+                <div class="icono">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+
+                <small>Diferencia total</small>
+
+                <div class="fw-bold">
+                    ₡@diferenciaTotal.ToString("N2")
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ======================================================
+         TABLA DE INGRESOS
+         ====================================================== -->
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-sm tabla-reporte">
+
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Fuente</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th>Categoría</th>
+                    <th class="solo-pantalla">Cliente / Beneficiario</th>
+                    <th class="solo-pantalla">Proyecto</th>
+                    <th class="solo-pantalla">Centro de costo</th>
+                    <th>Origen</th>
+                    <th>Estado</th>
+                    <th class="text-end">Monto esperado</th>
+                    <th class="text-end">Monto recibido</th>
+                    <th class="text-end">Diferencia</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        bool esIngresoDesdeCxC =
+                        item.TipoIngreso == "Cobro CxC" ||
+                        (!string.IsNullOrWhiteSpace(item.Fuente) &&
+                        item.Fuente.ToUpper().StartsWith("CUC-"));
+
+                        bool esIngresoDesdeFactura =
+                        item.FacturaId != null ||
+                        item.TipoIngreso == "Facturación" ||
+                        (!string.IsNullOrWhiteSpace(item.Fuente) &&
+                        item.Fuente.ToUpper().StartsWith("FV-"));
+
+                        string origenIngreso;
+
+                        if (esIngresoDesdeCxC)
+                        {
+                            origenIngreso = "CxC";
+                        }
+                        else if (esIngresoDesdeFactura)
+                        {
+                            origenIngreso = "Factura";
+                        }
+                        else
+                        {
+                            origenIngreso = "Manual";
+                        }
+                        string claseFila = "";
+
+                        if (item.Estado == "Anulado")
+                        {
+                            claseFila = "fila-anulada";
+                        }
+                        else if (item.Estado == "Pendiente")
+                        {
+                            claseFila = "fila-pendiente";
+                        }
+
+                        decimal montoEsperado = item.MontoEsperado ?? 0m;
+                        decimal montoRecibido = item.MontoReal ?? 0m;
+                        decimal diferencia =
+                        item.Diferencia ??
+                        (montoEsperado - montoRecibido);
+
+                        <tr class="@claseFila">
+
+                            <td>
+                                @item.Fecha.ToString("dd/MM/yyyy")
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.Fuente)
+                                    ? "Sin fuente"
+                                    : item.Fuente)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.Descripcion)
+                                    ? "Sin descripción"
+                                    : item.Descripcion)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.TipoIngreso)
+                                    ? "Sin tipo"
+                                    : item.TipoIngreso)
+                            </td>
+
+                            <td>
+                                @(item.CategoriaIngreso?.Nombre
+                                    ?? "Sin categoría")
+                            </td>
+
+                            <td class="solo-pantalla">
+                                @(item.ClienteBeneficiario?.Nombre
+                                    ?? "Sin cliente")
+                            </td>
+
+                            <td class="solo-pantalla">
+                                @(item.Proyecto?.Nombre
+                                    ?? "Sin proyecto")
+                            </td>
+
+                            <td class="solo-pantalla">
+                                @(item.CentroCosto?.Nombre
+                                    ?? "Sin centro")
+                            </td>
+
+                            <td>
+                                @origenIngreso
+                            </td>
+
+                            <td>
+                                @item.Estado
+                            </td>
+
+                            <td class="text-end monto-reporte">
+                                ₡@montoEsperado.ToString("N2")
+                            </td>
+
+                            <td class="text-end monto-reporte">
+                                ₡@montoRecibido.ToString("N2")
+                            </td>
+
+                            <td class="text-end monto-reporte">
+                                ₡@diferencia.ToString("N2")
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="13"
+                            class="text-center text-muted py-4">
+
+                            No existen ingresos con los filtros seleccionados.
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+        <!-- ==================================================
+             TOTALES INFERIORES
+             ================================================== -->
+        @if (Model.Any())
+        {
+            <div class="totales-reporte">
+
+                <div>
+                    <span>Total esperado:</span>
+                    <strong>
+                        ₡@totalEsperado.ToString("N2")
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Total recibido:</span>
+                    <strong>
+                        ₡@totalRecibido.ToString("N2")
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Diferencia total:</span>
+                    <strong>
+                        ₡@diferenciaTotal.ToString("N2")
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Pagados:</span>
+                    <strong>@ViewBag.Pagados</strong>
+                </div>
+
+                <div>
+                    <span>Pendientes:</span>
+                    <strong>@ViewBag.Pendientes</strong>
+                </div>
+
+                <div>
+                    <span>Parciales:</span>
+                    <strong>@ViewBag.Parciales</strong>
+                </div>
+
+                <div>
+                    <span>Anulados:</span>
+                    <strong>@ViewBag.Anulados</strong>
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+    <!-- ======================================================
+         PIE DEL REPORTE
+         ====================================================== -->
+    <div class="pie-reporte">
+
+        <div>
+            Sistema Web de Gestión Financiera
+        </div>
+
+        <div>
+            UCAD Santa Ana
+        </div>
+
+        <div>
+            Generado:
+            @(((DateTime)ViewBag.FechaGeneracion)
+                .ToString("dd/MM/yyyy HH:mm"))
+        </div>
+
+    </div>
+
+</div>
+    <style >
+
+    body {
+        background-color: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .reporte-contenedor {
+        padding: 20px;
+    }
+
+    .encabezado-reporte {
+        border-bottom: 3px solid #0f7c90;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+        .encabezado-reporte h2 {
+            margin: 0;
+            color: #15454d;
+            font-size: 1.45rem;
+            font-weight: 800;
+        }
+
+        .encabezado-reporte h4 {
+            margin: 5px 0 0;
+            color: #394b4f;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+    .fecha-generacion {
+        margin-top: 6px;
+        color: #5e676b;
+        font-size: 0.9rem;
+    }
+
+    .seccion-reporte {
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+
+    .titulo-seccion {
+        color: #0f5c64;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    /* ========================================================
+       TARJETAS DE RESUMEN EN PANTALLA
+       ======================================================== */
+
+    .resumen-reporte {
+        height: 100%;
+        padding: 10px 8px;
+        background: #ffffff;
+        border: 1px solid #d5e2e4;
+        border-top: 4px solid #0f7c90;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+        .resumen-reporte .icono {
+            margin-bottom: 4px;
+            color: #0f7c90;
+            font-size: 1.1rem;
+        }
+
+        .resumen-reporte small {
+            display: block;
+            color: #59666a;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .resumen-reporte .fw-bold {
+            color: #15454d;
+            font-size: 1rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+    /* Total esperado */
+    .card-esperado {
+        border-top-color: #198754;
+    }
+
+        .card-esperado .icono,
+        .card-esperado .fw-bold {
+            color: #198754;
+        }
+
+    /* Total recibido */
+    .card-recibido {
+        border-top-color: #0d6efd;
+    }
+
+        .card-recibido .icono,
+        .card-recibido .fw-bold {
+            color: #0d6efd;
+        }
+
+    /* Diferencia pendiente */
+    .card-diferencia {
+        border-top-color: #dc3545;
+    }
+
+        .card-diferencia .icono,
+        .card-diferencia .fw-bold {
+            color: #b02a37;
+        }
+
+    /* Filas anuladas */
+    .fila-anulada td {
+        background-color: #f8d7da !important;
+        color: #842029 !important;
+    }
+
+    /* Filas pendientes */
+    .fila-pendiente td {
+        background-color: #fff3cd !important;
+        color: #664d03 !important;
+    }
+    /* ========================================================
+           TABLA EN PANTALLA
+           ======================================================== */
+
+    .tabla-reporte {
+        width: 100%;
+        font-size: 13px;
+    }
+
+        .tabla-reporte thead th {
+            background-color: #d8f0f3;
+            color: #000000;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .tabla-reporte tbody td {
+            vertical-align: middle;
+        }
+
+    .monto-reporte {
+        white-space: nowrap;
+    }
+
+    /* ========================================================
+           TOTALES INFERIORES EN PANTALLA
+           ======================================================== */
+
+    .totales-reporte {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 12px 14px;
+        border-top: 2px solid #0F5C64;
+        border-bottom: 1px solid #ced4da;
+        background-color: #f8f9fa;
+        font-size: 16px;
+    }
+
+        .totales-reporte div {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .totales-reporte span {
+            font-weight: 500;
+        }
+
+        .totales-reporte strong {
+            font-size: 17px;
+        }
+
+    /* ========================================================
+           PIE DEL REPORTE EN PANTALLA
+           ======================================================== */
+
+    .pie-reporte {
+        border-top: 1px solid #adb5bd;
+        margin-top: 20px;
+        padding-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        color: #6c757d;
+    }
+
+    /* ========================================================
+           CONFIGURACIÓN PARA IMPRIMIR O GUARDAR COMO PDF
+           ======================================================== */
+
+    @@media print {
+
+        @@page {
+            size: landscape;
+            margin: 7mm;
+        }
+
+        * {
+            box-sizing: border-box !important;
+        }
+
+        html,
+        body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .no-imprimir {
+            display: none !important;
+        }
+        /* Oculta las columnas secundarias:
+               Cliente, Proyecto y Centro de costo. */
+        .solo-pantalla {
+            display: none !important;
+        }
+
+        .reporte-contenedor {
+            width: 98% !important;
+            max-width: none !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding: 0 !important;
+        }
+
+   
+        /* ====================================================
+               ENCABEZADO DEL REPORTE IMPRESO
+               ==================================================== */
+
+        .encabezado-reporte {
+            margin: 0 0 4px 0 !important;
+            padding-bottom: 3px !important;
+            border-bottom-width: 1px !important;
+        }
+
+            .encabezado-reporte h2 {
+                font-size: 13pt !important;
+                margin: 0 0 2px 0 !important;
+            }
+
+            .encabezado-reporte h4 {
+                font-size: 9pt !important;
+                margin: 0 0 1px 0 !important;
+            }
+
+        .fecha-generacion {
+            margin-top: 1px !important;
+            font-size: 6pt !important;
+        }
+        /* ====================================================
+               CRITERIOS DE CONSULTA
+               ==================================================== */
+
+        .seccion-reporte {
+            margin-bottom: 8px;
+            padding: 8px;
+            font-size: 11px !important;
+        }
+
+        .titulo-seccion {
+            font-size: 13px !important;
+            margin-bottom: 5px;
+        }
+        /* ====================================================
+               TARJETAS DE RESUMEN IMPRESAS
+               ==================================================== */
+
+        .resumen-reporte {
+            padding: 3px !important;
+            min-height: 0 !important;
+            border-top-width: 2px !important;
+            border-radius: 3px !important;
+        }
+
+            .resumen-reporte .icono {
+                margin-bottom: 0 !important;
+                font-size: 7pt !important;
+                line-height: 1 !important;
+            }
+
+            .resumen-reporte small {
+                font-size: 7pt !important;
+                line-height: 1 !important;
+            }
+
+            .resumen-reporte .fw-bold {
+                font-size: 8pt !important;
+                line-height: 1 !important;
+            }
+        /* ====================================================
+               TABLA DEL REPORTE IMPRESO
+               ==================================================== */
+
+        .table-responsive {
+            width: 100% !important;
+            overflow: visible !important;
+        }
+
+        .tabla-reporte {
+            width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+            margin: 0 !important;
+        }
+
+            .tabla-reporte th,
+            .tabla-reporte td {
+                padding: 3.5px 4px !important;
+                line-height: 1.12 !important;
+                vertical-align: middle !important;
+                word-break: normal !important;
+                overflow-wrap: break-word !important;
+                border: 1px solid #adb5bd !important;
+            }
+
+            .tabla-reporte thead th {
+                font-size: 8.5px !important;
+                font-weight: 700 !important;
+                white-space: nowrap;
+            }
+
+            .tabla-reporte tbody td {
+                font-size: 8.7px !important;
+            }
+            /* Fecha */
+            .tabla-reporte th:nth-child(1),
+            .tabla-reporte td:nth-child(1) {
+                width: 7%;
+                white-space: nowrap;
+            }
+            /* Fuente */
+            .tabla-reporte th:nth-child(2),
+            .tabla-reporte td:nth-child(2) {
+                width: 13%;
+            }
+            /* Descripción */
+            .tabla-reporte th:nth-child(3),
+            .tabla-reporte td:nth-child(3) {
+                width: 20%;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            /* Tipo */
+            .tabla-reporte th:nth-child(4),
+            .tabla-reporte td:nth-child(4) {
+                width: 8%;
+                white-space: normal !important;
+            }
+            /* Categoría */
+            .tabla-reporte th:nth-child(5),
+            .tabla-reporte td:nth-child(5) {
+                width: 8%;
+                white-space: normal !important;
+            }
+            /* Origen */
+            .tabla-reporte th:nth-child(9),
+            .tabla-reporte td:nth-child(9) {
+                width: 7%;
+                white-space: nowrap;
+            }
+            /* Estado */
+            .tabla-reporte th:nth-child(10),
+            .tabla-reporte td:nth-child(10) {
+                width: 8%;
+                white-space: nowrap;
+            }
+            /* Monto esperado */
+            .tabla-reporte th:nth-child(11),
+            .tabla-reporte td:nth-child(11) {
+                width: 9%;
+                white-space: nowrap;
+            }
+            /* Monto recibido */
+            .tabla-reporte th:nth-child(12),
+            .tabla-reporte td:nth-child(12) {
+                width: 8%;
+                white-space: nowrap;
+            }
+            /* Diferencia */
+            .tabla-reporte th:nth-child(13),
+            .tabla-reporte td:nth-child(13) {
+                width: 8%;
+                white-space: nowrap;
+                .fila-anulada td
+
+    {
+        background-color: #f8d7da !important;
+        color: #842029 !important;
+    }
+
+    .fila-pendiente td {
+        background-color: #fff3cd !important;
+        color: #664d03 !important;
+    }
+            }
+        /* ====================================================
+               TOTALES INFERIORES IMPRESOS
+               ==================================================== */
+
+        .totales-reporte {
+            display: flex !important;
+            justify-content: flex-end !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            padding: 7px 8px !important;
+            font-size: 10px !important;
+            page-break-inside: avoid !important;
+        }
+
+            .totales-reporte div {
+                gap: 4px !important;
+            }
+
+            .totales-reporte span {
+                font-size: 10px !important;
+            }
+
+            .totales-reporte strong {
+                font-size: 10px !important;
+                white-space: nowrap;
+            }
+        /* ====================================================
+               PIE DEL REPORTE IMPRESO
+               ==================================================== */
+
+        .pie-reporte {
+            width: 100% !important;
+            margin-top: 12px !important;
+            padding: 6px 3px 0 3px !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: center;
+            font-size: 10px !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+        }
+
+            .pie-reporte div:nth-child(1) {
+                text-align: left;
+            }
+
+            .pie-reporte div:nth-child(2) {
+                text-align: center;
+            }
+
+            .pie-reporte div:nth-child(3) {
+                text-align: right;
+                white-space: nowrap;
+                padding-right: 3px;
+            }
+    }
+
+</style>

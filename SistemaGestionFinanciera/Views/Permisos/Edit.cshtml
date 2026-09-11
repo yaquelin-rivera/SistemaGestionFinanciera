@@ -1,0 +1,117 @@
+﻿@model SistemaGestionFinanciera.Models.Permiso
+
+@{
+    ViewData["Title"] = "Modificar Permiso";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Modificar Permiso</h2>
+        <small class="text-muted">
+            Actualice la información del permiso seleccionado.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-key me-2"></i>
+            Información del permiso
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"></div>
+
+                <input type="hidden" asp-for="IdPermiso" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-semibold"></label>
+
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="100"
+                               placeholder="Nombre del permiso" />
+
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Estado</label>
+
+                        <div class="mt-1">
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i> Activo
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary fs-6 px-3 py-2">
+                                    <i class="fas fa-ban me-1"></i> Inactivo
+                                </span>
+                            }
+                        </div>
+
+                        <small class="text-muted d-block mt-2">
+                            El estado se administra desde el listado mediante las opciones Activar y Desactivar.
+                        </small>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold"></label>
+
+                        <textarea asp-for="Descripcion"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="250"
+                                  placeholder="Descripción del permiso"></textarea>
+
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Fecha de creación</label>
+
+                        <div class="form-control bg-light">
+                            @(Model.FechaCreacion.HasValue
+                                ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm")
+                                : "Sin fecha registrada")
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Guardar cambios
+                    </button>
+
+                    
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

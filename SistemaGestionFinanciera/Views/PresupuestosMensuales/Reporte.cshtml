@@ -1,0 +1,1394 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.PresupuestosMensuale>
+
+@using System.Globalization
+
+@{
+    Layout = null;
+
+    var culturaCR = new CultureInfo("es-CR");
+
+    int totalPresupuestos =
+        ViewBag.TotalPresupuestos != null
+            ? Convert.ToInt32(ViewBag.TotalPresupuestos)
+            : Model.Count();
+
+    decimal totalIngresoPlanificado =
+        ViewBag.TotalIngresoPlanificado != null
+            ? Convert.ToDecimal(ViewBag.TotalIngresoPlanificado)
+            : Model.Sum(x => x.MontoIngresadoPlanificado ?? 0m);
+
+    decimal totalGastoPlanificado =
+        ViewBag.TotalGastoPlanificado != null
+            ? Convert.ToDecimal(ViewBag.TotalGastoPlanificado)
+            : Model.Sum(x => x.MontoGastoPlanificado ?? 0m);
+
+    decimal totalIngresoReal =
+        ViewBag.TotalIngresoReal != null
+            ? Convert.ToDecimal(ViewBag.TotalIngresoReal)
+            : Model.Sum(x => x.TotalIngresoReal ?? 0m);
+
+    decimal totalGastoReal =
+        ViewBag.TotalGastoReal != null
+            ? Convert.ToDecimal(ViewBag.TotalGastoReal)
+            : Model.Sum(x => x.TotalGastoReal ?? 0m);
+
+    decimal totalDiferenciaIngreso =
+        ViewBag.TotalDiferenciaIngreso != null
+            ? Convert.ToDecimal(ViewBag.TotalDiferenciaIngreso)
+            : Model.Sum(x => x.DiferenciaIngreso ?? 0m);
+
+    decimal totalDiferenciaGasto =
+        ViewBag.TotalDiferenciaGasto != null
+            ? Convert.ToDecimal(ViewBag.TotalDiferenciaGasto)
+            : Model.Sum(x => x.DiferenciaGasto ?? 0m);
+
+    decimal totalBalance =
+        ViewBag.TotalBalanceReal != null
+            ? Convert.ToDecimal(ViewBag.TotalBalanceReal)
+            : Model.Sum(x => x.SaldoDisponible ?? 0m);
+
+    string nombreProyecto =
+        string.IsNullOrWhiteSpace(Convert.ToString(ViewBag.NombreProyecto))
+            ? "Todos"
+            : Convert.ToString(ViewBag.NombreProyecto)!;
+
+    string filtroAnio =
+        ViewBag.Anio == null
+            ? "Todos"
+            : Convert.ToString(ViewBag.Anio)!;
+
+    string filtroMes = "Todos";
+
+    if (ViewBag.Mes != null)
+    {
+        int numeroMes = Convert.ToInt32(ViewBag.Mes);
+
+        filtroMes = numeroMes switch
+        {
+            1 => "Enero",
+            2 => "Febrero",
+            3 => "Marzo",
+            4 => "Abril",
+            5 => "Mayo",
+            6 => "Junio",
+            7 => "Julio",
+            8 => "Agosto",
+            9 => "Septiembre",
+            10 => "Octubre",
+            11 => "Noviembre",
+            12 => "Diciembre",
+            _ => "Todos"
+        };
+    }
+
+    string filtroEstado =
+        string.IsNullOrWhiteSpace(Convert.ToString(ViewBag.Estado))
+            ? "Todos"
+            : Convert.ToString(ViewBag.Estado)!;
+
+    string filtroEstadoAprobacion =
+        string.IsNullOrWhiteSpace(
+            Convert.ToString(ViewBag.EstadoAprobacion))
+            ? "Todos"
+            : Convert.ToString(ViewBag.EstadoAprobacion)!;
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion != null
+            ? Convert.ToDateTime(ViewBag.FechaGeneracion)
+            : DateTime.Now;
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Reporte de Presupuestos Mensuales</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 15px 0 30px;
+            background: #f4f6f7;
+            color: #212529;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .reporte-container {
+            width: calc(100% - 30px);
+            max-width: none;
+            margin: auto;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #d8dee2;
+            border-radius: 8px;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ==========================================
+                   ENCABEZADO
+                ========================================== */
+
+        .encabezado-reporte {
+            width: 100%;
+            margin: auto;
+            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #0f7c90;
+        }
+
+            .encabezado-reporte h2 {
+                margin: 0;
+                color: #15454d;
+                font-size: 1.35rem;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .encabezado-reporte h4 {
+                margin: 5px 0 0;
+                color: #394b4f;
+                font-size: 1rem;
+                font-weight: 700;
+            }
+
+        .fecha-generacion {
+            margin-top: 6px;
+            color: #5e676b;
+            font-size: 0.82rem;
+        }
+
+        /* ==========================================
+                   FILTROS
+                ========================================== */
+
+        .filtros-reporte {
+            width: 100%;
+            margin: 12px auto;
+            padding: 5px 8px;
+            background: #eef6f7;
+            border: 1px solid #c9dde0;
+            border-left: 4px solid #0f7c90;
+            border-radius: 5px;
+        }
+
+        .titulo-filtros {
+            margin-bottom: 4px;
+            color: #15454d;
+            font-size: 0.90rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .lista-filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 16px;
+            font-size: 0.88rem;
+        }
+
+        .filtro-item strong {
+            color: #15454d;
+        }
+
+        /* ==========================================
+                   TARJETAS
+                ========================================== */
+
+        .tarjeta-resumen {
+            height: 100%;
+            padding: 10px 8px;
+            background: #ffffff;
+            border: 1px solid #d5e2e4;
+            border-top: 4px solid #0f7c90;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+            .tarjeta-resumen .icono {
+                margin-bottom: 4px;
+                color: #0f7c90;
+                font-size: 1.1rem;
+            }
+
+            .tarjeta-resumen .titulo {
+                margin-bottom: 3px;
+                color: #59666a;
+                font-size: 0.69rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .tarjeta-resumen .valor {
+                color: #15454d;
+                font-size: 1.15rem;
+                font-weight: 800;
+            }
+
+        .tarjeta-balance-positivo {
+            border-top-color: #198754;
+        }
+
+            .tarjeta-balance-positivo .icono,
+            .tarjeta-balance-positivo .valor {
+                color: #198754;
+            }
+
+        .tarjeta-balance-negativo {
+            border-top-color: #dc3545;
+        }
+
+            .tarjeta-balance-negativo .icono,
+            .tarjeta-balance-negativo .valor {
+                color: #b02a37;
+            }
+
+        /* ==========================================
+                   TABLA
+                ========================================== */
+
+        .table-responsive {
+            width: 100%;
+            margin: 12px auto 0;
+            overflow-x: auto;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+            .tabla-reporte th {
+                padding: 6px 4px;
+                background: #0f5c64;
+                color: #ffffff;
+                border: 1px solid #ffffff;
+                text-align: center;
+                vertical-align: middle;
+                white-space: normal;
+            }
+
+            .tabla-reporte td {
+                padding: 5px 4px;
+                border: 1px solid #c8d0d3;
+                vertical-align: middle;
+            }
+
+            .tabla-reporte tbody tr:nth-child(even) {
+                background: #f7f9fa;
+            }
+
+            .tabla-reporte td:nth-child(1) {
+                min-width: 150px;
+                font-weight: 600;
+            }
+
+            .tabla-reporte td:nth-child(2),
+            .tabla-reporte td:nth-child(3),
+            .tabla-reporte td:nth-child(11),
+            .tabla-reporte td:nth-child(12),
+            .tabla-reporte td:nth-child(14),
+            .tabla-reporte td:nth-child(15) {
+                text-align: center;
+            }
+
+            .tabla-reporte td:nth-child(4),
+            .tabla-reporte td:nth-child(5),
+            .tabla-reporte td:nth-child(6),
+            .tabla-reporte td:nth-child(7),
+            .tabla-reporte td:nth-child(8),
+            .tabla-reporte td:nth-child(9),
+            .tabla-reporte td:nth-child(10) {
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .tabla-reporte td:nth-child(6),
+            .tabla-reporte td:nth-child(7),
+            .tabla-reporte td:nth-child(10) {
+                font-weight: 700;
+            }
+
+        .sin-registros {
+            padding: 22px !important;
+            color: #6c757d;
+            font-size: 0.85rem;
+            text-align: center !important;
+        }
+
+        /* ==========================================
+                   BADGES
+                ========================================== */
+
+        .badge-reporte {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 0.61rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .estado-verde {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .estado-amarillo {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .estado-rojo {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .estado-gris {
+            background: #e2e3e5;
+            color: #41464b;
+        }
+
+        .estado-azul {
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        .monto-positivo {
+            color: #0f6b3f;
+            font-weight: 700;
+        }
+
+        .monto-negativo {
+            color: #b02a37;
+            font-weight: 700;
+        }
+
+        .monto-neutro {
+            color: #495057;
+            font-weight: 700;
+        }
+
+        .balance-positivo {
+            color: #0d6efd;
+            font-weight: 800;
+        }
+
+        .balance-negativo {
+            color: #dc3545;
+            font-weight: 800;
+        }
+
+        .texto-observacion {
+            min-width: 125px;
+            max-width: 190px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        /* ==========================================
+                   FILA DE TOTALES
+                ========================================== */
+
+        .totales-reporte td {
+            padding: 6px 4px;
+            background: #cfe5e8 !important;
+            color: #123f46;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        /* ==========================================
+                   RESUMEN INFERIOR
+                ========================================== */
+
+        .estado-resumen {
+            width: 100%;
+            margin: 12px auto 0;
+            padding: 8px;
+            background: #eef6f7;
+            border: 1px solid #c9dde0;
+            border-radius: 6px;
+        }
+
+            .estado-resumen h5 {
+                margin: 0 0 7px;
+                color: #15454d;
+                font-size: 0.90rem;
+                font-weight: 800;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+        .resumen-item {
+            padding: 5px;
+            text-align: center;
+        }
+
+            .resumen-item .cantidad {
+                display: block;
+                color: #15454d;
+                font-size: 1rem;
+                font-weight: 800;
+            }
+
+            .resumen-item .descripcion {
+                display: block;
+                color: #5c686c;
+                font-size: 0.80rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+        /* ==========================================
+                   ACCIONES
+                ========================================== */
+
+        .acciones-reporte {
+            display: flex;
+            width: calc(100% - 30px);
+            max-width: none;
+            margin: 15px auto 0;
+            padding-right: 4px;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+            .acciones-reporte .btn {
+                min-width: 120px;
+            }
+
+        /* ==========================================
+                   IMPRESIÓN
+                ========================================== */
+
+        @@media print {
+
+            @@page {
+                size: A4 landscape;
+                margin: 7mm;
+            }
+
+            .columna-observacion {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+                background: #ffffff;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-imprimir,
+            .acciones-reporte {
+                display: none !important;
+            }
+
+            .reporte-container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .encabezado-reporte,
+            .filtros-reporte,
+            .row.g-3,
+            .table-responsive,
+            .estado-resumen {
+                width: 98% !important;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .encabezado-reporte {
+                padding-bottom: 5px;
+            }
+
+                .encabezado-reporte h2 {
+                    font-size: 13pt;
+                }
+
+                .encabezado-reporte h4 {
+                    font-size: 9pt;
+                }
+
+            .fecha-generacion,
+            .lista-filtros {
+                font-size: 7.5pt;
+            }
+
+            .filtros-reporte {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                padding: 4px 6px;
+            }
+
+            .titulo-filtros {
+                font-size: 7pt;
+            }
+
+            .tarjeta-resumen {
+                padding: 4px;
+                border-top-width: 2px;
+            }
+
+                .tarjeta-resumen .icono {
+                    margin-bottom: 1px;
+                    font-size: 7pt;
+                }
+
+                .tarjeta-resumen .titulo {
+                    margin-bottom: 1px;
+                    font-size: 6.5pt;
+                }
+
+                .tarjeta-resumen .valor {
+                    font-size: 7pt;
+                }
+
+            .table-responsive {
+                margin-top: 5px;
+                overflow: visible !important;
+            }
+
+            .tabla-reporte {
+                width: 100% !important;
+                table-layout: fixed;
+                font-size: 7.5pt;
+            }
+
+                .tabla-reporte th {
+                    padding: 1.5px 1px;
+                    font-size: 7.2pt;
+                    line-height: 1;
+                }
+
+                .tabla-reporte td {
+                    padding: 1.5px 1px;
+                    font-size: 7.2pt;
+                    line-height: 1;
+                    word-wrap: break-word;
+                }
+                    /* Proyecto */
+                    .tabla-reporte th:nth-child(1),
+                    .tabla-reporte td:nth-child(1) {
+                        width: 13%;
+                        min-width: 0;
+                    }
+                    /* Año */
+                    .tabla-reporte th:nth-child(2),
+                    .tabla-reporte td:nth-child(2) {
+                        width: 4%;
+                    }
+                    /* Mes */
+                    .tabla-reporte th:nth-child(3),
+                    .tabla-reporte td:nth-child(3) {
+                        width: 5%;
+                    }
+                    /* Montos principales */
+                    .tabla-reporte th:nth-child(4),
+                    .tabla-reporte td:nth-child(4),
+                    .tabla-reporte th:nth-child(5),
+                    .tabla-reporte td:nth-child(5),
+                    .tabla-reporte th:nth-child(6),
+                    .tabla-reporte td:nth-child(6),
+                    .tabla-reporte th:nth-child(7),
+                    .tabla-reporte td:nth-child(7) {
+                        width: 7%;
+                    }
+                    /* Diferencias y balance */
+                    .tabla-reporte th:nth-child(8),
+                    .tabla-reporte td:nth-child(8),
+                    .tabla-reporte th:nth-child(9),
+                    .tabla-reporte td:nth-child(9),
+                    .tabla-reporte th:nth-child(10),
+                    .tabla-reporte td:nth-child(10) {
+                        width: 7%;
+                    }
+                    /* Estados */
+                    .tabla-reporte th:nth-child(11),
+                    .tabla-reporte td:nth-child(11),
+                    .tabla-reporte th:nth-child(12),
+                    .tabla-reporte td:nth-child(12) {
+                        width: 7%;
+                    }
+                    /* Observación: oculta únicamente al imprimir */
+                    .tabla-reporte th:nth-child(13),
+                    .tabla-reporte td:nth-child(13) {
+                        display: none !important;
+                    }
+                    /* Alerta */
+                    .tabla-reporte th:nth-child(14),
+                    .tabla-reporte td:nth-child(14) {
+                        width: 10%;
+                    }
+                    /* Fecha */
+                    .tabla-reporte th:nth-child(15),
+                    .tabla-reporte td:nth-child(15) {
+                        width: 5%;
+                    }
+            .badge-reporte {
+                padding: 1px 2px;
+                border-radius: 4px;
+                font-size: 6pt;
+                white-space: normal;
+            }
+
+            .texto-observacion {
+                min-width: 0;
+                max-width: none;
+            }
+
+            .totales-reporte td {
+                font-size: 6pt;
+            }
+
+            .estado-resumen {
+                margin-top: 5px;
+                padding: 4px;
+                page-break-inside: avoid;
+            }
+
+                .estado-resumen h5 {
+                    margin-bottom: 3px;
+                    font-size: 6.5pt;
+                }
+
+            .resumen-item {
+                padding: 1px;
+            }
+
+                .resumen-item .cantidad {
+                    font-size: 7pt;
+                }
+
+                .resumen-item .descripcion {
+                    font-size: 6pt;
+                }
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <div class="acciones-reporte no-imprimir">
+
+        <button type="button"
+                class="btn btn-info px-5"
+                onclick="window.print()">
+
+            <i class="fas fa-print me-1"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <a asp-action="Index"
+           asp-route-proyectoId="@ViewBag.ProyectoId"
+           asp-route-anio="@ViewBag.Anio"
+           asp-route-mes="@ViewBag.Mes"
+           asp-route-estado="@ViewBag.Estado"
+           asp-route-estadoAprobacion="@ViewBag.EstadoAprobacion"
+           class="btn btn-secondary px-5">
+
+            <i class="fas fa-arrow-left me-2"></i>
+
+            Volver
+
+        </a>
+
+    </div>
+    <div class="reporte-container">
+
+        <!-- ==============================================
+             ENCABEZADO
+        =============================================== -->
+
+        <div class="encabezado-reporte">
+
+            <h2>
+
+                <i class="fas fa-chart-pie me-2"></i>
+
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+
+            </h2>
+
+            <h4>
+
+                <i class="fas fa-file-invoice-dollar me-1"></i>
+
+                Reporte General de Presupuestos Mensuales
+
+            </h4>
+
+            <div class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+
+                Fecha de generación:
+
+                <strong>
+                    @fechaGeneracion.ToString(
+                             "dd/MM/yyyy HH:mm",
+                             culturaCR)
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- ==============================================
+             FILTROS APLICADOS
+        =============================================== -->
+
+        <div class="filtros-reporte">
+
+            <div class="titulo-filtros">
+
+                <i class="fas fa-filter me-1"></i>
+
+                Filtros aplicados
+
+            </div>
+
+            <div class="lista-filtros">
+
+                <div class="filtro-item">
+                    <strong>Proyecto:</strong>
+                    @nombreProyecto
+                </div>
+
+                <div class="filtro-item">
+                    <strong>Año:</strong>
+                    @filtroAnio
+                </div>
+
+                <div class="filtro-item">
+                    <strong>Mes:</strong>
+                    @filtroMes
+                </div>
+
+                <div class="filtro-item">
+                    <strong>Estado de ejecución:</strong>
+                    @filtroEstado
+                </div>
+
+                <div class="filtro-item">
+                    <strong>Estado de aprobación:</strong>
+                    @filtroEstadoAprobacion
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ==============================================
+             TARJETAS DE RESUMEN
+        =============================================== -->
+
+        <div class="row g-3">
+
+            <div class="col-6 col-md-3">
+
+                <div class="tarjeta-resumen">
+
+                    <div class="icono">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Total presupuestos
+                    </div>
+
+                    <div class="valor">
+                        @totalPresupuestos
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-3">
+
+                <div class="tarjeta-resumen">
+
+                    <div class="icono">
+                        <i class="fas fa-arrow-trend-up"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Ingreso planificado
+                    </div>
+
+                    <div class="valor">
+                        @totalIngresoPlanificado.ToString(
+                                 "C2",
+                                 culturaCR)
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-3">
+
+                <div class="tarjeta-resumen">
+
+                    <div class="icono">
+                        <i class="fas fa-arrow-trend-down"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Gasto planificado
+                    </div>
+
+                    <div class="valor">
+                        @totalGastoPlanificado.ToString(
+                                 "C2",
+                                 culturaCR)
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-3">
+
+                <div class="tarjeta-resumen
+                            @(totalBalance < 0
+                                ? "tarjeta-balance-negativo"
+                                : "tarjeta-balance-positivo")">
+
+                    <div class="icono">
+
+                        <i class="fas
+                                  @(totalBalance < 0
+                                      ? "fa-triangle-exclamation"
+                                      : "fa-scale-balanced")">
+                        </i>
+
+                    </div>
+
+                    <div class="titulo">
+                        Balance disponible
+                    </div>
+
+                    <div class="valor">
+
+                        @totalBalance.ToString(
+                                 "C2",
+                                 culturaCR)
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ==============================================
+             TABLA
+        =============================================== -->
+
+        <div class="table-responsive">
+
+            <table class="tabla-reporte">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Proyecto</th>
+
+                        <th>Año</th>
+
+                        <th>Mes</th>
+
+                        <th>Ingreso<br />planificado</th>
+
+                        <th>Gasto<br />planificado</th>
+
+                        <th>Ingreso<br />real</th>
+
+                        <th>Gasto<br />real</th>
+
+                        <th>Diferencia<br />ingreso</th>
+
+                        <th>Saldo<br />gasto</th>
+
+                        <th>Balance<br />real</th>
+
+                        <th>Estado<br />ejecución</th>
+
+                        <th>Estado<br />aprobación</th>
+
+                        <th class="columna-observacion">
+                            Observación
+                        </th>
+
+                        <th>Alerta</th>
+
+                        <th>Fecha</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            string nombreMesFila = item.Mes switch
+                            {
+                                1 => "Enero",
+                                2 => "Febrero",
+                                3 => "Marzo",
+                                4 => "Abril",
+                                5 => "Mayo",
+                                6 => "Junio",
+                                7 => "Julio",
+                                8 => "Agosto",
+                                9 => "Septiembre",
+                                10 => "Octubre",
+                                11 => "Noviembre",
+                                12 => "Diciembre",
+                                _ => "No definido"
+                            };
+
+                            decimal ingresoPlanificado =
+                            item.MontoIngresadoPlanificado ?? 0m;
+
+                            decimal gastoPlanificado =
+                            item.MontoGastoPlanificado ?? 0m;
+
+                            decimal ingresoReal =
+                            item.TotalIngresoReal ?? 0m;
+
+                            decimal gastoReal =
+                            item.TotalGastoReal ?? 0m;
+
+                            decimal diferenciaIngreso =
+                            item.DiferenciaIngreso ?? 0m;
+
+                            decimal diferenciaGasto =
+                            item.DiferenciaGasto ?? 0m;
+
+                            decimal balance =
+                            item.SaldoDisponible ?? 0m;
+
+                            string claseEstadoEjecucion =
+                            item.Estado switch
+                            {
+                                "En ejecución" => "estado-verde",
+                                "Ingresos bajos" => "estado-amarillo",
+                                "Gasto excedido" => "estado-rojo",
+                                "Sin movimientos" => "estado-gris",
+                                _ => "estado-gris"
+                            };
+
+                            string claseEstadoAprobacion =
+                            item.EstadoAprobacion switch
+                            {
+                                "Aprobado" => "estado-verde",
+                                "Rechazado" => "estado-rojo",
+                                "Borrador" => "estado-gris",
+                                _ => "estado-gris"
+                            };
+
+                            string alerta;
+                            string claseAlerta;
+
+                            if (balance < 0m)
+                            {
+                                alerta =
+                                "Déficit presupuestario";
+
+                                claseAlerta =
+                                "estado-rojo";
+                            }
+                            else if (gastoReal > gastoPlanificado)
+                            {
+                                alerta =
+                                "Gasto supera lo planificado";
+
+                                claseAlerta =
+                                "estado-rojo";
+                            }
+                            else if (ingresoReal < ingresoPlanificado)
+                            {
+                                alerta =
+                                "Ingreso menor al planificado";
+
+                                claseAlerta =
+                                "estado-amarillo";
+                            }
+                            else
+                            {
+                                alerta =
+                                "Presupuesto controlado";
+
+                                claseAlerta =
+                                "estado-verde";
+                            }
+
+                            <tr>
+
+                                <td>
+                                    @(item.Proyecto?.Nombre
+                                        ?? "Sin proyecto")
+                                </td>
+
+                                <td>
+                                    @item.Anio
+                                </td>
+
+                                <td>
+                                    @nombreMesFila
+                                </td>
+
+                                <td>
+                                    @ingresoPlanificado.ToString(
+                                             "C2",
+                                             culturaCR)
+                                </td>
+
+                                <td>
+                                    @gastoPlanificado.ToString(
+                                             "C2",
+                                             culturaCR)
+                                </td>
+
+                                <td>
+                                    @ingresoReal.ToString(
+                                             "C2",
+                                             culturaCR)
+                                </td>
+
+                                <td>
+                                    @gastoReal.ToString(
+                                             "C2",
+                                             culturaCR)
+                                </td>
+
+                                <td class="@(diferenciaIngreso < 0
+                                               ? "monto-negativo"
+                                               : diferenciaIngreso > 0
+                                                   ? "monto-positivo"
+                                                   : "monto-neutro")">
+
+                                    @diferenciaIngreso.ToString(
+                                             "C2",
+                                             culturaCR)
+
+                                </td>
+
+                                <td class="@(diferenciaGasto < 0
+                                               ? "monto-negativo"
+                                               : diferenciaGasto > 0
+                                                   ? "monto-positivo"
+                                                   : "monto-neutro")">
+
+                                    @diferenciaGasto.ToString(
+                                             "C2",
+                                             culturaCR)
+
+                                </td>
+
+                                <td class="@(balance < 0
+                                               ? "balance-negativo"
+                                               : "balance-positivo")">
+
+                                    @balance.ToString(
+                                             "C2",
+                                             culturaCR)
+
+                                </td>
+
+                                <td>
+
+                                    <span class="badge-reporte
+                                                 @claseEstadoEjecucion">
+
+                                        @(item.Estado
+                                            ?? "Sin definir")
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="badge-reporte
+                                                 @claseEstadoAprobacion">
+
+                                        @(item.EstadoAprobacion
+                                            ?? "Sin definir")
+
+                                    </span>
+
+                                </td>
+
+                                <td class="texto-observacion columna-observacion">
+
+                                    @(string.IsNullOrWhiteSpace(
+                                        item.ObservacionRevision)
+                                        ? "—"
+                                        : item.ObservacionRevision)
+
+                                </td>
+
+                                <td>
+
+                                    <span class="badge-reporte
+                                                 @claseAlerta">
+
+                                        @alerta
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    @(item.FechaCreacion.HasValue
+                                        ? item.FechaCreacion.Value
+                                        .ToString(
+                                        "dd/MM/yyyy",
+                                        culturaCR)
+                                        : "—")
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="15"
+                                class="sin-registros">
+
+                                <i class="fas fa-circle-info me-1"></i>
+
+                                No existen presupuestos que coincidan
+                                con los filtros aplicados.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+                @if (Model != null && Model.Any())
+                {
+                    <tfoot>
+
+                        <tr class="totales-reporte">
+
+                            <td colspan="3">
+                                TOTALES
+                            </td>
+
+                            <td>
+                                @totalIngresoPlanificado.ToString(
+                                         "C2",
+                                         culturaCR)
+                            </td>
+
+                            <td>
+                                @totalGastoPlanificado.ToString(
+                                         "C2",
+                                         culturaCR)
+                            </td>
+
+                            <td>
+                                @totalIngresoReal.ToString(
+                                         "C2",
+                                         culturaCR)
+                            </td>
+
+                            <td>
+                                @totalGastoReal.ToString(
+                                         "C2",
+                                         culturaCR)
+                            </td>
+
+                            <td class="@(totalDiferenciaIngreso < 0
+                                           ? "monto-negativo"
+                                           : "monto-positivo")">
+
+                                @totalDiferenciaIngreso.ToString(
+                                         "C2",
+                                         culturaCR)
+
+                            </td>
+
+                            <td class="@(totalDiferenciaGasto < 0
+                                           ? "monto-negativo"
+                                           : "monto-positivo")">
+
+                                @totalDiferenciaGasto.ToString(
+                                         "C2",
+                                         culturaCR)
+
+                            </td>
+
+                            <td class="@(totalBalance < 0
+                                           ? "balance-negativo"
+                                           : "balance-positivo")">
+
+                                @totalBalance.ToString(
+                                         "C2",
+                                         culturaCR)
+
+                            </td>
+
+                            <td colspan="5"></td>
+
+                        </tr>
+
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+        <!-- ==============================================
+             RESUMEN INFERIOR
+        =============================================== -->
+
+        <div class="estado-resumen">
+
+            <h5>
+                <i class="fas fa-chart-pie me-1"></i>
+                Resumen del estado de los presupuestos
+            </h5>
+
+            <div class="row g-1">
+
+                <div class="col">
+
+                    <div class="resumen-item">
+
+                        <span class="cantidad">
+                            @ViewBag.CantidadBorradores
+                        </span>
+
+                        <span class="descripcion">
+                            Borradores
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col">
+
+                    <div class="resumen-item">
+
+                        <span class="cantidad">
+                            @ViewBag.CantidadAprobados
+                        </span>
+
+                        <span class="descripcion">
+                            Aprobados
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col">
+
+                    <div class="resumen-item">
+
+                        <span class="cantidad">
+                            @ViewBag.CantidadRechazados
+                        </span>
+
+                        <span class="descripcion">
+                            Rechazados
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col">
+
+                    <div class="resumen-item">
+
+                        <span class="cantidad">
+                            @ViewBag.CantidadAlertas
+                        </span>
+
+                        <span class="descripcion">
+                            En alerta
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col">
+
+                    <div class="resumen-item">
+
+                        <span class="cantidad">
+                            @ViewBag.CantidadEnEjecucion
+                        </span>
+
+                        <span class="descripcion">
+                            En ejecución
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"
+            asp-append-version="true">
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+﻿@model SistemaGestionFinanciera.Models.ViewModels.AlertaPresupuestoMenuViewModel
+
+@if (Model.Mostrar)
+{
+    <span class="menu-alerta
+        @(Model.Tipo == "roja"
+            ? "menu-alerta-roja"
+            : "menu-alerta-amarilla")"
+          tabindex="0"
+          role="button"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          data-bs-placement="right"
+          data-bs-container="body"
+          data-bs-html="true"
+          data-bs-title="Presupuestos pendientes"
+          data-bs-content="@Html.Raw(
+    $"<div class='alerta-popover-contenido'>" +
+   $"<i class='fas fa-chart-pie text-warning me-2'></i>" +
+    $"{Model.Mensaje}" +
+    $"</div>")">
+
+        @Model.Cantidad
+    </span>
+}

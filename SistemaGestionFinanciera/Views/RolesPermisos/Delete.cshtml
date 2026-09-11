@@ -1,0 +1,44 @@
+﻿@model SistemaGestionFinanciera.Models.RolesPermiso
+
+@{
+    ViewData["Title"] = "Eliminar Roles Permisos";
+}
+
+<h1>Anular Ingreso</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DE ROL/PERMISO
+    </div>
+
+    <div class="card-body">
+        <div class="alert alert-warning">
+            ¿Desea anular este permiso de rol?
+        </div>
+        <table class="table table-borderless">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Permiso)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Permiso.IdPermiso)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Rol)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Rol.IdRol)
+        </dd>
+    </dl>
+
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="IdRolPermiso" />
+
+            <input type="submit" value="Anular" class="btn btn-danger" />
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Volver al listado
+            </a>
+        </form>
+</div>
+</div>

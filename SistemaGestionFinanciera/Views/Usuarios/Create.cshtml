@@ -1,0 +1,75 @@
+﻿@model SistemaGestionFinanciera.Models.Usuario
+
+@{
+    ViewData["Title"] = "Registrar usuario";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Registrar usuario</h2>
+        <small class="text-muted">Creación de usuarios para el acceso al sistema financiero</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos del usuario
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" method="post" class="row g-3">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label fw-semibold">Nombre completo</label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Digite el nombre completo" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-semibold">Correo electrónico</label>
+                    <input asp-for="Email" class="form-control" placeholder="ejemplo@correo.com" autocomplete="new-email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PasswordHash" class="form-label fw-semibold">Contraseña</label>
+                    <input asp-for="PasswordHash" type="password" class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+                    <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Confirmar contraseña</label>
+                    <input type="password" name="ConfirmarPassword" class="form-control" placeholder="Repita la contraseña" autocomplete="new-password" />
+                    <span class="text-danger">@Html.ValidationMessage("ConfirmarPassword")</span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RolId" class="form-label fw-semibold">Rol</label>
+                    <select asp-for="RolId" class="form-select" asp-items="ViewBag.RolId">
+                        <option value="0">Seleccione un rol</option>
+                    </select>
+                    <span class="text-danger">@Html.ValidationMessage("RolId")</span>
+                </div>
+
+                <div class="col-12 mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

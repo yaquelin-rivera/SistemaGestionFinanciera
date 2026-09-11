@@ -1,0 +1,187 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasPorCobrar
+
+@{
+    ViewData["Title"] = "Registrar Cuenta por Cobrar";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Registrar Cuenta por Cobrar</h2>
+        <small class="text-muted">Registro manual de deudas pendientes de cobro</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white">
+          
+            <small>Complete la información del nuevo cobro pendiente</small>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary mb-4">
+                El número de documento y la fecha de vencimiento se generarán automáticamente según el tipo de documento y los días de crédito seleccionados.
+            </div>
+
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mb-2">Información general</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ClienteBeneficiarioId" class="form-label">Cliente / Beneficiario</label>
+                        <select asp-for="ClienteBeneficiarioId" class="form-control" asp-items="ViewBag.ClienteBeneficiarioId">
+                            <option value="">-- Seleccione un cliente --</option>
+                        </select>
+                        <span asp-validation-for="ClienteBeneficiarioId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label">
+                            Proyecto / período presupuestario
+                        </label>
+
+                        <select id="SeleccionProyectoPeriodoCxC"
+                                name="SeleccionProyectoPeriodoCxC"
+                                class="form-control"
+                                asp-items="ViewBag.OpcionesProyectoPeriodoCxC">
+
+                            <option value="">
+                                -- Seleccione proyecto y período --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="ProyectoId"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="TipoDocumento" class="form-label">Tipo de documento</label>
+                        <select asp-for="TipoDocumento" class="form-control" asp-items="ViewBag.TiposDocumento">
+                            <option value="">-- Seleccione el tipo --</option>
+                        </select>
+                        <span asp-validation-for="TipoDocumento" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Datos del crédito</p>
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="DiasCredito" class="form-label">Días de crédito</label>
+                        <select asp-for="DiasCredito" class="form-control" asp-items="ViewBag.DiasCredito">
+                            <option value="">-- Seleccione días --</option>
+                        </select>
+                        <span asp-validation-for="DiasCredito" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha de emisión</label>
+                        <input class="form-control" value="@ViewBag.FechaEmision" readonly />
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha de vencimiento</label>
+                        <input id="fechaVencimientoVista" class="form-control" value="Se calculará automáticamente" readonly />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="MontoOriginal" class="form-label">Monto original</label>
+
+                        <input asp-for="MontoOriginal"
+                               type="text"
+                               class="form-control"
+                               placeholder="Ej: 500000.50"
+                               oninput="this.value = this.value.replace(',', '.')" />
+
+                        <span asp-validation-for="MontoOriginal" class="text-danger"></span>
+                    </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Detalle del cobro</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+                        <label asp-for="Concepto" class="form-label">Concepto</label>
+                        <input asp-for="Concepto"
+                               class="form-control"
+                               placeholder="Ej: Donación pendiente para actividad comunal" />
+                        <span asp-validation-for="Concepto" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3 gx-5">
+                        <label asp-for="Observacion" class="form-label">Observación</label>
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Observaciones del registro"></textarea>
+                        <span asp-validation-for="Observacion" class="text-danger"></span>
+                        <small class="text-muted">
+                            Puede anotar acuerdos de pago en cantidad de tractos, notas o información adicional.
+                        </small>
+                    </div>
+
+                </div>
+
+                    <div class="d-flex  gap-2  mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const diasCredito = document.getElementById("DiasCredito");
+            const fechaVencimiento = document.getElementById("fechaVencimientoVista");
+
+            function calcularFechaVencimiento() {
+
+                if (!diasCredito.value) {
+                    fechaVencimiento.value = "Se calculará automáticamente";
+                    return;
+                }
+
+                // Aqui tomo la fecha de hoy para calcular el vencimiento
+                const hoy = new Date();
+
+                // Aqui sumo los dias de credito seleccionados
+                hoy.setDate(hoy.getDate() + parseInt(diasCredito.value));
+
+                const dia = String(hoy.getDate()).padStart(2, "0");
+                const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+                const anio = hoy.getFullYear();
+
+                fechaVencimiento.value = `${dia}/${mes}/${anio}`;
+            }
+
+            diasCredito.addEventListener("change", calcularFechaVencimiento);
+
+            // Aqui calculo la fecha si la vista vuelve con datos por error
+            calcularFechaVencimiento();
+        });
+    </script>
+}

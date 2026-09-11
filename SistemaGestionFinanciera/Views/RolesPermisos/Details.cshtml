@@ -1,0 +1,41 @@
+﻿@model SistemaGestionFinanciera.Models.RolesPermiso
+
+@{
+    ViewData["Title"] = "Consultar Rol/Permiso";
+}
+<h1>Consultar Rol/permiso</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DE ROL / PERMISO
+    </div>
+
+    <div class="card-body">
+        <table class="table table-borderless">
+
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Permiso)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Permiso.IdPermiso)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Rol)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Rol.IdRol)
+        </dd>
+    </dl>
+</div>
+
+    <div class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model?.IdRolPermiso" class="btn btn-warning">
+            Modificar
+        </a>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver al listado
+        </a>
+    </div>
+</div>
+</div>

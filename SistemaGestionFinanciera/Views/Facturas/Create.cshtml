@@ -1,0 +1,1090 @@
+﻿@model SistemaGestionFinanciera.Models.Factura
+
+@{
+    ViewData["Title"] = "Registrar factura";
+}
+
+<div class="container-fluid mt-4 px-4">
+
+    <div class="card shadow-sm border-0 factura-card">
+        <div class="card-header text-white" style="background-color:#0F7C90;">
+            <h4 class="mb-0">Registrar nueva factura</h4>
+            <small>Complete la información general de la factura</small>
+        </div>
+        <div class="mt-2">
+            <small class="text-black">
+                Número de factura: Se generará automáticamente al guardar.
+            </small>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="TipoFactura" class="form-label"></label>
+                        <select asp-for="TipoFactura" class="form-control">
+                            <option value="">-- Seleccione el tipo de factura --</option>
+                            <option value="Venta">Venta</option>
+                            <option value="Compra">Compra</option>
+                        </select>
+                        <span asp-validation-for="TipoFactura" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="CondicionPago" class="form-label"></label>
+                        <select asp-for="CondicionPago" class="form-control" id="condicionPago">
+                            <option value="">-- Seleccione la condición --</option>
+                            <option value="Contado">Contado</option>
+                            <option value="Credito">Crédito</option>
+                        </select>
+                        <span asp-validation-for="CondicionPago" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3" id="grupoDiasCredito">
+                        <label asp-for="DiasCredito" class="form-label"></label>
+                        <select asp-for="DiasCredito" class="form-control" id="diasCredito">
+                            <option value="">-- Seleccione días de crédito --</option>
+                            <option value="8">8 días</option>
+                            <option value="15">15 días</option>
+                            <option value="30">30 días</option>
+                            <option value="45">45 días</option>
+                            <option value="60">60 días</option>
+                            <option value="90">90 días</option>
+                        </select>
+                        <span id="errorDiasCredito"
+                              class="text-danger"></span>
+                        <span asp-validation-for="DiasCredito"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <label asp-for="ClienteBeneficiarioId" class="form-label"></label>
+                        <select asp-for="ClienteBeneficiarioId" class="form-control" asp-items="ViewBag.ClienteBeneficiarioId">
+                            <option value="">-- Seleccione un cliente --</option>
+                        </select>
+                        <span asp-validation-for="ClienteBeneficiarioId" class="text-danger"></span>
+                        <span id="errorCliente" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <label asp-for="ProveedorId" class="form-label"></label>
+                        <select asp-for="ProveedorId" class="form-control" asp-items="ViewBag.ProveedorId">
+                            <option value="">-- Seleccione un proveedor --</option>
+                        </select>
+                        <span asp-validation-for="ProveedorId" class="text-danger"></span>
+                        <span id="errorProveedor" class="text-danger"></span>
+                    </div>
+
+                    <div class=" col-lg-2 col-md-3 mb-3">
+                        <label asp-for="FechaEmision" class="form-label"></label>
+                        <input asp-for="FechaEmision"
+                               type="date"
+                               class="form-control"
+                               id="fechaEmision"
+                               max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="FechaEmision"
+                              class="text-danger"></span>
+                        
+                    </div>
+
+                    <div class="col-lg-2 col-md-3 mb-3">
+                        <label asp-for="FechaVencimiento" class="form-label"></label>
+                        <input asp-for="FechaVencimiento" type="date" class="form-control" id="fechaVencimiento" readonly />
+                        <span asp-validation-for="FechaVencimiento" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="Estado" class="form-label"></label>
+                        <input asp-for="Estado"
+                               class="form-control"
+                               value="Pendiente"
+                               readonly />
+                    </div>
+
+                    <div class="col-md-12 mt-3 mb-2">
+                        <h5 class="text-primary">Clasificación financiera</h5>
+                        <hr />
+                    </div>
+
+                    @*clasificacion financiera*@
+                    <div class="col-lg-2 col-md-6 mb-3 bloque-ingreso">
+                        <label asp-for="TipoIngreso" class="form-label">Tipo de ingreso</label>
+                        <select asp-for="TipoIngreso" class="form-control">
+                            <option value="">-- Seleccione ingreso --</option>
+                            <option value="Facturación">Facturación</option>
+                            <option value="Operativo">Operativo</option>
+                            <option value="Extraordinario">Extraordinario</option>
+                            <option value="Donación">Donación</option>
+                            <option value="Aporte">Aporte</option>
+                            <option value="Convenio">Convenio</option>
+                        </select>
+                        <span asp-validation-for="TipoIngreso" class="text-danger"></span>
+                        <span id="errorTipoIngreso" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-3 bloque-ingreso">
+                        <label asp-for="CategoriaIngresoId" class="form-label">Categoría de ingreso</label>
+                        <select asp-for="CategoriaIngresoId"
+                                class="form-control"
+                                asp-items="ViewBag.CategoriaIngresoId">
+                            <option value="">-- Seleccione categoría de ingreso --</option>
+                        </select>
+                        <span asp-validation-for="CategoriaIngresoId" class="text-danger"></span>
+                        <span id="errorCategoriaIngreso" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3 bloque-gasto">
+                        <label asp-for="CategoriaGastoId" class="form-label">Categoría de gasto</label>
+                        <select asp-for="CategoriaGastoId"
+                                class="form-control"
+                                asp-items="ViewBag.CategoriaGastoId">
+                            <option value="">-- Seleccione categoría de gasto --</option>
+                        </select>
+                        <span asp-validation-for="CategoriaGastoId" class="text-danger"></span>
+                        <span id="errorCategoriaGasto" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 mb-3 bloque-proyecto-venta">
+
+                        <label class="form-label">
+                            Proyecto / período presupuestario
+                        </label>
+
+                        <select id="SeleccionProyectoPeriodoVenta"
+                                name="SeleccionProyectoPeriodoVenta"
+                                class="form-control"
+                                asp-items="ViewBag.OpcionesProyectoPeriodoVenta">
+
+                            <option value="">
+                                -- Seleccione un proyecto y período --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="ProyectoId"
+                              class="text-danger"></span>
+
+                        <span id="errorProyecto"
+                              class="text-danger"></span>
+
+                        <small class="text-muted d-block mt-1">
+                            Puede seleccionar un período aprobado, en borrador
+                            o un proyecto sin período presupuestario.
+                        </small>
+
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3 bloque-presupuesto-compra">
+                        <label asp-for="PresupuestoMensualId"
+                               class="form-label">
+                            Proyecto / período presupuestario
+                        </label>
+
+                        <select asp-for="PresupuestoMensualId"
+                                class="form-control"
+                                asp-items="ViewBag.PresupuestosMensualId">
+
+                            <option value="">
+                                -- Seleccione un proyecto y período --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PresupuestoMensualId"
+                              class="text-danger"></span>
+
+                        <span id="errorPresupuestoMensual"
+                              class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="CentroCostoId" class="form-label">Centro de costo</label>
+                        <select asp-for="CentroCostoId"
+                                class="form-control"
+                                asp-items="ViewBag.CentroCostoId">
+                            <option value="">-- Seleccione centro de costo --</option>
+                        </select>
+                        <span asp-validation-for="CentroCostoId" class="text-danger"></span>
+                        <span id="errorCentroCosto" class="text-danger"></span>
+                    </div>
+                    @*detalles de factura *@
+                    <div class="col-12 mt-3 mb-2">
+                        <h5 class="text-primary">Detalle de factura</h5>
+                        <hr />
+                    </div>
+                    @*cargar el precio unitario al escoger servicio y servico o text are si es compra*@
+                    <div class="col-lg-3 bloque-servicio-venta">
+                        <label asp-for="ServicioCatalogoId" class="form-label">Servicio del catálogo</label>
+                        <select asp-for="ServicioCatalogoId"
+                                class="form-control"
+                                id="servicioCatalogo">
+                            <option value="">-- Seleccione un servicio --</option>
+
+                            @foreach (var servicio in ViewBag.ServiciosCatalogo)
+                            {
+                                <option value="@servicio.IdFacturaDetalle"
+                                        data-precio="@servicio.PrecioUnitario">
+                                    @servicio.Nombre
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="ServicioCatalogoId" class="text-danger"></span>
+                        <span id="errorServicioCatalogo" class="text-danger"></span>
+                    </div>
+
+                  <div class="col-lg-3 bloque-articulo-compra">
+                    <label class="form-label">Artículo o concepto comprado</label>
+                      <input type="text"
+                            class="form-control"
+                            id="descripcionCompraDetalle"
+                            maxlength="150"
+                            placeholder="Ejemplo: resmas de papel, tinta, materiales" />
+                     <span id="errorDescripcionCompraDetalle" class="text-danger"></span>
+                  </div>
+
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input name="CantidadDetalle" id="cantidadDetalle" type="number" min="1" value="1" class="form-control" />
+                        <span id="errorCantidadDetalle" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label class="form-label">Precio unitario</label>
+                        <input name="PrecioUnitarioDetalle"
+                               id="precioUnitarioDetalle"
+                               type="text"
+                               inputmode="decimal"
+                               class="form-control" />
+                        <span id="errorPrecioUnitarioDetalle" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label class="form-label">Descuento línea</label>
+                        <input name="DescuentoDetalle" id="descuentoDetalle" type="number" step="0.01" min="0" value="0" class="form-control" />
+                        <span id="errorDescuentoDetalle" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="TipoImpuesto" class="form-label"></label>
+                        <select asp-for="TipoImpuesto"
+                                id="TipoImpuesto"
+                                class="form-control">
+                            <option value="Sin impuesto">Sin impuesto</option>
+                            <option value="IVA 13%">IVA 13%</option>
+                            <option value="IVA 4%">IVA 4%</option>
+                            <option value="IVA 2%">IVA 2%</option>
+                            <option value="IVA 1%">IVA 1%</option>
+                        </select>
+                    </div>
+                    @*btn de agregar *@
+                    <div class="col-lg-2 col-md-3 mb-3 d-flex align-items-end">
+                        <button type="button"
+                                class="btn text-white w-100"
+                                id="btnAgregarLinea"
+                                style="background-color:#0F7C90;">
+                            Agregar
+                        </button>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm"
+                                   id="tablaDetalleFactura">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Detalle</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Descuento</th>
+                                        <th>Impuesto</th>
+                                        <th>Total línea</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                @*Id en la tabla *@
+                                <tbody id="detalleFacturaBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @*------------- HIDDEN JSON ---------------------------------*@
+                    <span id="errorLineasFactura" class="text-danger"></span>
+
+                    <input asp-for="DescuentoTotal" type="hidden" id="descuento" />
+                    <input type="hidden" id="detalleFacturaJson" name="detalleFacturaJson" value='@Html.Raw(ViewBag.DetalleFacturaJson ?? "")' />
+
+                    <div class="col-12 mt-3 mb-2">
+                        <h5 class="text-primary">Resumen financiero</h5>
+                        <hr />
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="SubTotal" class="form-label"></label>
+                        <input asp-for="SubTotal" class="form-control" id="subtotal" readonly />
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="ImpuestoTotal" class="form-label"></label>
+                        <input asp-for="ImpuestoTotal"
+                               class="form-control"
+                               id="impuesto"
+                               readonly />
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="Total" class="form-label"></label>
+                        <input asp-for="Total"
+                               class="form-control"
+                               id="total"
+                               readonly />
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label asp-for="SaldoPendiente" class="form-label"></label>
+                        <input asp-for="SaldoPendiente"
+                               class="form-control"
+                               id="saldo"
+                               readonly />
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <label asp-for="Observacion" class="form-label"></label>
+                        <textarea asp-for="Observacion" class="form-control" rows="3" maxlength="500"></textarea>
+                        <span asp-validation-for="Observacion" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="d-flex  gap-2 mt-4">
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit"
+                            class="btn text-white"
+                            style="background-color:#0F7C90;">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    .factura-card {
+        width: 100%;
+        max-width: 100%;
+    }
+
+        .factura-card .form-control,
+        .factura-card .form-select {
+            min-height: 38px;
+            font-size: 14px;
+        }
+
+        .factura-card label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .factura-card h5 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+            let lineasFactura = [];
+
+        function controlarBloqueoInicial() {
+            let tipo = document.getElementById("TipoFactura").value;
+
+            let campos = [
+                "condicionPago",
+                "diasCredito",
+                "fechaEmision",            
+                "TipoIngreso",
+                "CategoriaIngresoId",
+                "CategoriaGastoId",
+                "SeleccionProyectoPeriodoVenta",
+                "PresupuestoMensualId",
+                "CentroCostoId",
+                "servicioCatalogo",
+                "descripcionCompraDetalle",
+                "cantidadDetalle",
+                "precioUnitarioDetalle",
+                "descuentoDetalle",
+                "TipoImpuesto",
+                "btnAgregarLinea"
+               
+            ];
+
+            campos.forEach(id => {
+                let campo = document.getElementById(id);
+                if (campo) campo.disabled = !tipo;
+            });
+        }
+
+        function obtenerPorcentajeImpuesto(tipoImpuesto) {
+            switch (tipoImpuesto) {
+                case "IVA 13%": return 0.13;
+                case "IVA 4%": return 0.04;
+                case "IVA 2%": return 0.02;
+                case "IVA 1%": return 0.01;
+                default: return 0;
+            }
+        }
+
+        function calcularTotales() {
+            let subtotal = 0;
+            let impuestoTotal = 0;
+            let totalFactura = 0;
+
+            lineasFactura.forEach(linea => {
+                subtotal += linea.subtotalLinea;
+                impuestoTotal += linea.impuestoLinea;
+                totalFactura += linea.totalLinea;
+            });
+
+            document.getElementById("subtotal").value = subtotal.toFixed(2);
+            document.getElementById("impuesto").value = impuestoTotal.toFixed(2);
+            document.getElementById("total").value = totalFactura.toFixed(2);
+
+            let condicion = document.getElementById("condicionPago").value;
+            document.getElementById("saldo").value =
+                condicion === "Contado" ? "0.00" : totalFactura.toFixed(2);
+                actualizarEstadoFactura();
+        }
+
+        function actualizarEstadoFactura() {
+    let condicion = document.getElementById("condicionPago").value;
+    let fechaVencimiento = document.getElementById("fechaVencimiento").value;
+    let total = parseFloat(document.getElementById("total").value) || 0;
+    let estado = document.getElementById("Estado");
+
+    if (condicion === "Contado" && total > 0) {
+        estado.value = "Pagada";
+        return;
+    }
+
+    if (condicion === "Credito" && total > 0) {
+        let hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        if (fechaVencimiento) {
+            let partes = fechaVencimiento.split("-");
+            let vencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
+            vencimiento.setHours(0, 0, 0, 0);
+
+            if (vencimiento < hoy) {
+                estado.value = "Vencida";
+            } else {
+                estado.value = "Pendiente";
+            }
+        } else {
+            estado.value = "Pendiente";
+        }
+
+        return;
+    }
+
+    estado.value = "Pendiente";
+}
+        function renderizarTabla() {
+            let tbody = document.getElementById("detalleFacturaBody");
+            tbody.innerHTML = "";
+
+            lineasFactura.forEach((linea, index) => {
+                tbody.innerHTML += `
+                        <tr>
+                            <td>${linea.servicioNombre}</td>
+                            <td>${linea.cantidad}</td>
+                            <td>₡${linea.precioUnitario.toFixed(2)}</td>
+                            <td>₡${linea.descuento.toFixed(2)}</td>
+                            <td>₡${linea.impuestoLinea.toFixed(2)}</td>
+                            <td>₡${linea.totalLinea.toFixed(2)}</td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="eliminarLinea(${index})">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>`;
+            });
+
+            calcularTotales();
+        }
+
+        function eliminarLinea(index) {
+            Swal.fire({
+                title: "¿Eliminar línea?",
+                text: "La línea será retirada del detalle de la factura.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#6c757d",
+                reverseButtons: true
+            }).then((resultado) => {
+                if (!resultado.isConfirmed) {
+                    return;
+                }
+
+                lineasFactura.splice(index, 1);
+                renderizarTabla();
+
+                Swal.fire({
+                    title: "Línea eliminada",
+                    text: "El detalle fue actualizado correctamente.",
+                    icon: "success",
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            });
+        }
+
+        function controlarClienteProveedor() {
+            let tipo = document.getElementById("TipoFactura").value;
+            let cliente = document.getElementById("ClienteBeneficiarioId");
+            let proveedor = document.getElementById("ProveedorId");
+            let bloquesIngreso = document.querySelectorAll(".bloque-ingreso");
+            let bloquesGasto = document.querySelectorAll(".bloque-gasto");
+
+            let bloqueProyectoVenta =
+                document.querySelectorAll(".bloque-proyecto-venta");
+
+            let bloquePresupuestoCompra =
+                document.querySelectorAll(".bloque-presupuesto-compra");
+
+            let bloqueServicioVenta = document.querySelectorAll(".bloque-servicio-venta");
+            let bloqueArticuloCompra = document.querySelectorAll(".bloque-articulo-compra");
+
+            let fechaEmision = document.getElementById("fechaEmision");
+
+            let ahora = new Date();
+            let hoy = ahora.getFullYear() + "-" +
+                String(ahora.getMonth() + 1).padStart(2, "0") + "-" +
+                String(ahora.getDate()).padStart(2, "0");
+
+            fechaEmision.max = hoy;
+
+            if (tipo === "Venta") {
+
+                document.getElementById("CategoriaGastoId").value = "";
+                document.getElementById("descripcionCompraDetalle").value = "";
+
+                bloquesIngreso.forEach(x => x.style.display = "block");
+                bloquesGasto.forEach(x => x.style.display = "none");
+
+                bloqueServicioVenta.forEach(x => x.style.display = "block");
+                bloqueArticuloCompra.forEach(x => x.style.display = "none");
+
+                bloqueProyectoVenta.forEach(x =>
+    x.style.display = "block");
+
+bloquePresupuestoCompra.forEach(x =>
+    x.style.display = "none");
+
+document.getElementById(
+    "PresupuestoMensualId").value = "";
+
+                cliente.disabled = false;
+
+                proveedor.value = "";
+                proveedor.disabled = true;
+
+                fechaEmision.value = hoy;
+                fechaEmision.readOnly = true;
+            }
+            else if (tipo === "Compra") {
+
+                document.getElementById("TipoIngreso").value = "";
+                document.getElementById("CategoriaIngresoId").value = "";
+                document.getElementById("servicioCatalogo").value = "";
+
+                bloquesIngreso.forEach(x => x.style.display = "none");
+                bloquesGasto.forEach(x => x.style.display = "block");
+
+                bloqueServicioVenta.forEach(x => x.style.display = "none");
+                bloqueArticuloCompra.forEach(x => x.style.display = "block");
+
+                bloqueProyectoVenta.forEach(x =>
+                    x.style.display = "none");
+
+                bloquePresupuestoCompra.forEach(x =>
+                    x.style.display = "block");
+
+                document.getElementById(
+                    "SeleccionProyectoPeriodoVenta").value = "";
+
+                proveedor.disabled = false;
+
+                cliente.value = "";
+                cliente.disabled = true;
+
+                fechaEmision.readOnly = false;
+                fechaEmision.max = hoy;
+            }
+            else {
+                bloquesIngreso.forEach(x => x.style.display = "none");
+                bloquesGasto.forEach(x => x.style.display = "none");
+
+                bloqueServicioVenta.forEach(x => x.style.display = "none");
+                bloqueArticuloCompra.forEach(x => x.style.display = "none");
+
+                bloqueProyectoVenta.forEach(x =>
+    x.style.display = "none");
+
+bloquePresupuestoCompra.forEach(x =>
+    x.style.display = "none");
+
+                document.getElementById(
+                    "SeleccionProyectoPeriodoVenta").value = "";
+
+                document.getElementById(
+                    "PresupuestoMensualId").value = "";
+                cliente.value = "";
+                proveedor.value = "";
+                cliente.disabled = true;
+                proveedor.disabled = true;
+
+                fechaEmision.readOnly = false;
+            }
+            controlarBloqueoInicial();
+            controlarCredito();
+        }
+
+        function controlarCredito() {
+            let condicion = document.getElementById("condicionPago").value;
+            let grupoDias = document.getElementById("grupoDiasCredito");
+            let diasCredito = document.getElementById("diasCredito");
+            let fechaEmision = document.getElementById("fechaEmision");
+            let fechaVencimiento = document.getElementById("fechaVencimiento");
+            let errorDias = document.getElementById("errorDiasCredito");
+
+            if (condicion === "Credito") {
+                grupoDias.style.display = "block";
+                diasCredito.disabled = false;
+
+                if (!diasCredito.value) {
+                    fechaVencimiento.value = "";
+                    errorDias.innerText = "Debe seleccionar los días de crédito.";
+                }
+                else {
+                    errorDias.innerText = "";
+
+                    if (fechaEmision.value) {
+                        let partes = fechaEmision.value.split("-");
+                        let fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+                        fecha.setDate(fecha.getDate() + parseInt(diasCredito.value));
+
+                        let anio = fecha.getFullYear();
+                        let mes = String(fecha.getMonth() + 1).padStart(2, "0");
+                        let dia = String(fecha.getDate()).padStart(2, "0");
+
+                        fechaVencimiento.value = `${anio}-${mes}-${dia}`;
+                    }
+                }
+            }
+            else {
+                grupoDias.style.display = "block";
+                diasCredito.value = "";
+                diasCredito.disabled = true;
+                errorDias.innerText = "";
+                fechaVencimiento.value = fechaEmision.value;
+            }
+
+            calcularTotales();
+                 
+        }
+
+        function limpiarErroresFactura() {
+            document.querySelectorAll(".text-danger[id^='error']").forEach(e => e.innerText = "");
+        }
+
+        function mostrarError(id, mensaje) {
+            let elemento = document.getElementById(id);
+            if (elemento) {
+                elemento.innerText = mensaje;
+            }
+        }
+
+        function validarFormularioFactura() {
+            limpiarErroresFactura();
+
+            let valido = true;
+
+            let tipoFactura = document.getElementById("TipoFactura").value;
+            let condicionPago = document.getElementById("condicionPago").value;
+            let diasCredito = document.getElementById("diasCredito").value;
+            let cliente = document.getElementById("ClienteBeneficiarioId").value;
+            let proveedor = document.getElementById("ProveedorId").value;
+            let tipoIngreso = document.getElementById("TipoIngreso")?.value;
+            let categoriaIngreso = document.getElementById("CategoriaIngresoId")?.value;
+            let categoriaGasto = document.getElementById("CategoriaGastoId")?.value;
+            let proyectoPeriodoVenta =
+                document.getElementById(
+                    "SeleccionProyectoPeriodoVenta").value;
+            let presupuestoMensual =
+                document.getElementById(
+                    "PresupuestoMensualId").value;
+            let centroCosto = document.getElementById("CentroCostoId").value;
+
+            if (!tipoFactura) {
+                mostrarError("errorTipoFactura", "Debe seleccionar el tipo de factura.");
+                valido = false;
+            }
+
+            if (!condicionPago) {
+                mostrarError("errorCondicionPago", "Debe seleccionar la condición de pago.");
+                valido = false;
+            }
+
+            if (condicionPago === "Credito" && !diasCredito) {
+                mostrarError("errorDiasCredito", "Debe seleccionar los días de crédito.");
+                valido = false;
+            }
+
+            if (tipoFactura === "Venta" && !cliente) {
+                mostrarError("errorCliente", "Debe seleccionar un cliente.");
+                valido = false;
+            }
+
+            if (tipoFactura === "Compra" && !proveedor) {
+                mostrarError("errorProveedor", "Debe seleccionar un proveedor.");
+                valido = false;
+            }
+
+            if (tipoFactura === "Venta") {
+                if (!tipoIngreso) {
+                    mostrarError("errorTipoIngreso", "Debe seleccionar el tipo de ingreso.");
+                    valido = false;
+                }
+
+                if (!categoriaIngreso) {
+                    mostrarError("errorCategoriaIngreso", "Debe seleccionar la categoría de ingreso.");
+                    valido = false;
+                }
+            }
+
+            if (tipoFactura === "Compra" && !categoriaGasto) {
+                mostrarError("errorCategoriaGasto", "Debe seleccionar la categoría de gasto.");
+                valido = false;
+            }
+            if (tipoFactura === "Venta" &&
+                !proyectoPeriodoVenta) {
+
+                mostrarError(
+                    "errorProyecto",
+                    "Debe seleccionar un proyecto y período presupuestario.");
+
+                valido = false;
+            }
+
+            if (tipoFactura === "Compra" &&
+                !presupuestoMensual) {
+
+                mostrarError(
+                    "errorPresupuestoMensual",
+                    "Debe seleccionar un proyecto y período presupuestario.");
+
+                valido = false;
+            }
+
+            if (!centroCosto) {
+                mostrarError("errorCentroCosto", "Debe seleccionar un centro de costo.");
+                valido = false;
+            }
+
+            if (lineasFactura.length === 0) {
+                mostrarError("errorLineasFactura", "Debe agregar al menos una línea al detalle de la factura.");
+                valido = false;
+            }
+
+            return valido;
+            }
+            function limpiarDetalleFactura() {
+            lineasFactura = [];
+            renderizarTabla();
+
+            document.getElementById("servicioCatalogo").value = "";
+            document.getElementById("descripcionCompraDetalle").value = "";
+            document.getElementById("cantidadDetalle").value = "1";
+            document.getElementById("precioUnitarioDetalle").value = "";
+            document.getElementById("descuentoDetalle").value = "0";
+            document.getElementById("TipoImpuesto").value = "IVA 13%";
+
+            document.getElementById("errorLineasFactura").innerText = "";
+            }
+
+            function validarTextoDetalleCompra(texto) {
+             let regex = /^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ0-9])[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s\.,;:#\-\/\(\)°]*$/;
+               return regex.test(texto);
+             } 
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // ============================================================
+            // RECUPERAR LAS LÍNEAS CUANDO EL SERVIDOR DEVUELVE LA VISTA
+            // POR ALGUNA VALIDACIÓN
+            // ============================================================
+            const detalleGuardado =
+                document.getElementById("detalleFacturaJson")?.value;
+
+            if (detalleGuardado &&
+                detalleGuardado.trim() !== "") {
+
+                try {
+                    lineasFactura = JSON.parse(detalleGuardado);
+
+                    if (!Array.isArray(lineasFactura)) {
+                        lineasFactura = [];
+                    }
+                }
+                catch (error) {
+                    console.error(
+                        "No fue posible recuperar el detalle de la factura:",
+                        error
+                    );
+
+                    lineasFactura = [];
+                }
+            }
+        document.getElementById("descripcionCompraDetalle").addEventListener("input", function () {
+    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s\.,;:#\-\/\(\)°]/g, "");
+    document.getElementById("errorDescripcionCompraDetalle").innerText = "";
+});
+            document.getElementById("precioUnitarioDetalle").addEventListener("input", function () {
+                this.value = this.value
+                    .replace(",", ".")
+                    .replace(/[^0-9.]/g, "")
+                    .replace(/(\..*)\./g, "$1");
+
+                document.getElementById("errorPrecioUnitarioDetalle").innerText = "";
+            });
+
+            document.getElementById(
+                "SeleccionProyectoPeriodoVenta")
+                ?.addEventListener("change", function () {
+
+                    document.getElementById(
+                        "errorProyecto").innerText = "";
+                });
+
+            document.getElementById("PresupuestoMensualId")
+                ?.addEventListener("change", function () {
+
+                    document.getElementById(
+                        "errorPresupuestoMensual"
+                    ).innerText = "";
+                });
+            document.getElementById("CentroCostoId").addEventListener("change", function () {
+                document.getElementById("errorCentroCosto").innerText = "";
+            });
+
+            document.getElementById("ClienteBeneficiarioId").addEventListener("change", function () {
+                document.getElementById("errorCliente").innerText = "";
+            });
+
+            document.getElementById("CategoriaIngresoId").addEventListener("change", function () {
+                document.getElementById("errorCategoriaIngreso").innerText = "";
+            });
+
+            document.getElementById("TipoIngreso").addEventListener("change", function () {
+                document.getElementById("errorTipoIngreso").innerText = "";
+            });
+
+            document.getElementById("ProveedorId").addEventListener("change", function () {
+                document.getElementById("errorProveedor").innerText = "";
+            });
+
+            document.getElementById("CategoriaGastoId").addEventListener("change", function () {
+                document.getElementById("errorCategoriaGasto").innerText = "";
+            });
+            ["servicioCatalogo", "cantidadDetalle", "precioUnitarioDetalle", "descuentoDetalle"].forEach(id => {
+                document.getElementById(id).addEventListener("input", function () {
+                    document.getElementById("errorServicioCatalogo").innerText = "";
+                    document.getElementById("errorCantidadDetalle").innerText = "";
+                    document.getElementById("errorPrecioUnitarioDetalle").innerText = "";
+                    document.getElementById("errorDescuentoDetalle").innerText = "";
+                });
+
+                document.getElementById(id).addEventListener("change", function () {
+                    document.getElementById("errorServicioCatalogo").innerText = "";
+                    document.getElementById("errorCantidadDetalle").innerText = "";
+                    document.getElementById("errorPrecioUnitarioDetalle").innerText = "";
+                    document.getElementById("errorDescuentoDetalle").innerText = "";
+                });
+            });
+
+            document.getElementById("servicioCatalogo").addEventListener("change", function () {
+                let precio = this.options[this.selectedIndex].getAttribute("data-precio");
+
+                document.getElementById("precioUnitarioDetalle").value = precio
+                    ? parseFloat(precio).toFixed(2)
+                    : "";
+            });
+
+            document.querySelector("form").addEventListener("submit", function (e) {
+                document.getElementById("detalleFacturaJson").value = JSON.stringify(lineasFactura);
+
+                if (!validarFormularioFactura()) {
+                    e.preventDefault();
+                }
+            });
+
+            document.getElementById("btnAgregarLinea").addEventListener("click", function () {
+
+                @*nueva parte agregada*@
+                let tipoFactura = document.getElementById("TipoFactura").value;
+
+                let servicioSelect = document.getElementById("servicioCatalogo");
+                let servicioId = servicioSelect.value;
+                let servicioNombre = "";
+
+                let descripcionCompra = document.getElementById("descripcionCompraDetalle").value.trim();
+
+                if (tipoFactura === "Venta") {
+                    servicioNombre = servicioSelect.options[servicioSelect.selectedIndex].text;
+                }
+
+                if (tipoFactura === "Compra") {
+                    servicioId = null;
+                    servicioNombre = descripcionCompra;
+                }
+
+                let cantidad = parseFloat(document.getElementById("cantidadDetalle").value) || 0;
+                let precioUnitario = parseFloat(document.getElementById("precioUnitarioDetalle").value) || 0;
+                let descuento = parseFloat(document.getElementById("descuentoDetalle").value) || 0;
+                let tipoImpuesto = document.getElementById("TipoImpuesto").value;
+
+                document.getElementById("errorServicioCatalogo").innerText = "";
+                document.getElementById("errorCantidadDetalle").innerText = "";
+                document.getElementById("errorPrecioUnitarioDetalle").innerText = "";
+                document.getElementById("errorDescuentoDetalle").innerText = "";
+
+                document.getElementById("errorServicioCatalogo").innerText = "";
+                document.getElementById("errorDescripcionCompraDetalle").innerText = "";
+
+                let detalleValido = true;
+
+                 if (tipoFactura === "Venta" && !servicioId) {
+               document.getElementById("errorServicioCatalogo").innerText = "Debe seleccionar un servicio.";
+               detalleValido = false;
+                 }
+
+                     if (tipoFactura === "Compra") {
+            if (!descripcionCompra) {
+                document.getElementById("errorDescripcionCompraDetalle").innerText =
+                    "Debe ingresar el artículo o concepto comprado.";
+                detalleValido = false;
+            }
+            else if (descripcionCompra.length < 3) {
+                document.getElementById("errorDescripcionCompraDetalle").innerText =
+                    "El artículo o concepto debe tener al menos 3 caracteres.";
+                detalleValido = false;
+            }
+            else if (descripcionCompra.length > 150) {
+                document.getElementById("errorDescripcionCompraDetalle").innerText =
+                    "El artículo o concepto no puede superar los 150 caracteres.";
+                detalleValido = false;
+            }
+            else if (!validarTextoDetalleCompra(descripcionCompra)) {
+                document.getElementById("errorDescripcionCompraDetalle").innerText =
+                    "Use solo letras, números, espacios y signos comunes como . , ; : # - / ( ) °";
+                detalleValido = false;
+            }
+        }
+
+                if (cantidad <= 0) {
+                    document.getElementById("errorCantidadDetalle").innerText = "La cantidad debe ser mayor a cero.";
+                    detalleValido = false;
+                }
+
+                if (precioUnitario <= 0) {
+                    document.getElementById("errorPrecioUnitarioDetalle").innerText = "El precio debe ser mayor a cero.";
+                    detalleValido = false;
+                }
+                if (precioUnitario > 0 && precioUnitario < 10) {
+                    document.getElementById("errorPrecioUnitarioDetalle").innerText =
+                        "El precio debe ser de al menos ₡10.";
+                    detalleValido = false;
+                }
+                if (precioUnitario > 100000000) {
+                    document.getElementById("errorPrecioUnitarioDetalle").innerText =
+                        "El precio ingresado es demasiado alto.";
+                    detalleValido = false;
+                }
+
+                if (descuento < 0) {
+                    document.getElementById("errorDescuentoDetalle").innerText = "El descuento no puede ser negativo.";
+                    detalleValido = false;
+                }
+
+                if (!detalleValido) {
+                    return;
+                }
+               
+
+                let subtotalLinea = cantidad * precioUnitario;
+
+                if (descuento > subtotalLinea) {
+                    document.getElementById("errorDescuentoDetalle").innerText =
+                        "El descuento no puede ser mayor al subtotal.";
+                    return;
+                }
+
+                let baseImponible = subtotalLinea - descuento;
+                let impuestoLinea = baseImponible * obtenerPorcentajeImpuesto(tipoImpuesto);
+                let totalLinea = baseImponible + impuestoLinea;
+
+                lineasFactura.push({
+                    servicioId: servicioId ? parseInt(servicioId) : null,
+                    servicioNombre: servicioNombre,
+                    cantidad: cantidad,
+                    precioUnitario: precioUnitario,
+                    descuento: descuento,
+                    tipoImpuesto: tipoImpuesto,
+                    subtotalLinea: subtotalLinea,
+                    impuestoLinea: impuestoLinea,
+                    totalLinea: totalLinea
+                });
+
+                renderizarTabla();
+                document.getElementById("errorLineasFactura").innerText = "";
+
+               servicioSelect.value = "";
+document.getElementById("descripcionCompraDetalle").value = "";
+document.getElementById("cantidadDetalle").value = "1";
+document.getElementById("precioUnitarioDetalle").value = "";
+document.getElementById("descuentoDetalle").value = "0";
+document.getElementById("TipoImpuesto").value = "IVA 13%";
+            });
+
+            document.getElementById("TipoFactura").addEventListener("change", function () {
+            limpiarDetalleFactura();
+            controlarClienteProveedor();
+            });
+            document.getElementById("condicionPago").addEventListener("change", controlarCredito);
+            document.getElementById("diasCredito").addEventListener("change", controlarCredito);
+            document.getElementById("fechaEmision").addEventListener("change", controlarCredito);
+
+            controlarClienteProveedor();
+            controlarBloqueoInicial();
+            controlarCredito();
+
+            // Si venimos de una validación del servidor,
+            // vuelve a dibujar las líneas recuperadas.
+            renderizarTabla();
+        });
+   
+    </script>
+}

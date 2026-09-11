@@ -1,0 +1,44 @@
+﻿@model SistemaGestionFinanciera.Models.RolesPermiso
+
+@{
+    ViewData["Title"] = "Crear Roles Permisos";
+}
+
+<h1>Crear Roles Permisos</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DEL NUEVO PERMISO SEGUN ROL
+    </div>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="RolId" class="control-label"></label>
+                <select asp-for="RolId" class ="form-control" asp-items="ViewBag.RolId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="PermisoId" class="control-label"></label>
+                <select asp-for="PermisoId" class ="form-control" asp-items="ViewBag.PermisoId"></select>
+            </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success">
+                            Guardar Ingreso
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-secondary">
+                            Volver al listado
+                        </a>
+                    </div>
+        </form>
+    </div>
+</div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

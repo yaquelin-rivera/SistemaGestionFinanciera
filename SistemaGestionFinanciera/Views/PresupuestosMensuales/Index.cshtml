@@ -1,0 +1,1803 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.PresupuestosMensuale>
+
+@{
+    ViewData["Title"] = "Presupuesto Mensual";
+
+    var presupuestos = Model?.ToList()
+        ?? new List<SistemaGestionFinanciera.Models.PresupuestosMensuale>();
+
+    var totalPresupuestos = presupuestos.Count;
+
+    var totalBorradores = presupuestos.Count(x =>
+        x.EstadoAprobacion == "Borrador");
+
+    var totalAprobados = presupuestos.Count(x =>
+        x.EstadoAprobacion == "Aprobado");
+
+    var totalRechazados = presupuestos.Count(x =>
+        x.EstadoAprobacion == "Rechazado");
+
+    var presupuestosEnAlerta = presupuestos
+        .Where(x =>
+            (x.SaldoDisponible ?? 0) < 0 ||
+            (x.TotalGastoReal ?? 0) >
+                (x.MontoGastoPlanificado ?? 0) ||
+            (x.TotalIngresoReal ?? 0) <
+                (x.MontoIngresadoPlanificado ?? 0))
+        .ToList();
+
+    var totalAlertas = presupuestosEnAlerta.Count;
+
+    string rol =
+      Context.Session.GetString("Rol") ?? "";
+
+    bool esAdministrador =
+        rol == "Administrador";
+
+        bool puedePreparar =
+    rol == "Administrador" ||
+    rol == "Contador" ||
+    rol == "Auxiliar Contable";
+
+    bool puedeRegistrarDirectamente =
+     rol == "Administrador" ||
+     rol == "Contador";
+
+    bool puedeAprobarRechazar =
+        rol == "Administrador";
+
+    bool soloConsulta =
+        rol == "Tesorero";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 fw-bold">Gestionar Presupuesto Mensual</h2>
+            <small class="text-muted">
+                Control de montos planificados, ejecución real y saldo disponible por proyecto.
+            </small>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            @if (ViewBag.DesdeProyectos == true)
+            {
+                <a asp-controller="Proyectos"
+                   asp-action="Index"
+                   class="btn btn-secondary btn-sistema">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Volver a Proyectos
+                </a>
+            }
+
+            @if (puedeRegistrarDirectamente)
+            {
+                <a asp-action="Create"
+                   class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-1"></i>
+                    Registrar
+                </a>
+            }
+
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Filtros de búsqueda
+        </div>
+        @*filtros*@
+        <div class="card-body">
+            <form asp-action="Index"
+                  method="get"
+                  id="formFiltrosPresupuesto">
+                <div class="row g-3">
+
+                    <div class="col-lg-3 col-md-3">
+                        <label class="form-label fw-bold"><i class="fas fa-project-diagram text-muted me-1"></i>Proyecto</label>
+                        <select name="proyectoId" class="form-select" asp-items="ViewBag.Proyectos">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar-alt text-muted me-1"></i>Año</label>
+
+                        <select name="anio" class="form-select">
+
+                            <option value="">Todos</option>
+
+                            @foreach (var anio in ViewBag.Anios)
+                            {
+                                if (ViewBag.Anio == anio)
+                                {
+                                    <option value="@anio" selected>@anio</option>
+                                }
+                                else
+                                {
+                                    <option value="@anio">@anio</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-lg-2 col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar text-muted me-1"></i>Mes</label>
+                        <select name="mes" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="1" selected="@(ViewBag.Mes == 1)">Enero</option>
+                            <option value="2" selected="@(ViewBag.Mes == 2)">Febrero</option>
+                            <option value="3" selected="@(ViewBag.Mes == 3)">Marzo</option>
+                            <option value="4" selected="@(ViewBag.Mes == 4)">Abril</option>
+                            <option value="5" selected="@(ViewBag.Mes == 5)">Mayo</option>
+                            <option value="6" selected="@(ViewBag.Mes == 6)">Junio</option>
+                            <option value="7" selected="@(ViewBag.Mes == 7)">Julio</option>
+                            <option value="8" selected="@(ViewBag.Mes == 8)">Agosto</option>
+                            <option value="9" selected="@(ViewBag.Mes == 9)">Septiembre</option>
+                            <option value="10" selected="@(ViewBag.Mes == 10)">Octubre</option>
+                            <option value="11" selected="@(ViewBag.Mes == 11)">Noviembre</option>
+                            <option value="12" selected="@(ViewBag.Mes == 12)">Diciembre</option>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-2 col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-chart-pie text-muted me-1"></i>Estado de ejecución</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Sin movimientos" selected="@(ViewBag.Estado == "Sin movimientos")">Sin movimientos</option>
+                            <option value="Gasto excedido" selected="@(ViewBag.Estado == "Gasto excedido")">Gasto excedido</option>
+                            <option value="Ingresos bajos" selected="@(ViewBag.Estado == "Ingresos bajos")">Ingresos bajos</option>
+                            <option value="En ejecución" selected="@(ViewBag.Estado == "En ejecución")">En ejecución</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-check-circle text-muted me-1"></i>Estado de aprobación
+                        </label>
+
+                        <select name="estadoAprobacion" class="form-select">
+                            <option value="">Todos</option>
+
+                            <option value="Borrador"
+                                    selected="@(ViewBag.EstadoAprobacion == "Borrador")">
+                                Borrador
+                            </option>
+
+                            <option value="Aprobado"
+                                    selected="@(ViewBag.EstadoAprobacion == "Aprobado")">
+                                Aprobado
+                            </option>
+
+                            <option value="Rechazado"
+                                    selected="@(ViewBag.EstadoAprobacion == "Rechazado")">
+                                Rechazado
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex align-items-end">
+                    <div class="d-flex gap-2">
+                        <button type="submit"
+                                class="btn btn-primary btn-sistema px-5 ">
+                            <i class="fas fa-search me-1"></i>
+                            Buscar
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-secondary btn-sistema px-5">
+                            <i class="fas fa-eraser me-1"></i>
+                            Limpiar
+                        </a>
+                        </div>
+                        <div class="ms-auto d-flex gap-2">
+
+                            <a asp-action="Reporte"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-estado="@ViewBag.Estado"
+                               asp-route-estadoAprobacion="@ViewBag.EstadoAprobacion"
+                            
+                               class="btn btn-info text-white px-5">
+                                <i class="fas fa-eye me-2"></i>
+                                Vista previa PDF
+                            </a>
+
+                            <a asp-action="ExportarExcel"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-estado="@ViewBag.Estado"
+                               asp-route-estadoAprobacion="@ViewBag.EstadoAprobacion"
+                               class="btn btn-success px-5">
+                                <i class="fas fa-file-excel me-2"></i>
+                                Exportar Excel
+                            </a>
+
+                          </div>
+                        </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+                    @* ============================================================
+                    CARDS DINÁMICAS SEGÚN LOS FILTROS APLICADOS
+                    ============================================================ *@
+                    <div class="row g-3   mb-4">
+
+                        <div class="col-xl col-md-4 col-sm-6">
+                            <div class="card shadow-sm card card-resumen border-0 h-100 card-indicador card-total">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icono-indicador me-3">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold">
+                                            Total presupuestos
+                                        </div>
+
+                                        <div class="fs-3 fw-bold">
+                                            @totalPresupuestos
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl col-md-4 col-sm-6">
+                            <div class="card shadow-sm card-resumen border-0 h-100 card-indicador card-borrador">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icono-indicador me-3">
+                                        <i class="fas fa-file-pen"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold">
+                                            Borradores
+                                        </div>
+
+                                        <div class="fs-3 fw-bold">
+                                            @totalBorradores
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl col-md-4 col-sm-6">
+                            <div class="card shadow-sm card-resumen border-0 h-100 card-indicador card-aprobado">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icono-indicador me-3">
+                                        <i class="fas fa-circle-check"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold">
+                                            Aprobados
+                                        </div>
+
+                                        <div class="fs-3 fw-bold">
+                                            @totalAprobados
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl col-md-4 col-sm-6">
+                            <div class="card shadow-sm card-resumen border-0 h-100 card-indicador card-rechazado">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icono-indicador me-3">
+                                        <i class="fas fa-circle-xmark"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold">
+                                            Rechazados
+                                        </div>
+
+                                        <div class="fs-3 fw-bold">
+                                            @totalRechazados
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl col-md-4 col-sm-6">
+                            <div class="card shadow-sm card-resumen border-0 h-100 card-indicador card-alerta">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icono-indicador me-3">
+                                        <i class="fas fa-triangle-exclamation"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold">
+                            Presupuestos en alerta
+                                        </div>
+
+                                        <div class="fs-3 fw-bold">
+                                            @totalAlertas
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    @* ============================================================
+    PANEL DESPLEGABLE GENERAL DE ALERTAS
+    ============================================================ *@
+    @if (presupuestosEnAlerta.Any())
+    {
+        var alertasOrdenadas = presupuestosEnAlerta
+        .OrderBy(x =>
+        (x.SaldoDisponible ?? 0) < 0 ? 1 :
+        (x.TotalGastoReal ?? 0) >
+        (x.MontoGastoPlanificado ?? 0) ? 2 : 3)
+        .ThenBy(x => x.SaldoDisponible ?? 0)
+        .ToList();
+
+        <div class="accordion mb-4" id="panelGeneralAlertas">
+            <div class="accordion-item border-0 shadow-sm">
+
+                <h2 class="accordion-header" id="encabezadoAlertasGenerales">
+                    <button class="accordion-button collapsed encabezado-alertas"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#contenidoAlertasGenerales"
+                            aria-expanded="false"
+                            aria-controls="contenidoAlertasGenerales">
+
+                        <span class="d-flex align-items-center w-100">
+                            <i class="fas fa-triangle-exclamation me-2"></i>
+
+                            <span class="fw-bold">
+                                Presupuestos que requieren atención
+                            </span>
+
+                            <span class="badge bg-light text-danger ms-2">
+                                @totalAlertas
+                            </span>
+
+                            <small class="ms-auto me-3 text-white-50">
+                                Presione para mostrar u ocultar
+                            </small>
+                        </span>
+                    </button>
+                </h2>
+
+                <div id="contenidoAlertasGenerales"
+                     class="accordion-collapse collapse"
+                     aria-labelledby="encabezadoAlertasGenerales"
+                     data-bs-parent="#panelGeneralAlertas">
+
+                    <div class="accordion-body p-3">
+
+                        @foreach (var alerta in alertasOrdenadas)
+                        {
+                            var ingresoPlanificadoAlerta =
+                            alerta.MontoIngresadoPlanificado ?? 0;
+
+                            var ingresoRealAlerta =
+                            alerta.TotalIngresoReal ?? 0;
+
+                            var gastoPlanificadoAlerta =
+                            alerta.MontoGastoPlanificado ?? 0;
+
+                            var gastoRealAlerta =
+                            alerta.TotalGastoReal ?? 0;
+
+                            var saldoAlerta =
+                            alerta.SaldoDisponible ?? 0;
+
+                            string tipoAlerta;
+                            string claseAlerta;
+                            string claseBorde;
+                            string iconoAlerta;
+                            decimal montoAlerta;
+
+                            if (saldoAlerta < 0)
+                            {
+                                tipoAlerta = "Déficit presupuestario";
+                                claseAlerta = "text-danger";
+                                claseBorde = "alerta-critica";
+                                iconoAlerta = "fas fa-circle-xmark";
+                                montoAlerta = Math.Abs(saldoAlerta);
+                            }
+                            else if (gastoRealAlerta > gastoPlanificadoAlerta)
+                            {
+                                tipoAlerta = "Gasto superior a lo planificado";
+                                claseAlerta = "text-danger";
+                                claseBorde = "alerta-gasto";
+                                iconoAlerta = "fas fa-arrow-trend-up";
+                                montoAlerta =
+                                gastoRealAlerta - gastoPlanificadoAlerta;
+                            }
+                            else
+                            {
+                                tipoAlerta = "Ingreso inferior a lo planificado";
+                                claseAlerta = "texto-alerta-naranja";
+                                claseBorde = "alerta-ingreso";
+                                iconoAlerta = "fas fa-triangle-exclamation";
+                                montoAlerta =
+                                ingresoPlanificadoAlerta - ingresoRealAlerta;
+                            }
+
+                            string nombreMesAlerta = alerta.Mes switch
+                            {
+                                1 => "Enero",
+                                2 => "Febrero",
+                                3 => "Marzo",
+                                4 => "Abril",
+                                5 => "Mayo",
+                                6 => "Junio",
+                                7 => "Julio",
+                                8 => "Agosto",
+                                9 => "Septiembre",
+                                10 => "Octubre",
+                                11 => "Noviembre",
+                                12 => "Diciembre",
+                                _ => "No definido"
+                            };
+
+                            <div class="alerta-presupuesto @claseBorde mb-3">
+                                <div class="row g-3 align-items-center">
+
+                                    <div class="col-xl-3 col-md-6">
+                                        <span class="@claseAlerta fw-bold d-block mb-1">
+                                            <i class="@iconoAlerta me-1"></i>
+                                            @tipoAlerta
+                                        </span>
+
+                                        <strong>
+                                            @(alerta.Proyecto?.Nombre ?? "Sin proyecto")
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-xl-2 col-md-3">
+                                        <span class="dato-etiqueta">
+                                            Periodo
+                                        </span>
+
+                                        <strong class="d-block">
+                                            @nombreMesAlerta @alerta.Anio
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-xl-2 col-md-3">
+                                        <span class="dato-etiqueta">
+                                            Estado de ejecución
+                                        </span>
+
+                                        <strong class="d-block">
+                                            @alerta.Estado
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-xl-2 col-md-4">
+                                        <span class="dato-etiqueta">
+                                            Estado de aprobación
+                                        </span>
+
+                                        @if (alerta.EstadoAprobacion == "Aprobado")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-circle-check me-1"></i>
+                                                Aprobado
+                                            </span>
+                                        }
+                                        else if (alerta.EstadoAprobacion == "Rechazado")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-circle-xmark me-1"></i>
+                                                Rechazado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-file-pen me-1"></i>
+                                                Borrador
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="col-xl-2 col-md-4">
+                                        <span class="dato-etiqueta">
+                                            Monto de alerta
+                                        </span>
+
+                                        <strong class="@claseAlerta d-block">
+                                            ₡@montoAlerta.ToString("N2")
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-xl-1 col-md-4 text-md-end">
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-sm btn-ver-tabla"
+                                                data-id="@alerta.IdPresupuestoMensual"
+                                                title="Ubicar el presupuesto en la tabla">
+                                            <i class="fas fa-table-list me-1"></i>
+                                            Ver en tabla
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+              
+       
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            <i class="fas fa-list-alt me-1"></i>Lista de presupuestos mensuales registrados
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaPresupuestos"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+                <thead>
+                    <tr>
+                            <th>
+                                <i class="fas fa-project-diagram me-1"></i>
+                                Proyecto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Año
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar me-1"></i>
+                                Mes
+                            </th>
+
+                            <th>
+                                <i class="fas fa-arrow-circle-up text-success me-1"></i>
+                                Ingreso planificado
+                            </th>
+
+                            <th>
+                                <i class="fas fa-arrow-circle-down text-danger me-1"></i>
+                                Gasto planificado
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hand-holding-usd text-success me-1"></i>
+                                Ingreso real
+                            </th>
+
+                            <th>
+                                <i class="fas fa-money-bill-wave text-danger me-1"></i>
+                                Gasto real
+                            </th>
+
+                            <th>
+                                <i class="fas fa-chart-line text-danger me-1"></i>
+                                Diferencia de ingreso
+                            </th>
+
+                            <th>
+                                <i class="fas fa-wallet text-success me-1"></i>
+                                Saldo de gasto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-balance-scale me-1"></i>
+                                Balance real del período
+                            </th>
+
+                            <th>
+                                <i class="fas fa-chart-pie me-1"></i>
+                                Estado de ejecución
+                            </th>
+
+                            <th>
+                                <i class="fas fa-check-circle me-1"></i>
+                                Estado de aprobación
+                            </th>
+
+                            <th>
+                                <i class="fas fa-comment-dots me-1"></i>
+                                Observación
+                            </th>
+
+                            <th>
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                Alertas
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar-plus me-1"></i>
+                                Fecha creación
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr id="presupuesto-@item.IdPresupuestoMensual"
+                                data-presupuesto-id="@item.IdPresupuestoMensual">
+                                <td>
+                                    @(item.Proyecto != null ? item.Proyecto.Nombre : "Sin proyecto")
+                                </td>
+
+                                <td>@item.Anio</td>
+
+                                    <td data-order="@item.Mes">
+                                    @{
+                                        var nombreMes = item.Mes switch
+                                        {
+                                            1 => "Enero",
+                                            2 => "Febrero",
+                                            3 => "Marzo",
+                                            4 => "Abril",
+                                            5 => "Mayo",
+                                            6 => "Junio",
+                                            7 => "Julio",
+                                            8 => "Agosto",
+                                            9 => "Septiembre",
+                                            10 => "Octubre",
+                                            11 => "Noviembre",
+                                            12 => "Diciembre",
+                                            _ => "No definido"
+                                        };
+                                    }
+                                    @nombreMes
+                                </td>
+
+                                <td>₡@((item.MontoIngresadoPlanificado ?? 0).ToString("N2"))</td>
+                                <td>₡@((item.MontoGastoPlanificado ?? 0).ToString("N2"))</td>
+                                <td>₡@((item.TotalIngresoReal ?? 0).ToString("N2"))</td>
+                                <td>₡@((item.TotalGastoReal ?? 0).ToString("N2"))</td>
+
+                                <td>
+                                    @{
+                                        var diferenciaIngreso = item.DiferenciaIngreso ?? 0;
+                                    }
+
+                                    @if (diferenciaIngreso < 0)
+                                    {
+                                        <span class="text-danger fw-bold">
+                                            ₡@diferenciaIngreso.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success fw-bold">
+                                            ₡@diferenciaIngreso.ToString("N2")
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @{
+                                        var diferenciaGasto = item.DiferenciaGasto ?? 0;
+                                    }
+
+                                    @if (diferenciaGasto < 0)
+                                    {
+                                        <span class="text-danger fw-bold">
+                                            ₡@diferenciaGasto.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success fw-bold">
+                                            ₡@diferenciaGasto.ToString("N2")
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @{
+                                        var saldo = item.SaldoDisponible ?? 0;
+                                    }
+
+                                    @if (saldo < 0)
+                                    {
+                                        <span class="text-danger fw-bold">
+                                            ₡@saldo.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-primary fw-bold">
+                                            ₡@saldo.ToString("N2")
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.Estado == "Sin movimientos")
+                                    {
+                                        <span class="badge bg-secondary">Sin movimientos</span>
+                                    }
+                                    else if (item.Estado == "Gasto excedido")
+                                    {
+                                        <span class="badge bg-danger">Gasto excedido</span>
+                                    }
+                                    else if (item.Estado == "Ingresos bajos")
+                                    {
+                                        <span class="badge bg-warning text-dark">Ingresos bajos</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">En ejecución</span>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    @if (item.EstadoAprobacion == "Borrador")
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-file-pen me-1"></i>
+                                            Borrador - 
+                                        </span>
+                                    }
+                                    else if (item.EstadoAprobacion == "Aprobado")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-circle-check me-1"></i>
+                                            Aprobado
+                                        </span>
+                                    }
+                                    else if (item.EstadoAprobacion == "Rechazado")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-circle-xmark me-1"></i>
+                                            Rechazado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-dark">
+                                            Sin definir
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.EstadoAprobacion == "Rechazado" &&
+                                   !string.IsNullOrWhiteSpace(item.ObservacionRevision))
+                                    {
+                                        <span class="text-danger small"
+                                              title="@item.ObservacionRevision">
+                                            <i class="fas fa-comment-dots me-1"></i>
+
+                                            @(item.ObservacionRevision.Length > 45
+                                                ? item.ObservacionRevision.Substring(0, 45) + "..."
+                                                : item.ObservacionRevision)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-center align-middle">
+
+                                    @{
+                                        var ingresoPlanificado = item.MontoIngresadoPlanificado ?? 0;
+                                        var ingresoReal = item.TotalIngresoReal ?? 0;
+                                        var gastoPlanificado = item.MontoGastoPlanificado ?? 0;
+                                        var gastoReal = item.TotalGastoReal ?? 0;
+                                        var saldoDisponible = item.SaldoDisponible ?? 0;
+                                    }
+
+                                    @if (saldoDisponible < 0)
+                                    {
+                                        <div class="text-danger small fw-semibold text-center">
+                                            <i class="fas fa-times-circle d-block fs-5 mb-1"></i>
+                                            Déficit presupuestario
+                                        </div>
+                                    }
+                                    else if (gastoReal > gastoPlanificado)
+                                    {
+                                        <div class="text-danger small fw-semibold text-center">
+                                            <i class="fas fa-arrow-trend-up d-block fs-5 mb-1"></i>
+                                            Gasto supera lo planificado
+                                        </div>
+                                    }
+                                    else if (ingresoReal < ingresoPlanificado)
+                                    {
+                                        <div class="small fw-semibold text-center" style="color:#F97316;">
+                                            <i class="fas fa-exclamation-triangle d-block fs-5 mb-1"></i>
+                                            Ingreso menor al planificado
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-success small fw-semibold text-center">
+                                            <i class="fas fa-circle-check d-block fs-5 mb-1"></i>
+                                            Presupuesto controlado
+                                        </div>
+                                    }
+
+                                </td>
+                                <td>
+                                    @(item.FechaCreacion.HasValue
+                                        ? item.FechaCreacion.Value.ToString("dd/MM/yyyy")
+                                        : "Sin fecha")
+                                </td>
+
+                                <td class="col-acciones">
+                                    <div class="acciones-botones">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdPresupuestoMensual"
+                                           class="btn btn-primary btn-sm btn-accion"
+                                           title="Consultar presupuesto">
+                                            <i class="fas fa-eye"></i>
+                                            Detalles
+                                        </a>
+
+                                            @if (puedePreparar &&
+                                           item.EstadoAprobacion != "Aprobado")
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@item.IdPresupuestoMensual"
+                                                   class="btn btn-warning btn-sm btn-accion">
+                                                    <i class="fas fa-pen-to-square"></i>
+                                                    Modificar
+                                                </a>
+                                            }
+
+                                        <a asp-controller="PresupuestosDetalles"
+                                           asp-action="Movimientos"
+                                           asp-route-id="@item.IdPresupuestoMensual"
+                                           asp-route-origen="PresupuestoMensual"
+                                           class="btn btn-info btn-sm btn-accion"
+                                           title="Consultar movimientos presupuestarios">
+                                            <i class="fas fa-list-check"></i>
+                                            Movimientos
+                                        </a>
+
+                                        @if (puedeAprobarRechazar &&
+                                       item.EstadoAprobacion == "Borrador")
+                                        {
+                                            <form asp-action="Aprobar"
+                                                  asp-route-id="@item.IdPresupuestoMensual"
+                                                  method="post"
+                                                  class="d-inline formulario-aprobar">
+
+                                                @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm btn-accion"
+                                                            data-id="@item.IdPresupuestoMensual"
+                                                            data-proyecto="@(item.Proyecto?.Nombre ?? "Sin proyecto")"
+                                                            data-periodo="@nombreMes @item.Anio"
+                                                            title="Aprobar presupuesto">
+                                                        <i class="fas fa-circle-check"></i>
+                                                        Aprobar
+                                                    </button>
+                                            </form>
+
+                                            <button type="button"
+                                                    class="btn btn-danger btn-sm btn-accion btn-rechazar"
+                                                    data-id="@item.IdPresupuestoMensual"
+                                                    data-proyecto="@(item.Proyecto?.Nombre ?? "Sin proyecto")"
+                                                    data-periodo="@nombreMes @item.Anio"
+                                                    title="Rechazar presupuesto">
+                                                <i class="fas fa-circle-xmark"></i>
+                                                Rechazar
+                                            </button>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var item in Model)
+                                {
+                                <tr id="presupuesto-@item.IdPresupuestoMensual"
+                                    data-presupuesto-id="@item.IdPresupuestoMensual">
+
+                                        @* Todas las 16 celdas del registro *@
+
+                                </tr>
+                                }
+                            }
+                    </tbody>
+                </tbody>
+            </table>
+          </div>
+            <form asp-action="Rechazar"
+                  method="post"
+                  id="formularioRechazoOculto"
+                  class="d-none">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       id="rechazoPresupuestoId" />
+
+                <input type="hidden"
+                       name="observacionRevision"
+                       id="rechazoObservacion" />
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card-indicador {
+            position: relative;
+            overflow: hidden;
+            border-left: 6px solid transparent !important;
+        }
+
+        .card-total {
+            border-left-color: #0F7C90 !important;
+        }
+
+        .card-borrador {
+            border-left-color: #6C757D !important;
+        }
+
+        .card-aprobado {
+            border-left-color: #198754 !important;
+        }
+
+        .card-rechazado {
+            border-left-color: #DC3545 !important;
+        }
+
+        .card-alerta {
+            border-left-color: #F97316 !important;
+        }
+
+        .icono-indicador {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(15, 124, 144, .10);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: #0F5C64;
+            flex-shrink: 0;
+        }
+
+        .fila-presupuesto-resaltada {
+            animation: resaltarPresupuesto 2.5s ease;
+        }
+
+        @@keyframes resaltarPresupuesto {
+            0%, 100% {
+                background-color: transparent;
+            }
+
+            20%, 80% {
+                background-color: #FFF3CD;
+            }
+        }
+
+        .encabezado-alertas {
+            background-color: #0F5C64 !important;
+            color: #FFFFFF !important;
+            box-shadow: none !important;
+        }
+
+            .encabezado-alertas:not(.collapsed) {
+                background-color: #0F5C64 !important;
+                color: #FFFFFF !important;
+            }
+
+            .encabezado-alertas::after {
+                filter: brightness(0) invert(1);
+            }
+
+        .alerta-presupuesto {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-left: 5px solid transparent;
+            border-radius: 7px;
+            padding: 14px 16px;
+            transition: box-shadow .18s ease, transform .18s ease;
+        }
+
+            .alerta-presupuesto:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+                transform: translateY(-1px);
+            }
+
+        .alerta-critica {
+            border-left-color: #DC3545;
+        }
+
+        .alerta-gasto {
+            border-left-color: #C62828;
+        }
+
+        .alerta-ingreso {
+            border-left-color: #F97316;
+        }
+
+        .texto-alerta-naranja {
+            color: #F97316;
+        }
+
+        .dato-etiqueta {
+            display: block;
+            color: #6C757D;
+            font-size: .78rem;
+            margin-bottom: 3px;
+        }
+
+        #tablaPresupuestos_wrapper {
+            width: 100%;
+        }
+
+      
+
+        .fila-presupuesto-resaltada > td {
+            background-color: #FFF3CD !important;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // ============================================================
+            // FILTROS AUTOMÁTICOS
+            // ============================================================
+            const formularioFiltros =
+                document.getElementById("formFiltrosPresupuesto");
+
+            if (formularioFiltros) {
+                formularioFiltros
+                    .querySelectorAll("select")
+                    .forEach(function (select) {
+
+                        select.addEventListener("change", function () {
+                            formularioFiltros.requestSubmit();
+                        });
+                    });
+            }
+
+            // ============================================================
+            // DATATABLES
+            // ============================================================
+            let tablaPresupuestos = null;
+
+            if ($.fn.DataTable &&
+                document.getElementById("tablaPresupuestos")) {
+
+                tablaPresupuestos = $("#tablaPresupuestos").DataTable({
+                    pageLength: 10,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+
+                    ordering: true,
+                    order: [
+                        [1, "desc"],
+                        [2, "desc"],
+                        [0, "asc"]
+                    ],
+
+                    searching: true,
+                    paging: true,
+                    info: true,
+                    autoWidth: false,
+                    scrollX:false,
+
+                    columnDefs: [
+                        {
+                            targets: -1,
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+                        lengthMenu: "Mostrar _MENU_ registros",
+                        search: "Buscar en la tabla:",
+                        zeroRecords: "No se encontraron presupuestos.",
+                        emptyTable: "No hay presupuestos registrados.",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        infoEmpty: "Mostrando 0 registros",
+                        infoFiltered: "(filtrado de _MAX_ registros)",
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        }
+                    }
+                });
+            }
+
+            // ============================================================
+            // VER PRESUPUESTO EN LA TABLA
+            // ============================================================
+            document.querySelectorAll(".btn-ver-tabla")
+                .forEach(function (boton) {
+
+                    boton.addEventListener("click", function () {
+                        const idPresupuesto = boton.dataset.id;
+                        const fila = document.getElementById(
+                            "presupuesto-" + idPresupuesto
+                        );
+
+                        if (!fila) {
+                            mostrarAdvertencia(
+                                "No se encontró el presupuesto dentro de los resultados filtrados."
+                            );
+                            return;
+                        }
+
+                        const resaltarFila = function () {
+                            fila.classList.remove(
+                                "fila-presupuesto-resaltada"
+                            );
+
+                            void fila.offsetWidth;
+
+                            fila.classList.add(
+                                "fila-presupuesto-resaltada"
+                            );
+
+                            fila.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center"
+                            });
+
+                            window.setTimeout(function () {
+                                fila.classList.remove(
+                                    "fila-presupuesto-resaltada"
+                                );
+                            }, 3000);
+                        };
+
+                        if (!tablaPresupuestos) {
+                            resaltarFila();
+                            return;
+                        }
+
+                        const filaDataTable =
+                            tablaPresupuestos.row(fila);
+
+                        if (!filaDataTable.any()) {
+                            mostrarAdvertencia(
+                                "No fue posible ubicar el presupuesto en la tabla."
+                            );
+                            return;
+                        }
+
+                        // Índices de las filas según orden y búsqueda actuales.
+                        const indicesVisibles = tablaPresupuestos
+                            .rows({
+                                order: "applied",
+                                search: "applied"
+                            })
+                            .indexes()
+                            .toArray();
+
+                        const indiceInterno = filaDataTable.index();
+                        const posicionVisible =
+                            indicesVisibles.indexOf(indiceInterno);
+
+                        if (posicionVisible === -1) {
+                            mostrarAdvertencia(
+                                "El presupuesto no está disponible con la búsqueda actual de la tabla."
+                            );
+                            return;
+                        }
+
+                        const cantidadPorPagina =
+                            tablaPresupuestos.page.len();
+
+                        const paginaDestino = Math.floor(
+                            posicionVisible / cantidadPorPagina
+                        );
+
+                        tablaPresupuestos
+                            .page(paginaDestino)
+                            .draw("page");
+
+                        window.setTimeout(function () {
+                            resaltarFila();
+                        }, 150);
+                    });
+                });
+            // ============================================================
+            // CONFIRMACIÓN DE APROBACIÓN CON RESUMEN PRESUPUESTARIO
+            // ============================================================
+            document.querySelectorAll(".formulario-aprobar")
+                .forEach(function (formulario) {
+
+                    formulario.addEventListener(
+                        "submit",
+                        async function (evento) {
+
+                            if (formulario.dataset.enviado === "true") {
+                                return;
+                            }
+
+                            evento.preventDefault();
+
+                            const boton =
+                                formulario.querySelector(
+                                    "button[type='submit']"
+                                );
+
+                            const id =
+                                boton.dataset.id;
+
+                            if (!id) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "No fue posible aprobar",
+                                    text: "No se pudo identificar el presupuesto seleccionado."
+                                });
+
+                                return;
+                            }
+
+                            boton.disabled = true;
+
+                            try {
+                                const respuesta = await fetch(
+                                    "@Url.Action(
+                "ObtenerResumenAprobacion",
+                "PresupuestosMensuales")" +
+                                "?id=" +
+                                    encodeURIComponent(id),
+                                    {
+                                        method: "GET",
+                                        headers: {
+                                            "X-Requested-With":
+                                                "XMLHttpRequest"
+                                        }
+                                    }
+                                );
+
+                                const data =
+                                    await respuesta.json();
+
+                                if (!respuesta.ok) {
+                                    throw new Error(
+                                        data.mensaje ||
+                                        "No fue posible obtener el resumen del presupuesto."
+                                    );
+                                }
+
+                                const moneda =
+                                    new Intl.NumberFormat(
+                                        "es-CR",
+                                        {
+                                            style: "currency",
+                                            currency: "CRC",
+                                            minimumFractionDigits: 2
+                                        }
+                                    );
+
+                                const totalPeriodos =
+                                    data.totalPeriodos !== null
+                                        ? data.totalPeriodos
+                                        : "No calculable";
+
+                                const periodosPresupuestados =
+                                    data.periodosPresupuestados !== null
+                                        ? data.periodosPresupuestados
+                                        : "No calculable";
+
+                                const periodosPendientes =
+                                    data.periodosPendientes !== null
+                                        ? data.periodosPendientes
+                                        : "No calculable";
+
+                                const distribucion =
+                                    data.distribucionOrientativa !== null
+                                        ? moneda.format(
+                                            data.distribucionOrientativa
+                                        ) +
+                                        " por período pendiente"
+                                        : "No calculable";
+
+                                const claseDisponible =
+                                    data.disponibleDespues < 0
+                                        ? "text-danger"
+                                        : "text-success";
+
+                                const avisoCero =
+                                    data.presupuestoEnCero
+                                        ? `
+                                        <div class="alert alert-warning text-start mt-3 mb-0">
+                                            <i class="fas fa-triangle-exclamation me-1"></i>
+                                            Este presupuesto será aprobado con
+                                            ingreso y gasto planificados en cero.
+                                        </div>
+                                      `
+                                        : "";
+
+                                const avisoUltimosPeriodos =
+                                    data.periodosPendientes === 0
+                                        ? `
+                                        <div class="alert alert-info text-start mt-3 mb-0">
+                                            <i class="fas fa-circle-info me-1"></i>
+                                            Con este registro, todos los períodos
+                                            de vigencia del proyecto ya poseen
+                                            presupuesto mensual.
+                                        </div>
+                                      `
+                                        : "";
+
+                                const resultado =
+                                    await Swal.fire({
+                                        icon: "question",
+
+                                        title:
+                                            "¿Aprobar presupuesto mensual?",
+
+                                        html: `
+                                        <div class="text-start">
+
+                                            <div class="mb-3">
+                                                <div>
+                                                    <strong>Proyecto:</strong>
+                                                    ${data.proyecto}
+                                                </div>
+
+                                                <div>
+                                                    <strong>Período:</strong>
+                                                    ${data.periodo}
+                                                </div>
+                                            </div>
+
+                                            <div class="border rounded p-3">
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Ingreso planificado:</span>
+                                                    <strong>
+                                                        ${moneda.format(
+                                            data.ingresoPlanificado
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Gasto planificado:</span>
+                                                    <strong>
+                                                        ${moneda.format(
+                                            data.gastoPlanificado
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <hr>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Presupuesto global:</span>
+                                                    <strong>
+                                                        ${moneda.format(
+                                            data.presupuestoGlobal
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Gasto comprometido actualmente:</span>
+                                                    <strong>
+                                                        ${moneda.format(
+                                            data.comprometidoAntes
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Gasto comprometido después de aprobar:</span>
+                                                    <strong>
+                                                        ${moneda.format(
+                                            data.comprometidoDespues
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Disponible después para este proyecto:</span>
+                                                    <strong class="${claseDisponible}">
+                                                        ${moneda.format(
+                                            data.disponibleDespues
+                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <hr>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Períodos totales:</span>
+                                                    <strong>
+                                                        ${totalPeriodos}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Períodos con presupuesto:</span>
+                                                    <strong>
+                                                        ${periodosPresupuestados}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Períodos todavía pendientes:</span>
+                                                    <strong>
+                                                        ${periodosPendientes}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between gap-3">
+                                                    <span>Distribución sugerida:</span>
+                                                    <strong>
+                                                        ${distribucion}
+                                                    </strong>
+                                                </div>
+
+                                            </div>
+
+                                            ${avisoCero}
+                                            ${avisoUltimosPeriodos}
+
+                                            <div class="alert alert-secondary text-start mt-3 mb-0">
+                                                Una vez aprobado, el presupuesto
+                                                ya no podrá modificarse.
+                                            </div>
+
+                                        </div>
+                                    `,
+
+                                        showCancelButton: true,
+
+                                        confirmButtonText:
+                                            '<i class="fas fa-circle-check me-1"></i> Sí, aprobar',
+
+                                        cancelButtonText:
+                                            '<i class="fas fa-xmark me-1"></i> Cancelar',
+
+                                        confirmButtonColor:
+                                            "#198754",
+
+                                        cancelButtonColor:
+                                            "#6C757D",
+
+                                        reverseButtons: true,
+                                        focusCancel: true,
+                                        width: 650
+                                    });
+
+                                if (resultado.isConfirmed) {
+                                    formulario.dataset.enviado =
+                                        "true";
+
+                                    formulario.submit();
+                                }
+                            }
+                            catch (error) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title:
+                                        "No fue posible cargar el resumen",
+                                    text:
+                                        error.message ||
+                                        "Intente nuevamente."
+                                });
+                            }
+                            finally {
+                                boton.disabled = false;
+                            }
+                        }
+                    );
+                });
+            // ============================================================
+            // RECHAZO CON RESUMEN + OBSERVACIÓN OBLIGATORIA
+            // ============================================================
+            document.querySelectorAll(".btn-rechazar")
+                .forEach(function (boton) {
+
+                    boton.addEventListener("click", async function () {
+
+                        const id = boton.dataset.id;
+
+                        if (!id) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "No fue posible continuar",
+                                text: "No se pudo identificar el presupuesto seleccionado."
+                            });
+
+                            return;
+                        }
+
+                        boton.disabled = true;
+
+                        try {
+
+                            const respuesta = await fetch(
+                                "@Url.Action("ObtenerResumenRechazo", "PresupuestosMensuales")" +
+                                "?id=" +
+                                encodeURIComponent(id),
+                                {
+                                    method: "GET",
+                                    headers: {
+                                        "X-Requested-With": "XMLHttpRequest"
+                                    }
+                                }
+                            );
+
+                            const data = await respuesta.json();
+
+                            if (!respuesta.ok) {
+                                throw new Error(
+                                    data.mensaje ||
+                                    "No fue posible obtener la información del presupuesto."
+                                );
+                            }
+
+                            const moneda =
+                                new Intl.NumberFormat(
+                                    "es-CR",
+                                    {
+                                        style: "currency",
+                                        currency: "CRC",
+                                        minimumFractionDigits: 2
+                                    }
+                                );
+
+                            const nombresMeses = [
+                                "",
+                                "Enero",
+                                "Febrero",
+                                "Marzo",
+                                "Abril",
+                                "Mayo",
+                                "Junio",
+                                "Julio",
+                                "Agosto",
+                                "Septiembre",
+                                "Octubre",
+                                "Noviembre",
+                                "Diciembre"
+                            ];
+
+                            const periodo =
+                                `${nombresMeses[data.mes] || data.mes} ${data.anio}`;
+
+                            let avisoIngresos = "";
+
+                            if (data.cantidadIngresos > 0) {
+
+                                avisoIngresos = `
+                                <div class="alert alert-warning text-start mt-3 mb-0">
+
+                                           <div class="fw-bold mb-2">
+            <i class="fas fa-triangle-exclamation me-1"></i>
+            Ingresos asociados
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span>Cantidad de ingresos:</span>
+            <strong>
+                ${data.cantidadIngresos}
+            </strong>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span>Monto total asociado:</span>
+            <strong>
+                ${moneda.format(data.montoIngresos)}
+            </strong>
+        </div>
+
+        <hr>
+
+        <div class="small">
+            Al rechazar este presupuesto, los ingresos asociados
+            <strong>no serán anulados ni eliminados</strong>.
+            Continuarán registrados como ingresos reales del sistema,
+            pero quedarán pendientes de una asignación presupuestaria válida.
+            <br><br>
+            <strong>Nota:</strong> si este presupuesto no será aprobado,
+            los ingresos deberán reasignarse posteriormente a un período
+            presupuestario válido desde el módulo de Ingresos.
+        </div>
+                            `;
+                            }
+
+                            if (data.tieneGastosAprobados) {
+
+                                await Swal.fire({
+                                    icon: "error",
+                                    title: "No se puede rechazar",
+                                    html: `
+                                    <div class="text-start">
+
+                                        <div class="mb-3">
+                                            <strong>Proyecto:</strong>
+                                            ${data.proyecto}
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong>Período:</strong>
+                                            ${periodo}
+                                        </div>
+
+                                        <div class="alert alert-danger mb-0">
+                                            Este presupuesto posee gastos aprobados
+                                            asociados y no puede ser rechazado.
+                                        </div>
+
+                                    </div>
+                                `,
+                                    confirmButtonText: "Entendido",
+                                    confirmButtonColor: "#6C757D",
+                                    width: 600
+                                });
+
+                                return;
+                            }
+
+                            const resultado =
+                                await Swal.fire({
+
+                                    title: "Rechazar presupuesto",
+
+                                    icon: "warning",
+
+                                    html: `
+                                    <div class="text-start">
+
+                                        <div class="mb-3">
+                                            <div>
+                                                <strong>Proyecto:</strong>
+                                                ${data.proyecto}
+                                            </div>
+
+                                            <div>
+                                                <strong>Período:</strong>
+                                                ${periodo}
+                                            </div>
+                                        </div>
+
+                                        <div class="border rounded p-3">
+
+                                            <div class="d-flex justify-content-between gap-3">
+                                                <span>Ingreso planificado:</span>
+                                                <strong>
+                                                    ${moneda.format(
+                                        data.ingresoPlanificado
+                                    )}
+                                                </strong>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between gap-3">
+                                                <span>Gasto planificado:</span>
+                                                <strong>
+                                                    ${moneda.format(
+                                        data.gastoPlanificado
+                                    )}
+                                                </strong>
+                                            </div>
+
+                                        </div>
+
+                                        ${avisoIngresos}
+
+                                        <div class="mt-3 fw-semibold">
+                                            Indique el motivo del rechazo:
+                                        </div>
+
+                                    </div>
+                                `,
+
+                                    input: "textarea",
+
+                                    inputPlaceholder:
+                                        "Escriba una observación clara y específica...",
+
+                                    inputAttributes: {
+                                        maxlength: "500",
+                                        "aria-label": "Motivo del rechazo"
+                                    },
+
+                                    showCancelButton: true,
+
+                                    confirmButtonText:
+                                        '<i class="fas fa-ban me-1"></i> Confirmar rechazo',
+
+                                    cancelButtonText:
+                                        '<i class="fas fa-xmark me-1"></i> Cancelar',
+
+                                    confirmButtonColor: "#DC3545",
+                                    cancelButtonColor: "#6C757D",
+
+                                    reverseButtons: true,
+                                    focusCancel: true,
+
+                                    width: 650,
+
+                                    inputValidator: function (valor) {
+
+                                        const observacion =
+                                            (valor || "").trim();
+
+                                        if (!observacion) {
+                                            return "Debe indicar el motivo del rechazo.";
+                                        }
+
+                                        if (observacion.length > 500) {
+                                            return "La observación no puede superar los 500 caracteres.";
+                                        }
+
+                                        return null;
+                                    }
+                                });
+
+                            if (!resultado.isConfirmed) {
+                                return;
+                            }
+
+                            const observacion =
+                                resultado.value.trim();
+
+                            document.getElementById(
+                                "rechazoPresupuestoId"
+                            ).value = id;
+
+                            document.getElementById(
+                                "rechazoObservacion"
+                            ).value = observacion;
+
+                            document.getElementById(
+                                "formularioRechazoOculto"
+                            ).submit();
+                        }
+                        catch (error) {
+
+                            Swal.fire({
+                                icon: "error",
+                                title: "No fue posible cargar el resumen",
+                                text:
+                                    error.message ||
+                                    "Intente nuevamente."
+                            });
+                        }
+                        finally {
+
+                            boton.disabled = false;
+                        }
+                    });
+                });
+
+        });
+    </script>
+}

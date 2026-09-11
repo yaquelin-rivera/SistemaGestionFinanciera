@@ -1,0 +1,129 @@
+﻿@model SistemaGestionFinanciera.Models.Permiso
+
+@{
+    ViewData["Title"] = "Detalles del Permiso";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Detalles del Permiso</h2>
+        <small class="text-muted">
+            Consulta de la información registrada para el permiso seleccionado.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-key me-2"></i>
+            Datos del permiso
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label fw-semibold">
+                        Nombre
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.Nombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label fw-semibold">
+                        Estado
+                    </label>
+
+                    <div class="mt-1">
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> Activo
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary fs-6 px-3 py-2">
+                                <i class="fas fa-ban me-1"></i> Inactivo
+                            </span>
+                        }
+                    </div>
+
+                </div>
+
+                <div class="col-md-12">
+
+                    <label class="form-label fw-semibold">
+                        Descripción
+                    </label>
+
+                    <div class="form-control bg-light" style="min-height:80px;">
+                        @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+                        {
+                            @Model.Descripcion
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                Sin descripción registrada.
+                            </span>
+                        }
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label fw-semibold">
+                        Fecha de creación
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @(Model.FechaCreacion.HasValue
+                            ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm")
+                            : "Sin fecha registrada")
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Volver al listado
+
+                </a> 
+
+                @if (Model.Activo)
+                {
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.IdPermiso"
+                       class="btn btn-warning">
+
+                        <i class="fas fa-edit me-1"></i>
+                        Modificar
+
+                    </a>
+                }
+
+               
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

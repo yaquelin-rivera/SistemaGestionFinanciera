@@ -1,0 +1,1015 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Proyecto>
+
+@{
+    ViewData["Title"] = "Gestión de proyectos";
+
+    string rol =
+        Context.Session.GetString("Rol") ?? "";
+
+    bool esAdministrador =
+        rol.Equals(
+            "Administrador",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool puedePrepararPresupuesto =
+        esAdministrador ||
+        rol.Equals(
+            "Contador",
+            StringComparison.OrdinalIgnoreCase) ||
+        rol.Equals(
+            "Auxiliar Contable",
+            StringComparison.OrdinalIgnoreCase);
+    var proyectosSinPresupuestoActual =
+    ViewBag.ProyectosSinPresupuestoActual
+        as HashSet<int>
+    ?? new HashSet<int>();
+
+    var proyectosSinPresupuestoProximo =
+        ViewBag.ProyectosSinPresupuestoProximo
+            as HashSet<int>
+        ?? new HashSet<int>();
+
+    var proyectosVencidos =
+        ViewBag.ProyectosVencidos
+            as HashSet<int>
+        ?? new HashSet<int>();
+
+    var proyectosPorVencer =
+        ViewBag.ProyectosPorVencer
+            as HashSet<int>
+        ?? new HashSet<int>();
+
+    bool mostrarAvisoProximoMes =
+        ViewBag.MostrarAvisoProximoMes == true;
+
+    int anioActual =
+        ViewBag.AnioActual ?? DateTime.Today.Year;
+
+    int mesActual =
+        ViewBag.MesActual ?? DateTime.Today.Month;
+
+    int anioProximo =
+        ViewBag.AnioProximo ?? DateTime.Today.Year;
+
+    int mesProximo =
+        ViewBag.MesProximo ?? DateTime.Today.Month;
+
+    string nombreMesActual =
+        ViewBag.NombreMesActual ?? "";
+
+    string nombreMesProximo =
+        ViewBag.NombreMesProximo ?? "";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Gestión de proyectos</h2>
+            <small class="text-muted">Administración de proyectos financieros de la asociación</small>
+        </div>
+
+        @if (esAdministrador)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Registrar
+            </a>
+        }
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL DE PROYECTOS -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-primary border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">Total proyectos</small>
+
+                        <h3 class="fw-bold text-primary mb-0">
+                            @Model.Count()
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-project-diagram fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- PROYECTOS ACTIVOS -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-success border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">Activos</small>
+
+                        <h3 class="fw-bold text-success mb-0">
+                            @Model.Count(p => p.Activo)
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-circle-check fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- PROYECTOS INACTIVOS -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-info border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">Inactivos</small>
+
+                        <h3 class="fw-bold text-info mb-0">
+                            @Model.Count(p => !p.Activo)
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-circle-xmark fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- PRESUPUESTO TOTAL -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-warning border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">Presupuesto total</small>
+
+                        <h3 class="text-warning fw-bold mb-0">
+                            ₡@(
+                               Model.Where(p => p.Activo)
+                               .Sum(p => p.PresupuestoAsignado ?? 0)
+                               .ToString("N2")
+                               )
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-coins fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-3 border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            <i class="fas fa-filter me-2"></i>Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="row g-2">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold"><i class="fas fa-folder-open text-muted me-1"></i>Nombre</label>
+                        <input type="text"
+                               id="buscarProyecto"
+                               class="form-control" placeholder="Buscar por nombre" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-toggle-on text-muted me-1"></i>Estado</label>
+                        <select id="filtroEstadoProyecto" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar-day text-muted me-1"></i>Fecha inicio desde</label>
+                        <input type="date"
+                               id="fechaInicioProyecto"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar-check text-muted me-1"></i>Fecha fin hasta</label>
+                        <input type="date"
+                               id="fechaFinProyecto"
+                               class="form-control" />
+                    </div>
+                    <div class="col-12 d-flex flex-wrap justify-content-between gap-2 mt-3">
+
+                        <!-- BOTONES DE FILTRO -->
+                        <div class="d-flex flex-grow-1 gap-2">
+
+                            <button type="button"
+                                    id="btnBuscarProyecto"
+                                    class="btn btn-primary px-5 btn-filtro">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnLimpiarProyecto"
+                                    class="btn btn-secondary px-5 btn-filtro">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- BOTONES DE REPORTE -->
+                        <div class="ms-auto d-flex align-items-end gap-2">
+
+                            <button type="button"
+                                    id="btnReporteProyectos"
+                                    class="btn btn-info px-5 btn-filtro">
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnExportarProyectos"
+                                    class="btn btn-success px-5 btn-filtro">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            <i class="fas fa-diagram-project me-1"></i>Lista de proyectos registrados
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaProyectos" class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-folder-open me-1"></i>Nombre</th>
+                            <th><i class="fas fa-align-left me-1"></i>Descripción</th>
+                            <th><i class="fas fa-calendar-day me-1"></i>Fecha inicio</th>
+                            <th><i class="fas fa-calendar-check me-1"></i>Fecha fin</th>
+                            <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                            <th><i class="fas fa-chart-pie me-1"></i>Estado presupuestario</th>
+                            <th><i class="fas fa-coins me-1"></i>Presupuesto asignado</th>
+                            <th class="col-acciones"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                        </tr>
+                    </thead>
+
+                        <tbody>
+                            
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@item.Nombre</td>
+                                        <td>@(item.Descripcion ?? "Sin descripción")</td>
+                                    <td class="text-center">
+                                        @(item.FechaInicio?.ToString("dd/MM/yyyy") ?? "Sin fecha")
+                                    </td>
+                                    <td class="text-center">
+                                        @(item.FechaFin?.ToString("dd/MM/yyyy") ?? "Sin fecha")
+                                    </td>
+
+                                        <td class="text-center">
+                                            @if (item.Activo)
+                                            {
+                                                <span class="badge bg-success">Activo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            }
+                                        </td>
+                                <td class="text-center">
+                                    @{
+                                        DateOnly inicioPeriodoActual =
+                                        new DateOnly(
+                                        anioActual,
+                                        mesActual,
+                                        1);
+
+                                        DateOnly finPeriodoActual =
+                                        inicioPeriodoActual
+                                        .AddMonths(1)
+                                        .AddDays(-1);
+
+                                        bool iniciaDespuesDelPeriodo =
+                                        item.FechaInicio.HasValue &&
+                                        item.FechaInicio.Value >
+                                        finPeriodoActual;
+
+                                        bool finalizoAntesDelPeriodo =
+                                        item.FechaFin.HasValue &&
+                                        item.FechaFin.Value <
+                                        inicioPeriodoActual;
+
+                                        bool vigenteEnPeriodoActual =
+                                        item.Activo &&
+                                        item.FechaInicio.HasValue &&
+                                        item.FechaInicio.Value <=
+                                        finPeriodoActual &&
+                                        (
+                                        !item.FechaFin.HasValue ||
+                                        item.FechaFin.Value >=
+                                        inicioPeriodoActual
+                                        );
+
+                                        // =====================================================
+                                        // PRESUPUESTO DEL MES ACTUAL
+                                        // =====================================================
+                                        var presupuestoPeriodoActual =
+                                        vigenteEnPeriodoActual
+                                        ? item.PresupuestosMensuales
+                                        .FirstOrDefault(p =>
+                                        p.Anio == anioActual &&
+                                        p.Mes == mesActual)
+                                        : null;
+
+                                        // =====================================================
+                                        // PRESUPUESTO FUTURO YA CREADO
+                                        //
+                                        // Si el proyecto todavía no inicia pero el
+                                        // Administrador ya preparó un presupuesto desde
+                                        // Presupuestos > Registrar, se muestra ese estado
+                                        // en lugar del badge "Inicia".
+                                        // =====================================================
+                                        var presupuestoFuturo =
+                                        iniciaDespuesDelPeriodo
+                                        ? item.PresupuestosMensuales
+                                        .Where(p =>
+                                        p.Anio > anioActual ||
+                                        (
+                                        p.Anio == anioActual &&
+                                        p.Mes > mesActual
+                                        ))
+                                        .OrderBy(p => p.Anio)
+                                        .ThenBy(p => p.Mes)
+                                        .FirstOrDefault()
+                                        : null;
+
+                                        // =====================================================
+                                        // PRESUPUESTO QUE DEBE REPRESENTAR EL BADGE
+                                        // =====================================================
+                                        var presupuestoMostrar =
+                                        presupuestoPeriodoActual ??
+                                        presupuestoFuturo;
+
+                                        string nombreMesPresupuesto = "";
+
+                                        if (presupuestoMostrar != null)
+                                        {
+                                            nombreMesPresupuesto =
+                                            new DateTime(
+                                            presupuestoMostrar.Anio,
+                                            presupuestoMostrar.Mes,
+                                            1)
+                                            .ToString(
+                                            "MMMM",
+                                            new System.Globalization
+                                            .CultureInfo("es-CR"));
+
+                                            nombreMesPresupuesto =
+                                            char.ToUpper(nombreMesPresupuesto[0]) +
+                                            nombreMesPresupuesto[1..];
+                                        }
+                                    }
+
+                                    @if (!item.Activo)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Proyecto inactivo
+                                        </span>
+                                    }
+                                    else if (finalizoAntesDelPeriodo)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-calendar-check me-1"></i>
+                                            Proyecto finalizado
+                                        </span>
+                                    }
+                                    else if (presupuestoMostrar != null &&
+                                    presupuestoMostrar.EstadoAprobacion == "Aprobado")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-circle-check me-1"></i>
+                                            Aprobado:
+                                            @nombreMesPresupuesto
+                                            @presupuestoMostrar.Anio
+                                        </span>
+                                    }
+                                    else if (presupuestoMostrar != null &&
+                                    presupuestoMostrar.EstadoAprobacion == "Borrador")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Borrador:
+                                            @nombreMesPresupuesto
+                                            @presupuestoMostrar.Anio
+                                        </span>
+                                    }
+                                    else if (presupuestoMostrar != null &&
+                                    presupuestoMostrar.EstadoAprobacion == "Rechazado")
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger
+                     border border-danger">
+                                            <i class="fas fa-circle-xmark me-1"></i>
+                                            Rechazado:
+                                            @nombreMesPresupuesto
+                                            @presupuestoMostrar.Anio
+                                        </span>
+                                    }
+                                    else if (iniciaDespuesDelPeriodo)
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            <i class="fas fa-calendar-day me-1"></i>
+                                            Inicia:
+                                            @item.FechaInicio?.ToString("dd/MM/yyyy")
+                                        </span>
+                                    }
+                                    else if (presupuestoPeriodoActual == null)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger
+                     border border-danger">
+                                            <i class="fas fa-circle-exclamation me-1"></i>
+                                            Sin presupuesto:
+                                            @nombreMesActual @anioActual
+                                        </span>
+                                    }
+
+                                    @if (mostrarAvisoProximoMes &&
+                                   proyectosSinPresupuestoProximo.Contains(
+                                   item.IdProyecto))
+                                    {
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning-subtle
+                         text-warning-emphasis
+                         border border-warning">
+                                                <i class="fas fa-calendar-plus me-1"></i>
+                                                Preparar:
+                                                @nombreMesProximo @anioProximo
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @if (proyectosPorVencer.Contains(
+                                   item.IdProyecto))
+                                    {
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-hourglass-end me-1"></i>
+                                                Próximo a finalizar
+                                            </span>
+                                        </div>
+                                    }
+                                </td>
+                                        <td class="text-center">
+                                            ₡@((item.PresupuestoAsignado ?? 0).ToString("N2"))
+                                        </td>
+
+                                        <td class="col-acciones">
+                                            <div class="acciones-botones">
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdProyecto"
+                                           class="btn btn-primary btn-sm btn-accion">
+                                            <i class="fas fa-eye"></i> Detalles
+                                        </a>
+                                        @{
+                                            DateOnly hoyAcciones =
+                                            DateOnly.FromDateTime(DateTime.Today);
+
+                                            DateOnly inicioMesAcciones =
+                                            new DateOnly(
+                                            anioActual,
+                                            mesActual,
+                                            1);
+
+                                            DateOnly finMesAcciones =
+                                            inicioMesAcciones
+                                            .AddMonths(1)
+                                            .AddDays(-1);
+
+                                            DateOnly inicioProximoMesAcciones =
+                                            inicioMesAcciones.AddMonths(1);
+
+                                            DateOnly finProximoMesAcciones =
+                                            inicioProximoMesAcciones
+                                            .AddMonths(1)
+                                            .AddDays(-1);
+
+                                            bool proyectoFinalizado =
+                                            item.FechaFin.HasValue &&
+                                            item.FechaFin.Value < hoyAcciones;
+
+                                            bool proyectoVigenteActual =
+                                            item.Activo &&
+                                            !proyectoFinalizado &&
+                                            item.FechaInicio.HasValue &&
+                                            item.FechaInicio.Value <= finMesAcciones &&
+                                            (
+                                            !item.FechaFin.HasValue ||
+                                            item.FechaFin.Value >= inicioMesAcciones
+                                            );
+
+                                            bool proyectoVigenteProximo =
+                                            item.Activo &&
+                                            item.FechaInicio.HasValue &&
+                                            item.FechaInicio.Value <= finProximoMesAcciones &&
+                                            (
+                                            !item.FechaFin.HasValue ||
+                                            item.FechaFin.Value >= inicioProximoMesAcciones
+                                            );
+
+                                            bool faltaActual =
+                                            proyectosSinPresupuestoActual.Contains(
+                                            item.IdProyecto);
+
+                                            bool faltaProximo =
+                                            proyectosSinPresupuestoProximo.Contains(
+                                            item.IdProyecto);
+
+                                            var presupuestoActual =
+                                            item.PresupuestosMensuales
+                                            .FirstOrDefault(p =>
+                                            p.Anio == anioActual &&
+                                            p.Mes == mesActual);
+                                        }
+
+                                        @if (puedePrepararPresupuesto &&
+                                       proyectoVigenteActual &&
+                                       faltaActual)
+                                        {
+                                            <a asp-controller="PresupuestosMensuales"
+                                               asp-action="Create"
+                                               asp-route-proyectoId="@item.IdProyecto"
+                                               asp-route-anio="@anioActual"
+                                               asp-route-mes="@mesActual"
+                                               asp-route-desdeProyectos="true"
+                                               class="btn btn-info btn-sm btn-filtro"
+                                               title="Crear presupuesto para @nombreMesActual @anioActual">
+
+                                                <i class="fas fa-file-circle-plus"></i>
+                                                Crear
+                                            </a>
+                                        }
+                                        else if (puedePrepararPresupuesto &&
+                                        proyectoVigenteActual &&
+                                        presupuestoActual?.EstadoAprobacion == "Rechazado")
+                                        {
+                                            <a asp-controller="PresupuestosMensuales"
+                                               asp-action="Edit"
+                                               asp-route-id="@presupuestoActual.IdPresupuestoMensual"
+                                               class=" btn btn-accion btn-corregir"
+                                               title="Corregir presupuesto rechazado">
+
+                                                <i class="fas fa-edit"></i>
+                                                Corregir
+                                            </a>
+                                        }
+                                        else if (puedePrepararPresupuesto &&
+                                        mostrarAvisoProximoMes &&
+                                        proyectoVigenteProximo &&
+                                        faltaProximo)
+                                        {
+                                            <a asp-controller="PresupuestosMensuales"
+                                               asp-action="Create"
+                                               asp-route-proyectoId="@item.IdProyecto"
+                                               asp-route-anio="@anioProximo"
+                                               asp-route-mes="@mesProximo"
+                                               asp-route-desdeProyectos="true"
+                                               class="btn btn-info btn-sm btn-filtro"
+                                               title="Crear presupuesto para @nombreMesProximo @anioProximo">
+
+                                                <i class="fas fa-calendar-plus"></i>
+                                                Crear
+                                            </a>
+                                        }
+
+                                        @if (esAdministrador)
+                                        {
+                                            @if (item.Activo && !proyectoFinalizado)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@item.IdProyecto"
+                                                   class="btn btn-warning btn-sm btn-accion"
+                                                   title="Modificar proyecto">
+
+                                                    <i class="fas fa-edit"></i>
+                                                    Modificar
+                                                </a>
+                                            }
+
+                                            @if (item.Activo)
+                                            {
+                                                <form asp-action="Delete"
+                                                      asp-route-id="@item.IdProyecto"
+                                                      method="post"
+                                                      class="d-inline form-desactivar-proyecto">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-danger btn-sm btn-accion">
+                                                        <i class="fas fa-ban"></i> Desactivar
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Reactivar"
+                                                      asp-route-id="@item.IdProyecto"
+                                                      method="post"
+                                                      class="d-inline form-reactivar-proyecto">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm btn-accion">
+                                                        <i class="fas fa-check-circle"></i> Reactivar
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                          
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            
+                        </tbody>
+                </table>
+
+            </div>
+         
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // FILTRO PERSONALIZADO DE FECHAS
+            // =====================================================
+            $.fn.dataTable.ext.search.push(function (
+                settings,
+                data,
+                dataIndex
+            ) {
+                if (settings.nTable.id !== "tablaProyectos") {
+                    return true;
+                }
+
+                const fechaInicioFiltro =
+                    document.getElementById("fechaInicioProyecto").value;
+
+                const fechaFinFiltro =
+                    document.getElementById("fechaFinProyecto").value;
+
+                const fechaInicioTabla = data[2];
+                const fechaFinTabla = data[3];
+
+                function convertirFecha(fecha) {
+                    if (!fecha || fecha === "Sin fecha") {
+                        return null;
+                    }
+
+                    const partes = fecha.split("/");
+
+                    return new Date(
+                        partes[2],
+                        partes[1] - 1,
+                        partes[0]
+                    );
+                }
+
+                const inicioProyecto =
+                    convertirFecha(fechaInicioTabla);
+
+                const finProyecto =
+                    convertirFecha(fechaFinTabla);
+
+                const desde = fechaInicioFiltro
+                    ? new Date(fechaInicioFiltro + "T00:00:00")
+                    : null;
+
+                const hasta = fechaFinFiltro
+                    ? new Date(fechaFinFiltro + "T23:59:59")
+                    : null;
+
+                const cumpleInicio =
+                    !desde ||
+                    (inicioProyecto && inicioProyecto >= desde);
+
+                const cumpleFin =
+                    !hasta ||
+                    (finProyecto && finProyecto <= hasta);
+
+                return cumpleInicio && cumpleFin;
+            });
+
+        
+            // DATATABLE PROYECTOS
+            // =====================================================
+            let tablaProyectos = null;
+
+            if ($.fn.DataTable &&
+                document.getElementById("tablaProyectos")) {
+
+                tablaProyectos = $("#tablaProyectos").DataTable({
+
+                    pageLength: 10,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+
+                    ordering: true,
+
+                    // Fecha de inicio, columna 2
+                    order: [[2, "desc"]],
+
+                    searching: true,
+                    paging: true,
+                    info: true,
+                    autoWidth: false,
+                    scrollX: false,
+
+                    columnDefs: [
+                        {
+                            targets: -1,
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+                        lengthMenu: "Mostrar _MENU_ registros",
+                        search: "Buscar en la tabla:",
+                        zeroRecords: "No se encontraron proyectos.",
+                        emptyTable: "No hay proyectos registrados.",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        infoEmpty: "Mostrando 0 registros",
+                        infoFiltered: "(filtrado de _MAX_ registros)",
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        }
+                    }
+                });
+            }
+
+            // FILTROS AUTOMÁTICOS
+            // =====================================================
+            const buscarProyecto =
+                document.getElementById("buscarProyecto");
+
+            const filtroEstadoProyecto =
+                document.getElementById("filtroEstadoProyecto");
+
+            const fechaInicioProyecto =
+                document.getElementById("fechaInicioProyecto");
+
+            const fechaFinProyecto =
+                document.getElementById("fechaFinProyecto");
+
+            function aplicarFiltrosProyectos() {
+
+                if (!tablaProyectos) {
+                    return;
+                }
+
+                const texto = buscarProyecto.value.trim();
+                const estado = filtroEstadoProyecto.value;
+
+                tablaProyectos.search(texto);
+
+                // Estado: columna 4
+                tablaProyectos
+                    .column(4)
+                    .search(
+                        estado
+                            ? "^" +
+                            $.fn.dataTable.util.escapeRegex(estado) +
+                            "$"
+                            : "",
+                        true,
+                        false
+                    );
+
+                tablaProyectos.draw();
+            }
+
+            buscarProyecto.addEventListener(
+                "input",
+                aplicarFiltrosProyectos
+            );
+
+            filtroEstadoProyecto.addEventListener(
+                "change",
+                aplicarFiltrosProyectos
+            );
+
+            fechaInicioProyecto.addEventListener(
+                "change",
+                aplicarFiltrosProyectos
+            );
+
+            fechaFinProyecto.addEventListener(
+                "change",
+                aplicarFiltrosProyectos
+            );
+
+            document
+                .getElementById("btnBuscarProyecto")
+                .addEventListener(
+                    "click",
+                    aplicarFiltrosProyectos
+                );
+
+            document
+                .getElementById("btnLimpiarProyecto")
+                .addEventListener("click", function () {
+
+                    buscarProyecto.value = "";
+                    filtroEstadoProyecto.selectedIndex = 0;
+                    fechaInicioProyecto.value = "";
+                    fechaFinProyecto.value = "";
+
+                    if (tablaProyectos) {
+                        tablaProyectos.search("");
+                        tablaProyectos.columns().search("");
+                        tablaProyectos.draw();
+                    }
+
+                    buscarProyecto.focus();
+                });
+
+         
+            // CONFIRMACIÓN DESACTIVAR
+            // =====================================================
+            document.querySelectorAll(
+                ".form-desactivar-proyecto"
+            ).forEach(function (form) {
+
+                form.addEventListener("submit", function (e) {
+
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: "¿Desactivar proyecto?",
+                        text: "El proyecto quedará inactivo y no será eliminado del sistema.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, desactivar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#dc3545",
+                        cancelButtonColor: "#6c757d"
+                    }).then(function (result) {
+
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+       
+            // CONFIRMACIÓN REACTIVAR
+            // =====================================================
+            document.querySelectorAll(
+                ".form-reactivar-proyecto"
+            ).forEach(function (form) {
+
+                form.addEventListener("submit", function (e) {
+
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: "¿Reactivar proyecto?",
+                        text: "El proyecto volverá a estar disponible para utilizarse en el sistema.",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, reactivar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#198754",
+                        cancelButtonColor: "#6c757d"
+                    }).then(function (result) {
+
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+            //=====================================================
+            // REPORTE PDF Y EXPORTAR EXCEL
+            //=====================================================
+
+            function obtenerParametrosReporteProyectos() {
+
+                const parametros = new URLSearchParams();
+
+                const nombre = $("#buscarProyecto").val().trim();
+                const estado = $("#filtroEstadoProyecto").val();
+                const fechaInicio = $("#fechaInicioProyecto").val();
+                const fechaFin = $("#fechaFinProyecto").val();
+
+                if (nombre)
+                    parametros.append("nombre", nombre);
+
+                if (estado)
+                    parametros.append("estado", estado);
+
+                if (fechaInicio)
+                    parametros.append("fechaInicio", fechaInicio);
+
+                if (fechaFin)
+                    parametros.append("fechaFin", fechaFin);
+
+                return parametros.toString();
+            }
+
+
+            //=========================================
+            // VISTA PREVIA PDF
+            //=========================================
+
+            $("#btnReporteProyectos").click(function () {
+
+                const parametros = obtenerParametrosReporteProyectos();
+
+                let url = "/Proyectos/Reporte";
+
+                if (parametros)
+                    url += "?" + parametros;
+
+                window.location.href = url;
+
+            });
+
+
+            //=========================================
+            // EXPORTAR EXCEL
+            //=========================================
+
+            $("#btnExportarProyectos").click(function () {
+
+                const parametros = obtenerParametrosReporteProyectos();
+
+                let url = "/Proyectos/ExportarExcel";
+
+                if (parametros)
+                    url += "?" + parametros;
+
+                // descarga sin salir del Index
+                let iframe = document.getElementById("iframeDescargaProyectos");
+
+                if (!iframe) {
+
+                    iframe = document.createElement("iframe");
+                    iframe.id = "iframeDescargaProyectos";
+                    iframe.style.display = "none";
+
+                    document.body.appendChild(iframe);
+                }
+
+                iframe.src = url;
+
+            });
+        });
+    </script>
+}

@@ -1,0 +1,372 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasPorPagar
+
+@{
+    ViewData["Title"] = "Detalle de Cuenta por Pagar";
+}
+@{
+    var origen = Context.Request.Query["origen"].ToString();
+    var retorno = Context.Request.Query["retorno"].ToString();
+    var pagoId = Context.Request.Query["pagoId"].ToString();
+}
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Detalle de Cuenta por Pagar</h2>
+        <small class="text-muted">Consulta de la información registrada del pago pendiente</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            Información de la cuenta por pagar
+        </div>
+
+        <div class="card-body">
+
+            <p class="text-primary fw-bold mb-2">Información general</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>N° Documento</strong>
+                    <div>@Model.NumeroDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Tipo de documento</strong>
+                    <div>@Model.TipoDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Factura proveedor</strong>
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(Model.NumeroFactura))
+                        {
+                            @Model.NumeroFactura
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin factura registrada</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Proveedor / Acreedor</strong>
+                    <div>@Model.Proveedor?.Nombre</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Proyecto</strong>
+                    <div>
+                        @if (Model.Proyecto != null)
+                        {
+                            @Model.Proyecto.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin proyecto</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <strong>Período presupuestario</strong>
+
+                <div>
+                    @if (Model.PresupuestoMensualRegistro != null)
+                    {
+                        @(
+                            new DateTime(
+                            Model.PresupuestoMensualRegistro.Anio,
+                            Model.PresupuestoMensualRegistro.Mes,
+                            1
+                            ).ToString(
+                            "MMMM yyyy",
+                            new System.Globalization.CultureInfo("es-CR"))
+                            )
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+                            Sin período asociado
+                        </span>
+                    }
+                </div>
+            </div>
+            <p class="text-primary fw-bold mt-4 mb-2">Datos del crédito</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Fecha de emisión</strong>
+                    <div>@Model.FechaEmision.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Fecha de vencimiento</strong>
+                    <div>@Model.FechaVencimiento.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Días de crédito</strong>
+                    <div>@Model.DiasCredito</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado</strong>
+                    <div>
+                        @if (Model.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else if (Model.Estado == "Parcial")
+                        {
+                            <span class="badge text-white" style="background-color:#0FB7C9;">Parcial</span>
+                        }
+                        else if (Model.Estado == "Cancelada")
+                        {
+                            <span class="badge bg-success">Cancelada</span>
+                        }
+                        else if (Model.Estado == "Vencida")
+                        {
+                            <span class="badge bg-danger">Vencida</span>
+                        }
+                        else if (Model.Estado == "Anulada")
+                        {
+                            <span class="badge bg-secondary">Anulada</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">@Model.Estado</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Resumen financiero</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Monto original</strong>
+                    <div>₡@Model.MontoOriginal.ToString("N2")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Descuento</strong>
+                    <div>₡@((Model.Descuento ?? 0).ToString("N2"))</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Subtotal</strong>
+                    <div>₡@((Model.SubTotal ?? 0).ToString("N2"))</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Impuesto</strong>
+                    <div>₡@((Model.Impuesto ?? 0).ToString("N2"))</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Monto pagado</strong>
+                    <div>
+                        @if ((Model.MontoPagado ?? 0) > 0)
+                        {
+                            <span class="fw-bold text-success">
+                                ₡@((Model.MontoPagado ?? 0).ToString("N2"))
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">₡0.00</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Anticipo aplicado</strong>
+                    <div>
+                        @if ((Model.AnticipoAplicado ?? 0) > 0)
+                        {
+                            <span class="fw-bold text-success">
+                                ₡@((Model.AnticipoAplicado ?? 0).ToString("N2"))
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No hay anticipos registrados.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Saldo pendiente</strong>
+                    <div class="fw-bold text-danger">
+                        ₡@Model.SaldoPendiente.ToString("N2")
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Detalle del pago pendiente</p>
+            <hr />
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>Concepto</strong>
+                    <div>@Model.Concepto</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Observación</strong>
+                    <div>
+                        @(string.IsNullOrWhiteSpace(Model.Observacion)
+                            ? "Sin observaciones"
+                            : Model.Observacion)
+                    </div>
+                </div>
+
+            @if (Model.Estado == "Anulada")
+            {
+               
+
+                    <div class="col-md-4">
+                        <strong>Motivo de anulación</strong>
+                        <div>@Model.MotivoAnulacion</div>
+                    </div>
+
+               
+            }
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Historial de pagos realizados</p>
+            <hr />
+
+            @if (Model.PagosCuentaPorPagars != null && Model.PagosCuentaPorPagars.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-hover align-middle">
+                        <thead style="background-color:#D9F0F3; color:#00798C;">
+                            <tr>
+                                <th>Fecha pago</th>
+                                <th>Monto</th>
+                                <th>Método</th>
+                                <th>Referencia</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var pago in Model.PagosCuentaPorPagars.OrderByDescending(p => p.FechaPago))
+                            {
+                                <tr>
+                                    <td>@pago.FechaPago.ToString("dd/MM/yyyy")</td>
+
+                                    <td class="fw-bold">
+                                        @((pago.Monto ?? 0).ToString("N2"))
+                                    </td>
+
+                                    <td>@(pago.MetodoPago ?? "No registrado")</td>
+
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(pago.Referencia))
+                                        {
+                                            @pago.Referencia
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin referencia</span>
+                                        }
+                                    </td>
+
+                                    <td class="small">
+                                        <span class="text-muted">No aplica</span>
+                                    </td>
+
+                                    <td>
+                                        @if (pago.Anulado)
+                                        {
+                                            <span class="badge bg-secondary">Anulado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+                    No hay pagos registrados para esta cuenta por pagar.
+                </div>
+            }
+
+            <div class="mt-4 d-flex gap-3 ">
+
+                <div>
+                    @if (origen == "PagosCxP")
+                    {
+                        <a asp-controller="PagosCuentasPorPagar"
+                           asp-action="@retorno"
+                           asp-route-cuentaPorPagarId="@Model.IdCuentaPorPagar"
+                           class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar al registro de pago
+                        </a>
+                    }
+                    else if (origen == "DetallePagoCxP")
+                    {
+                        <a asp-controller="PagosCuentasPorPagar"
+                           asp-action="Details"
+                           asp-route-id="@pagoId"
+                           class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i>  Regresar al detalle del pago
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>   Volver al listado
+                        </a>
+                    }
+                </div>
+
+                <div>
+                    @{
+                        bool puedeModificar =
+                        Model.Activo == true &&
+                        Model.Origen == "Manual" &&
+                        Model.EstadoAutorizacion == "Pendiente" &&
+                        Model.Estado != "Anulada" &&
+                        Model.Estado != "Cancelada" &&
+                        Model.Estado != "Rechazada" &&
+                        (Model.MontoPagado ?? 0) == 0;
+                    }
+
+                    @if (origen != "PagosCxP" &&
+                    origen != "DetallePagoCxP" &&
+                    puedeModificar)
+                    {
+                        <a asp-action="Edit"
+                           asp-route-id="@Model.IdCuentaPorPagar"
+                           class="btn btn-warning">
+                            <i class="fas fa-pen-to-square me-1"></i>    Modificar
+                        </a>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

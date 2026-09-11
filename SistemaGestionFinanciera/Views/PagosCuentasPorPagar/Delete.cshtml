@@ -1,0 +1,252 @@
+﻿@model SistemaGestionFinanciera.Models.PagosCuentaPorPagar
+
+@{
+    ViewData["Title"] = "Anular Pago CxP";
+}
+
+<div class="container-fluid mt-4 px-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">
+            Anular pago de cuenta por pagar
+        </h2>
+
+        <small class="text-muted">
+            Confirmación para anular un pago aplicado a una cuenta por pagar
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-ban me-2"></i>
+            Confirmación de anulación del pago
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning fw-bold">
+                ¿Está seguro de anular este pago?
+            </div>
+
+            <div class="alert alert-secondary">
+                Al anular este pago, el sistema actualizará automáticamente el saldo pendiente de la cuenta por pagar.
+                Esta acción no elimina el registro, únicamente lo marca como anulado.
+            </div>
+
+            <h5 class="text-primary fw-bold mt-3">Información general</h5>
+            <hr />
+
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <strong>N° Documento</strong><br />
+                    @(Model.CuentaPorPagar?.NumeroDocumento ?? "Sin documento")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Tipo de documento</strong><br />
+                    @(Model.CuentaPorPagar?.TipoDocumento ?? "No registrado")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Proveedor</strong><br />
+                    @(Model.CuentaPorPagar?.Proveedor?.Nombre ?? "No registrado")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado del pago</strong><br />
+                    @if (Model.Anulado)
+                    {
+                        <span class="badge bg-secondary">Anulado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                </div>
+
+            </div>
+
+            <h5 class="text-primary fw-bold mt-3">Datos del pago</h5>
+            <hr />
+
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <strong>Fecha de pago</strong><br />
+                    @Model.FechaPago.ToString("dd/MM/yyyy")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Monto pagado</strong><br />
+                    <span class="fw-bold text-success">
+                        ₡@(Model.Monto?.ToString("N2") ?? "0.00")
+                    </span>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Método de pago</strong><br />
+                    @(Model.MetodoPago ?? "No registrado")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Referencia</strong><br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Referencia))
+                    {
+                        @Model.Referencia
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin referencia registrada.</span>
+                    }
+                </div>
+
+            </div>
+
+            <h5 class="text-primary fw-bold mt-3">Observación</h5>
+            <hr />
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <strong>Observación</strong><br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+                    {
+                        @Model.Observacion
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin observación registrada.</span>
+                    }
+                </div>
+            </div>
+            <form asp-action="Delete"
+                  asp-route-id="@Model.IdPagoCuentaPorPagar"
+                  method="post"
+                  id="formAnularPagoCxP">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="IdPagoCuentaPorPagar" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+               
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Motivo de anulación</label>
+                        <textarea id="motivoAnulacion"
+                                  name="motivoAnulacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Indique el motivo por el cual se anula este pago, este campo es obligatorio"></textarea>
+
+                        <span class="text-danger" id="errorMotivo"></span>
+                        <span class="text-danger">
+                            @Html.ValidationMessage("motivoAnulacion")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary fw-bold">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger fw-bold">
+                        <i class="fas fa-ban me-1"></i>  Anular pago
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+<</div>
+
+@section Scripts {
+    <script>
+        const formAnularPagoCxP =
+            document.getElementById("formAnularPagoCxP");
+
+        const motivo =
+            document.getElementById("motivoAnulacion");
+
+        const errorMotivo =
+            document.getElementById("errorMotivo");
+
+        function validarMotivoAnulacion() {
+
+            const valor = motivo.value.trim();
+
+            const regex =
+                /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s,.;:()/#-]+$/;
+
+            if (valor.length === 0) {
+                errorMotivo.innerText =
+                    "Debe ingresar el motivo de anulación.";
+                return false;
+            }
+
+            if (!regex.test(valor)) {
+                errorMotivo.innerText =
+                    "El motivo de anulación contiene caracteres no permitidos.";
+                return false;
+            }
+
+            if (valor.length < 5) {
+                errorMotivo.innerText =
+                    "El motivo de anulación debe contener al menos 5 caracteres.";
+                return false;
+            }
+
+            if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(valor)) {
+                errorMotivo.innerText =
+                    "El motivo de anulación debe contener al menos una letra.";
+                return false;
+            }
+
+            errorMotivo.innerText = "";
+            return true;
+        }
+
+        if (motivo) {
+            motivo.addEventListener("input", validarMotivoAnulacion);
+        }
+
+        if (formAnularPagoCxP) {
+
+            formAnularPagoCxP.addEventListener("submit", function (e) {
+
+                e.preventDefault();
+
+                if (!validarMotivoAnulacion()) {
+                    motivo.focus();
+                    return;
+                }
+
+                Swal.fire({
+                    title: "¿Anular pago de cuenta por pagar?",
+                    html: `Este pago será anulado.<br><br>
+                                   También se revertirán los movimientos contables asociados y se actualizará el saldo de la cuenta por pagar.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, anular",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        formAnularPagoCxP.submit();
+                    }
+
+                });
+
+            });
+
+        }
+    </script>
+}

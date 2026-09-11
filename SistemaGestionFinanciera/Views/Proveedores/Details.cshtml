@@ -1,0 +1,284 @@
+﻿@model SistemaGestionFinanciera.Models.Proveedore
+
+@{
+    ViewData["Title"] = "Detalles del proveedor";
+
+    int cuentasPorPagar = Model.CuentasPorPagars?.Count ?? 0;
+    int facturas = Model.Facturas?.Count ?? 0;
+    int gastos = Model.Gastos?.Count ?? 0;
+    int totalRelaciones = cuentasPorPagar + facturas + gastos;
+
+    var contactosAdicionales = Model.ContactosAdicionales?
+        .Where(c => c.Activo)
+        .OrderBy(c => c.TipoContacto)
+        .ThenByDescending(c => c.IdContactoProveedor)
+        .ToList()
+        ?? new List<SistemaGestionFinanciera.Models.ContactoProveedor>();
+}
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold mb-0">Detalles del proveedor</h2>
+    <small class="text-muted">Información general y relaciones financieras del proveedor.</small>
+
+    <div class="row g-3 mt-2 mb-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-primary border-4">
+                <div class="card-body text-center">
+                    <small>Cuentas por pagar</small>
+                    <h4 class="fw-bold text-primary mb-0">@cuentasPorPagar</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-info border-4">
+                <div class="card-body text-center">
+                    <small>Facturas asociadas</small>
+                    <h4 class="fw-bold text-info mb-0">@facturas</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body text-center">
+                    <small>Gastos asociados</small>
+                    <h4 class="fw-bold text-success mb-0">@gastos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-truck me-1"></i> Información del proveedor
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Nombre</small>
+                        <div class="fw-semibold">@Model.Nombre</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Identificación</small>
+                        <div class="fw-semibold">@Model.Identificacion</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Estado</small>
+                        <div>
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Teléfono</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Telefono) ? "No registrado" : Model.Telefono)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Correo electrónico</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Email) ? "No registrado" : Model.Email)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Dirección</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Direccion) ? "No registrada" : Model.Direccion)
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-address-book me-1"></i>
+            Otros datos de contacto
+        </div>
+
+        <div class="card-body">
+
+            @if (!contactosAdicionales.Any())
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-address-card fa-2x mb-2"></i>
+
+                    <div>
+                        No se registraron contactos adicionales para este proveedor.
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+
+                    @foreach (var contacto in contactosAdicionales)
+                    {
+                        string icono = contacto.TipoContacto switch
+                        {
+                            "Telefono" => "fas fa-phone",
+                            "Correo" => "fas fa-envelope",
+                            "Direccion" => "fas fa-map-marker-alt",
+                            _ => "fas fa-address-card"
+                        };
+
+                        string nombreTipo = contacto.TipoContacto switch
+                        {
+                            "Telefono" => "Teléfono adicional",
+                            "Correo" => "Correo adicional",
+                            "Direccion" => "Dirección adicional",
+                            _ => contacto.TipoContacto
+                        };
+
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 bg-light h-100">
+
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="@icono text-primary me-2"></i>
+
+                                    <span class="fw-bold">
+                                        @nombreTipo
+                                    </span>
+                                </div>
+
+                                <small class="text-muted">
+                                    @(string.IsNullOrWhiteSpace(contacto.Descripcion)
+                                        ? "Adicional"
+                                        : contacto.Descripcion)
+                                </small>
+
+                                <div class="fw-semibold text-break mt-1">
+                                    @contacto.Valor
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-link me-1"></i> Resumen de relaciones
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <strong>Cuentas por pagar:</strong> @cuentasPorPagar
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Facturas asociadas:</strong> @facturas
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Gastos asociados:</strong> @gastos
+                </div>
+
+                <div class="col-md-12">
+                    <strong>Total de relaciones financieras:</strong> @totalRelaciones
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info shadow-sm">
+        <i class="fas fa-info-circle me-1"></i>
+        Este proveedor puede estar asociado a compras, gastos y cuentas por pagar.
+        Cuando posee registros financieros, algunos datos quedan protegidos para mantener la trazabilidad del sistema.
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+        </a>
+        @if (Model.Activo)
+        {
+            <a asp-action="Edit"
+               asp-route-id="@Model.IdProveedor"
+               class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Modificar
+            </a>
+        }
+        else
+        {
+            <button type="button"
+                    class="btn btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalReactivarDetalle">
+                <i class="fas fa-check me-1"></i> Reactivar
+            </button>
+        }
+
+        
+
+    </div>
+
+    <div class="modal fade" id="modalReactivarDetalle" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Reactivar proveedor</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="mb-1">¿Desea reactivar este proveedor?</p>
+                    <strong>@Model.Nombre</strong>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times-circle me-1"></i> Cancelar
+                    </button>
+
+                    <form asp-action="Reactivar"
+                          asp-route-id="@Model.IdProveedor"
+                          method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            Sí, reactivar
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>

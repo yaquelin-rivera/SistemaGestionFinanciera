@@ -1,0 +1,1070 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.PagosCuentaPorCobrar>
+
+@{
+    Layout = null;
+
+    ViewData["Title"] =
+        "Historial de Pagos de Cuentas por Cobrar";
+
+    string ObtenerNombreMes(int? numeroMes)
+    {
+        if (!numeroMes.HasValue ||
+            numeroMes.Value < 1 ||
+            numeroMes.Value > 12)
+        {
+            return "";
+        }
+
+        var cultura =
+            new System.Globalization.CultureInfo("es-CR");
+
+        string nombreMes = cultura.DateTimeFormat
+            .GetMonthName(numeroMes.Value);
+
+        return char.ToUpper(nombreMes[0]) +
+               nombreMes.Substring(1);
+    }
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <style>
+
+        /* =========================================================
+                   CONTENEDOR PRINCIPAL
+                   ========================================================= */
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f4f6f7;
+            font-family: Arial, sans-serif;
+        }
+
+        .reporte-container {
+            width: calc(100% - 30px);
+            max-width: none;
+            margin: 0 auto 20px auto;
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* =========================================================
+                   ENCABEZADO
+                   ========================================================= */
+
+        .encabezado-reporte {
+            text-align: center;
+            border-bottom: 3px solid #0f5c64;
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+        }
+
+            .encabezado-reporte h2 {
+                color: #0f5c64;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+
+            .encabezado-reporte h4 {
+                color: #333333;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+        .fecha-generacion {
+            color: #666666;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* =========================================================
+                   FILTROS
+                   ========================================================= */
+
+        .filtros-reporte {
+            background: #f5f8f8;
+            border-left: 4px solid #0f5c64;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 18px;
+        }
+
+            .filtros-reporte strong {
+                color: #0f5c64;
+            }
+
+        /* =========================================================
+                   CARDS DE RESUMEN
+                   ========================================================= */
+
+        .resumen-card {
+            height: 100%;
+            background: #ffffff;
+            border: 1px solid #d8e2e3;
+            border-top: 4px solid #0f7c90;
+            border-radius: 8px;
+            padding: 12px 10px;
+            text-align: center;
+        }
+
+            .resumen-card .icono {
+                margin-bottom: 4px;
+                color: #0f7c90;
+                font-size: 1.1rem;
+            }
+
+            .resumen-card .titulo {
+                color: #666666;
+                font-size: 0.82rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }
+
+            .resumen-card .valor {
+                color: #15454d;
+                font-size: 1.18rem;
+                font-weight: 700;
+                margin: 0;
+            }
+
+            .resumen-card .valor-metodos {
+                color: #15454d;
+                font-size: 0.88rem;
+                font-weight: 700;
+                margin: 0;
+                line-height: 1.3;
+            }
+
+        /* Total pagado */
+        .card-pagado {
+            border-top-color: #198754;
+        }
+
+            .card-pagado .icono,
+            .card-pagado .valor {
+                color: #198754;
+            }
+
+        /* Pagos anulados */
+        .card-anulados {
+            border-top-color: #dc3545;
+        }
+
+            .card-anulados .icono,
+            .card-anulados .valor {
+                color: #b02a37;
+            }
+
+        /* Métodos utilizados */
+        .card-metodos {
+            border-top-color: #0d6efd;
+        }
+
+            .card-metodos .icono,
+            .card-metodos .valor-metodos {
+                color: #0d6efd;
+            }
+
+        /* =========================================================
+                   TABLA
+                   ========================================================= */
+
+        .tabla-reporte {
+            width: 100%;
+            table-layout: fixed;
+            font-size: 0.72rem;
+            vertical-align: middle;
+            margin-bottom: 0;
+        }
+
+            .tabla-reporte thead th {
+                background: #0f5c64 !important;
+                color: #ffffff !important;
+                text-align: center;
+                vertical-align: middle;
+                white-space: normal;
+                padding: 7px 4px;
+                line-height: 1.15;
+            }
+
+            .tabla-reporte tbody td {
+                padding: 6px 4px;
+                vertical-align: middle;
+                overflow-wrap: break-word;
+                word-break: normal;
+            }
+
+        /* Pago anulado */
+
+        .fila-anulada td {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+        }
+
+        /* Totales */
+
+        .totales-reporte td {
+            background: #d9edef !important;
+            color: #1f383b;
+            font-weight: 700;
+            border-top: 2px solid #0f5c64;
+        }
+
+        /* =========================================================
+                   ANCHOS DE LAS 11 COLUMNAS
+                   ========================================================= */
+
+        /* Fecha de pago */
+
+        .tabla-reporte th:nth-child(1),
+        .tabla-reporte td:nth-child(1) {
+            width: 7%;
+        }
+
+        /* Número de documento */
+
+        .tabla-reporte th:nth-child(2),
+        .tabla-reporte td:nth-child(2) {
+            width: 8%;
+        }
+
+        /* Tipo de documento */
+
+        .tabla-reporte th:nth-child(3),
+        .tabla-reporte td:nth-child(3) {
+            width: 8%;
+        }
+
+        /* Origen */
+
+        .tabla-reporte th:nth-child(4),
+        .tabla-reporte td:nth-child(4) {
+            width: 6%;
+        }
+
+        /* Cliente o beneficiario */
+
+        .tabla-reporte th:nth-child(5),
+        .tabla-reporte td:nth-child(5) {
+            width: 15%;
+        }
+
+        /* Proyecto */
+
+        .tabla-reporte th:nth-child(6),
+        .tabla-reporte td:nth-child(6) {
+            width: 14%;
+        }
+
+        /* Monto */
+
+        .tabla-reporte th:nth-child(7),
+        .tabla-reporte td:nth-child(7) {
+            width: 8%;
+        }
+
+        /* Método */
+
+        .tabla-reporte th:nth-child(8),
+        .tabla-reporte td:nth-child(8) {
+            width: 8%;
+        }
+
+        /* Referencia */
+
+        .tabla-reporte th:nth-child(9),
+        .tabla-reporte td:nth-child(9) {
+            width: 9%;
+        }
+
+        /* Observación */
+
+        .tabla-reporte th:nth-child(10),
+        .tabla-reporte td:nth-child(10) {
+            width: 12%;
+        }
+
+        /* Estado */
+
+        .tabla-reporte th:nth-child(11),
+        .tabla-reporte td:nth-child(11) {
+            width: 5%;
+        }
+
+        /* =========================================================
+                   RESUMEN INFERIOR
+                   ========================================================= */
+
+        .estado-resumen {
+            background: #f5f8f8;
+            border: 1px solid #d8e2e3;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 20px;
+        }
+
+            .estado-resumen h5 {
+                color: #0f5c64;
+                font-weight: 700;
+                text-align: center;
+                margin-bottom: 14px;
+            }
+
+        .estado-item {
+            text-align: center;
+            border-right: 1px solid #d8e2e3;
+        }
+
+            .estado-item:last-child {
+                border-right: none;
+            }
+
+            .estado-item .cantidad {
+                display: block;
+                color: #0f5c64;
+                font-size: 1.2rem;
+                font-weight: 700;
+            }
+
+            .estado-item .nombre {
+                display: block;
+                color: #555555;
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+
+        /* =========================================================
+                   BOTONES
+                   ========================================================= */
+
+        .acciones-reporte {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 20px 0 20px;
+            margin: 0;
+        }
+
+        /* =========================================================
+                   CONFIGURACIÓN DE IMPRESIÓN
+                   ========================================================= */
+
+        @@media print {
+
+            html,
+            body {
+                width: 98% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                font-family: Arial, sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .acciones-reporte,
+            .no-imprimir {
+                display: none !important;
+            }
+
+            .reporte-container {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .encabezado-reporte,
+            .filtros-reporte,
+            .row.g-3,
+            .table-responsive,
+            .estado-resumen {
+                width: 98% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            .row.g-3 {
+                width: 98% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                --bs-gutter-x: 4px !important;
+            }
+            /* Encabezado */
+
+            .encabezado-reporte {
+                padding-bottom: 3px !important;
+                margin-bottom: 4px !important;
+                border-bottom-width: 1px !important;
+            }
+
+                .encabezado-reporte h2 {
+                    font-size: 13pt !important;
+                    margin: 0 0 2px 0 !important;
+                }
+
+                .encabezado-reporte h4 {
+                    font-size: 9pt !important;
+                    margin: 0 0 1px 0 !important;
+                }
+
+            .fecha-generacion {
+                font-size: 6pt !important;
+            }
+            /* Filtros */
+
+            .filtros-reporte {
+                padding: 3px 5px !important;
+                margin-bottom: 4px !important;
+                font-size: 6pt !important;
+            }
+            /* Cards */
+            /* Cards */
+
+            .resumen-card {
+                padding: 3px !important;
+                border-radius: 3px !important;
+                border-top-width: 2px !important;
+            }
+
+                .resumen-card .icono {
+                    margin-bottom: 0 !important;
+                    font-size: 7pt !important;
+                    line-height: 1 !important;
+                }
+
+                .resumen-card .titulo {
+                    font-size: 5.5pt !important;
+                    margin-bottom: 0 !important;
+                    line-height: 1 !important;
+                }
+
+                .resumen-card .valor {
+                    font-size: 7pt !important;
+                    line-height: 1 !important;
+                }
+
+                .resumen-card .valor-metodos {
+                    font-size: 6pt !important;
+                    line-height: 1.1 !important;
+                }
+            /* Tabla */
+
+            .table-responsive {
+                width: 98% !important;
+                overflow: visible !important;
+            }
+
+            .tabla-reporte {
+                width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+                font-size: 7pt !important;
+                line-height: 1.05 !important;
+            }
+
+                .tabla-reporte th,
+                .tabla-reporte td {
+                    padding: 1.8px 1.5px !important;
+                    font-size: 7pt !important;
+                    line-height: 1.05 !important;
+                    vertical-align: middle !important;
+                    word-break: normal !important;
+                    overflow-wrap: break-word !important;
+                }
+
+                .tabla-reporte thead th {
+                    padding: 2px 1px !important;
+                    font-size: 7pt !important;
+                    white-space: normal !important;
+                }
+
+                .tabla-reporte tfoot td {
+                    padding: 2px 1.5px !important;
+                    font-size: 7pt !important;
+                }
+
+                .tabla-reporte tr {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+
+            .totales-reporte td {
+                font-size: 5pt !important;
+                padding: 2px 1px !important;
+            }
+            /* Resumen inferior */
+
+            .estado-resumen {
+                padding: 2px !important;
+                margin-top: 3px !important;
+                border-radius: 1px !important;
+            }
+
+                .estado-resumen h5 {
+                    font-size: 7pt !important;
+                    margin-bottom: 1px !important;
+                }
+
+            .estado-item .cantidad {
+                font-size: 6pt !important;
+            }
+
+            .estado-item .nombre {
+                font-size: 6pt !important;
+            }
+
+            @@page {
+                size: A4 landscape;
+                margin: 7mm;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- =========================================================
+         BOTONES
+         ========================================================= -->
+
+    <div class="acciones-reporte no-imprimir">
+
+        <button type="button"
+                class="btn btn-info"
+                onclick="window.print()">
+
+            <i class="fas fa-print me-1"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <a asp-action="Index"
+           asp-route-buscar="@ViewBag.Buscar"
+           asp-route-tipoDocumento="@ViewBag.TipoDocumento"
+           asp-route-estado="@ViewBag.Estado"
+           asp-route-metodoPago="@ViewBag.MetodoPago"
+           asp-route-proyectoId="@ViewBag.ProyectoId"
+           asp-route-anio="@ViewBag.Anio"
+           asp-route-mes="@ViewBag.Mes"
+           asp-route-fechaInicio="@ViewBag.FechaInicio"
+           asp-route-fechaFin="@ViewBag.FechaFin"
+           class="btn btn-secondary">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver
+
+        </a>
+
+    </div>
+
+    <!-- =========================================================
+         CONTENEDOR DEL REPORTE
+         ========================================================= -->
+
+    <div class="reporte-container">
+
+        <!-- ENCABEZADO -->
+
+        <div class="encabezado-reporte">
+
+            <h2>
+                <i class="fas fa-chart-pie me-2"></i>
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+            </h2>
+
+            <h4>
+                <i class="fas fa-money-check-dollar me-1"></i>
+                Historial de Pagos de Cuentas por Cobrar
+            </h4>
+
+            <p class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+
+                Generado el
+
+                <strong>
+                    @(
+                        Convert.ToDateTime(ViewBag.FechaGeneracion)
+                        .ToString("dd/MM/yyyy HH:mm")
+                        )
+                </strong>
+
+            </p>
+
+        </div>
+
+        <!-- =====================================================
+             FILTROS APLICADOS
+             ===================================================== -->
+
+        <div class="filtros-reporte">
+
+            <strong>
+                <i class="fas fa-filter me-1"></i>
+                Filtros aplicados:
+            </strong>
+
+            @{
+                var filtros = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.Buscar as string))
+                {
+                    filtros.Add(
+                    $"Búsqueda: {ViewBag.Buscar}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.TipoDocumento as string))
+                {
+                    filtros.Add(
+                    $"Tipo de documento: {ViewBag.TipoDocumento}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.Estado as string))
+                {
+                    filtros.Add(
+                    $"Estado: {ViewBag.Estado}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.MetodoPago as string))
+                {
+                    filtros.Add(
+                    $"Método: {ViewBag.MetodoPago}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.NombreProyecto as string))
+                {
+                    filtros.Add(
+                    $"Proyecto: {ViewBag.NombreProyecto}");
+                }
+
+                if (ViewBag.Anio != null)
+                {
+                    filtros.Add(
+                    $"Año: {ViewBag.Anio}");
+                }
+
+                if (ViewBag.Mes != null)
+                {
+                    filtros.Add(
+                    $"Mes: {ObtenerNombreMes((int?)ViewBag.Mes)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.FechaInicio as string))
+                {
+                    DateOnly fechaDesde =
+                    DateOnly.Parse(
+                    ViewBag.FechaInicio.ToString());
+
+                    filtros.Add(
+                    $"Desde: {fechaDesde:dd/MM/yyyy}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                ViewBag.FechaFin as string))
+                {
+                    DateOnly fechaHasta =
+                    DateOnly.Parse(
+                    ViewBag.FechaFin.ToString());
+
+                    filtros.Add(
+                    $"Hasta: {fechaHasta:dd/MM/yyyy}");
+                }
+            }
+
+            @if (filtros.Any())
+            {
+                <span>
+                    @string.Join(" | ", filtros)
+                </span>
+            }
+            else
+            {
+                <span>
+                    Sin filtros. Se muestran todos los pagos de cuentas por cobrar.
+                </span>
+            }
+
+        </div>
+
+        <!-- =====================================================
+             CARDS DE RESUMEN
+             ===================================================== -->
+
+        <div class="row g-3 mb-4 cards-reporte">
+
+            <div class="col-6 col-md-3">
+                <div class="resumen-card">
+
+                    <div class="icono">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Registros
+                    </div>
+
+                    <p class="valor">
+                        @ViewBag.TotalRegistros
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="resumen-card card-pagado">
+
+                    <div class="icono">
+                        <i class="fas fa-money-bill-transfer"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Total pagado
+                    </div>
+
+                    <p class="valor">
+                        ₡@Convert.ToDecimal(
+                                ViewBag.TotalPagosActivos).ToString("N2")
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="resumen-card card-anulados">
+
+                    <div class="icono">
+                        <i class="fas fa-ban"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Pagos anulados
+                    </div>
+
+                    <p class="valor">
+                        @ViewBag.CantidadAnulados
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="resumen-card card-metodos">
+
+                    <div class="icono">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+
+                    <div class="titulo">
+                        Métodos utilizados
+                    </div>
+
+                    <p class="valor-metodos">
+                        @(
+                            string.IsNullOrWhiteSpace(
+                            ViewBag.MetodosUtilizados as string)
+                            ? "Sin registros"
+                            : ViewBag.MetodosUtilizados
+                            )
+                    </p>
+
+                </div>
+            </div>
+
+        </div>
+        <!-- =====================================================
+        TABLA DEL REPORTE
+        ===================================================== -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover tabla-reporte">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Fecha de pago</th>
+                        <th>N.º documento</th>
+                        <th>Tipo de documento</th>
+                        <th>Origen</th>
+                        <th>Cliente / Beneficiario</th>
+                        <th>Proyecto</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                        <th>Referencia</th>
+                        <th>Observación</th>
+                        <th>Estado</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model.Any())
+                    {
+                        foreach (var pago in Model)
+                        {
+                            string claseFila =
+                            pago.Anulado
+                            ? "fila-anulada"
+                            : "";
+
+                            <tr class="@claseFila">
+
+                                <td class="text-center">
+                                    @pago.FechaPago.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    @(pago.CuentaPorCobrar?.NumeroDocumento
+                                        ?? "Sin documento")
+                                </td>
+
+                                <td>
+                                    @(pago.CuentaPorCobrar?.TipoDocumento
+                                        ?? "Sin tipo")
+                                </td>
+
+                                <td class="text-center">
+                                    @(pago.CuentaPorCobrar?.Origen
+                                        ?? "Sin origen")
+                                </td>
+
+                                <td>
+                                    @(pago.CuentaPorCobrar?
+                                        .ClienteBeneficiario?.Nombre
+                                        ?? "Sin cliente")
+                                </td>
+
+                                <td>
+                                    @(pago.CuentaPorCobrar?
+                                        .Proyecto?.Nombre
+                                        ?? "Sin proyecto")
+                                </td>
+
+                                <td class="text-end">
+                                    ₡@((pago.Monto ?? 0m).ToString("N2"))
+                                </td>
+
+                                <td class="text-center">
+                                    @(string.IsNullOrWhiteSpace(
+                                        pago.MetodoPago)
+                                        ? "Sin método"
+                                        : pago.MetodoPago)
+                                </td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(
+                                        pago.Referencia)
+                                        ? "Sin referencia"
+                                        : pago.Referencia)
+                                </td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(
+                                        pago.Observacion)
+                                        ? "Sin observación"
+                                        : pago.Observacion)
+                                </td>
+
+                                <td class="text-center">
+                                    @(pago.Anulado
+                                        ? "Anulado"
+                                        : "Registrado")
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="11"
+                                class="text-center text-muted py-4">
+
+                                No se encontraron pagos de cuentas por cobrar
+                                con los filtros aplicados.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+                <!-- =================================================
+                     TOTALES
+                     ================================================= -->
+                @if (Model.Any())
+                {
+                    <tfoot>
+
+                        <tr class="totales-reporte">
+
+                            <td colspan="6"
+                                class="text-end">
+
+                                TOTAL PAGADO:
+
+                            </td>
+
+                            <td class="text-end">
+
+                                ₡@Convert.ToDecimal(ViewBag.TotalPagado).ToString("N2")
+
+                            </td>
+
+                            <td colspan="3"
+                                class="text-end">
+
+                                REGISTROS:
+
+                            </td>
+
+                            <td class="text-center">
+
+                                @ViewBag.TotalRegistros
+
+                                @(Convert.ToInt32(
+                                    ViewBag.TotalRegistros) == 1
+                                    ? "registro"
+                                    : "registros")
+
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+        <!-- =====================================================
+             RESUMEN INFERIOR
+             ===================================================== -->
+
+        <div class="estado-resumen">
+
+
+            <h5>
+                <i class="fas fa-chart-pie me-1"></i>
+                Resumen del reporte
+            </h5>
+
+            <div class="row g-0">
+
+                <div class="col estado-item">
+
+                    <span class="cantidad">
+                        @ViewBag.CantidadActivos
+                    </span>
+
+                    <span class="nombre">
+                        Registrados
+                    </span>
+
+                </div>
+
+                <div class="col estado-item">
+
+                    <span class="cantidad">
+                        @ViewBag.CantidadAnulados
+                    </span>
+
+                    <span class="nombre">
+                        Anulados
+                    </span>
+
+                </div>
+
+                <div class="col estado-item">
+
+                    <span class="cantidad">
+                        @ViewBag.CantidadEfectivo
+                    </span>
+
+                    <span class="nombre">
+                        Efectivo
+                    </span>
+
+                </div>
+
+                <div class="col estado-item">
+
+                    <span class="cantidad">
+                        @ViewBag.CantidadTransferencia
+                    </span>
+
+                    <span class="nombre">
+                        Transferencias
+                    </span>
+
+                </div>
+
+                <div class="col estado-item">
+
+                    <span class="cantidad">
+                        @ViewBag.CantidadSinpe
+                    </span>
+
+                    <span class="nombre">
+                        SINPE Móvil
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+</body>
+
+</html>

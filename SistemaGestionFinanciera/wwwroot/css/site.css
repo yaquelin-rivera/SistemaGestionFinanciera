@@ -1,0 +1,1743 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* Mejoras visuales */
+/*
+.btn {
+    font-weight: bold !important;
+    font-size: 18px !important;
+}*/
+
+.table th {
+    font-weight: bold !important;
+    font-size: 20px !important;
+}
+
+.table td {
+    font-size: 18px !important;
+}
+
+body {
+    font-size: 19px;
+}
+
+.table td,
+.table th {
+    padding: 12px !important;
+}
+h2 {
+    font-size: 40px !important;
+    font-weight: 700 !important;
+}
+body {
+    background-color: #F5F6F8;
+}
+
+/* Mejoras visualesal pie de pagina */
+.app-footer {
+    background-color: #17899a;
+    color: white;
+    text-align: center;
+    font-size: 13px;
+    padding: 10px;
+    margin-top: 40px;
+    border-radius: 4px 4px 0 0;
+}
+
+.card {
+    border: none;
+    border-radius: 6px;
+}
+
+.card-header {
+    background-color: #1F2933 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+}
+.app-footer {
+    background-color: #147A8A;
+    color: white;
+    text-align: center;
+    font-size: 13px;
+    padding: 10px;
+    margin-top: 40px;
+}
+html, body {
+    height: 100%; /* obliga al área principal a ocupar toda la altura de la ventana. */
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container-fluid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}/* .hace que el contenido empuje el footer hacia abajo.
+Si una página tiene poco contenido, el footer se pega al borde inferior.
+Si una página tiene mucho contenido, el footer baja normalmente al final de la página. */
+    .container-fluid > *:last-child {
+        margin-bottom: auto;
+    }
+.app-footer {
+    background-color: #147A8A;
+    color: white;
+    text-align: center;
+    font-size: 13px;
+    padding: 10px;
+}
+
+/* Efecto moderno para todos los botones */
+.btn {
+    transition: all 0.25s ease;
+}
+
+/* Al pasar el mouse */
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.20);
+}
+/* ==========================================================
+   badge doble en estado de gastos 
+========================================================== */
+
+
+.badge-accion-doble {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    padding: .30rem .45rem;
+    text-align: center;
+    white-space: normal;
+}
+
+    .badge-accion-doble i {
+        margin-bottom: 2px;
+    }
+/* ==========================================================
+   BOTONES DE ACCIONES - UCADSA
+========================================================== */
+
+/* Detalles */
+.btn-info,
+.btn-detalles {
+    background-color: #4A9A57 !important;
+    border-color: #4A9A57 !important;
+    color: #fff !important;
+}
+
+/* Modificar */
+.btn-warning,
+.btn-modificar {
+    background-color: #FACC15 !important;
+    border-color: #FACC15 !important;
+    color: #000 !important;
+}
+
+/* Desactivar / Eliminar / Anular */
+.btn-danger,
+.btn-desactivar,
+.btn-anular,
+.btn-eliminar {
+    background-color: #EF4444 !important;
+    border-color: #EF4444 !important;
+    color: #fff !important;
+}
+
+/* Registrar */
+.btn-primary,
+.btn-registrar {
+    background-color: #2CB9C8 !important;
+    border-color: #2CB9C8 !important;
+    color: #062E34 !important;
+}
+
+/* Guardar background-color: #0F7C90 !important;
+    border-color: #0F7C90 !important;
+    color: #fff !important;*/
+.btn-success,
+.btn-guardar,
+.btn-activar {
+    background-color: #5DD3DF !important;
+    border-color: #5DD3DF !important;
+    color: #062E34 !important;
+}
+
+/* Volver / Limpiar */
+.btn-secondary,
+.btn-volver,
+.btn-limpiar {
+    background-color: #334155 !important;
+    border-color: #334155 !important;
+    color: #fff !important;
+}
+
+
+
+/* para vbarra lateral**************************************** */
+aside .nav-link {
+    font-size: 18px;
+    font-weight: 700;
+}
+/* lateral para los titulos */
+
+aside small {
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* latreral para los nombres */
+aside h5 {
+    font-size: 24px;
+    font-weight: 800;
+}
+/* latreral para los nombres osea Cuando pase el mouse por encima parecerá luminoso.*/
+aside .nav-link:hover {
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 6px;
+}
+
+
+    /* Al dar clic */
+    .btn:active {
+        transform: translateY(0px);
+    }
+/* Hover de filas */
+.table tbody tr:hover {
+    background-color: #E8F7FA;
+}
+/* Tarjetas modernas */
+.card {
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+/* Inputs modernos */
+.form-control {
+    height: 45px;
+}
+/* Formularios más modernos */
+.form-control {
+    height: 40px;
+    border-radius: 6px;
+}
+
+/* Encabezado de tarjetas */
+.card-header {
+    background-color: #0A4F59 !important;
+    color: white !important;
+    font-weight: 700;
+    font-size: 18px;
+}
+/* Opción activa del menú lateral */
+aside .nav-link.active {
+    background-color: rgba(255,255,255,0.22);
+    border-radius: 6px;
+    color: white !important;
+    font-weight: 900;
+}
+/* ===== BOTONES DE ACCIONES TABLAS ===== 
+
+.btn-accion {
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+*/
+ 
+
+
+
+.tabla-sistema thead th {
+    background-color: #D9EEF1;
+    color: #147A8A;
+    font-weight: 700;
+    border-bottom: 2px solid #0F5A66;
+    border-right: 1px solid #9EC7CF;
+    border-left: 1px solid #EAF5F7;
+
+    text-align: center;
+    vertical-align: middle !important;
+
+    height: 85px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.tabla-sistema td {
+    vertical-align: middle;
+}
+/*
+.col-acciones {
+    text-align: center;
+    min-width: 180px;
+}
+
+.acciones-botones {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}*/
+
+.descripcion-corta {
+    max-width: 300px;
+    display: block;
+}
+.btn-rechazar {
+    background-color: #8B1E3F;
+    border-color: #8B1E3F;
+    color: white;
+}
+
+    .btn-rechazar:hover {
+        background-color: #6D1731;
+        border-color: #6D1731;
+    }
+.btn-aprobar {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: white !important;
+}
+
+    .btn-aprobar:hover {
+        background-color: #146c43 !important;
+        border-color: #146c43 !important;
+        color: white !important;
+    }
+
+#tablaAuditoria th,
+#tablaAuditoria td {
+    vertical-align: middle;
+}
+
+    #tablaAuditoria th:first-child,
+    #tablaAuditoria td:first-child {
+        min-width: 160px;
+    }
+
+    #tablaAuditoria th:nth-child(2),
+    #tablaAuditoria td:nth-child(2) {
+        min-width: 220px;
+    }
+
+    #tablaAuditoria th:nth-child(6),
+    #tablaAuditoria td:nth-child(6) {
+        min-width: 380px;
+    }
+
+.btn-detalle-auditoria {
+    min-width: 95px;
+    font-weight: 600;
+}
+
+.btn:focus,
+.btn:active {
+    box-shadow: none !important;
+}
+
+/*=========================================================
+  PAGINACIÓN DATATABLES - ESTILO UCADSA
+=========================================================*/
+
+.dataTables_wrapper .page-link {
+    color: #0F5A63;
+    border-color: #d7e6ea;
+    font-weight: 600;
+}
+
+    .dataTables_wrapper .page-link:hover {
+        background: #0F5A63;
+        color: #fff;
+        border-color: #0F5A63;
+    }
+
+.dataTables_wrapper .page-item.active .page-link {
+    background: #0F5A63;
+    border-color: #0F5A63;
+    color: #fff;
+}
+
+.dataTables_wrapper .page-item.disabled .page-link {
+    color: #8b8b8b;
+    background: #fff;
+}
+
+.dataTables_wrapper .page-link:focus {
+    box-shadow: none;
+}
+
+.dataTables_length select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    min-width: 70px;
+}
+
+.dataTables_info,
+.dataTables_length {
+    font-weight: 500;
+    color: #495057;
+}
+.dataTables_wrapper .paginate_button {
+    margin: 0 2px;
+}
+
+.dataTables_wrapper .page-link {
+    border-radius: 6px !important;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    padding-top: .75rem;
+}
+.dataTables_length select {
+    height: 38px;
+    padding: 4px 10px;
+    font-size: .95rem;
+}
+
+/* Texto Mostrar ... registros */
+.dataTables_wrapper .dataTables_length label {
+    font-weight: 700 !important;
+    color: #0F5A63;
+}
+
+/* Texto Mostrando 1 a 10 de ... */
+.dataTables_wrapper .dataTables_info {
+    font-weight: 700 !important;
+    color: #0F5A63;
+}
+/*=========================================================
+  SOLO CARDS DE RESUMEN
+=========================================================*/
+
+.card-resumen {
+    border-left: 4px solid transparent !important;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+    .card-resumen:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .8rem 1.5rem rgba(0, 0, 0, .15) !important;
+    }
+
+    /* Colores del borde lateral */
+
+    .card-resumen.border-dark {
+        border-left-color: var(--bs-dark) !important;
+    }
+
+    .card-resumen.border-primary {
+        border-left-color: var(--bs-primary) !important;
+    }
+    .card-resumen.border-orange {
+        border-left: 4px solid #fd7e14 !important;
+    }
+
+    .card-resumen.border-info {
+        border-left-color: var(--bs-info) !important;
+    }
+
+    .card-resumen.border-success {
+        border-left-color: var(--bs-success) !important;
+    }
+
+    .card-resumen.border-secondary {
+        border-left-color: var(--bs-secondary) !important;
+    }
+
+    .card-resumen.border-warning {
+        border-left-color: var(--bs-warning) !important;
+    }
+
+    .card-resumen.border-danger {
+        border-left-color: var(--bs-danger) !important;
+    }
+/*=========================================================
+  DASHBOARD - BARRA DE PRESUPUESTO
+=========================================================*/
+
+.dashboard-progress {
+    height: 28px;
+    border-radius: 50px;
+    background-color: #e9eef2;
+    overflow: hidden;
+}
+
+    .dashboard-progress .progress-bar {
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+/*=========================================================
+  DASHBOARD - TABLAS COMPACTAS
+=========================================================*/
+
+.dashboard-table {
+    font-size: .92rem;
+    margin-bottom: 0;
+}
+
+    .dashboard-table thead th {
+        background-color: #f4f8f9;
+        color: #0F5A63;
+        font-weight: 700;
+        border-bottom: 2px solid #0F5A63;
+    }
+
+    .dashboard-table tbody td {
+        padding: .55rem .75rem;
+        vertical-align: middle;
+    }
+
+    .dashboard-table tbody tr:hover {
+        background-color: #eef7f8;
+    }
+    /*para el login que no salga grande en patallas pequeñas */
+@media (max-height: 760px) {
+    body {
+        align-items: flex-start;
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .login-card {
+        padding: 24px 34px 20px;
+    }
+
+    .logo-ucad {
+        width: 72px;
+        height: 80px;
+    }
+
+    .login-title {
+        font-size: 1.65rem;
+        margin-top: 4px;
+    }
+
+    .login-description {
+        margin-bottom: 12px;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+
+    .login-footer {
+        margin-top: 12px;
+        padding-top: 10px;
+    }
+}
+
+/* ================================================================
+   ESTILO GENERAL DE SWEETALERT2
+   Sistema Financiero UCAD Santa Ana
+================================================================ */
+
+.sweetalert-ucad-popup {
+    overflow: hidden !important;
+    border: 1px solid rgba(15, 124, 144, .15) !important;
+    border-top: 7px solid #0F7C90 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, .30) !important;
+}
+
+.sweetalert-ucad-title {
+    margin-top: 4px !important;
+    color: #263C42 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 1.65rem !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+}
+
+.sweetalert-ucad-text {
+    margin-top: 8px !important;
+    color: #5D6B70 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: .98rem !important;
+    line-height: 1.6 !important;
+}
+
+.sweetalert-ucad-icon {
+    margin-top: 1.15rem !important;
+    transform: scale(.92);
+}
+
+.sweetalert-ucad-confirm,
+.sweetalert-ucad-cancel {
+    min-width: 125px !important;
+    min-height: 43px !important;
+    padding: 10px 20px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: .95rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+
+    .sweetalert-ucad-confirm:hover,
+    .sweetalert-ucad-cancel:hover {
+        transform: translateY(-1px);
+        filter: brightness(.96);
+        box-shadow: 0 7px 16px rgba(0, 0, 0, .15) !important;
+    }
+
+    .sweetalert-ucad-confirm:focus,
+    .sweetalert-ucad-cancel:focus {
+        box-shadow: 0 0 0 .22rem rgba(15, 124, 144, .20) !important;
+    }
+
+.swal2-actions {
+    gap: 10px !important;
+    margin-top: 1.45rem !important;
+}
+
+.swal2-icon {
+    border-width: 3px !important;
+}
+
+@media (max-width: 576px) {
+
+    .sweetalert-ucad-popup {
+        width: calc(100% - 28px) !important;
+        padding: 1.25rem !important;
+    }
+
+    .sweetalert-ucad-title {
+        font-size: 1.4rem !important;
+    }
+
+    .sweetalert-ucad-confirm,
+    .sweetalert-ucad-cancel {
+        min-width: 115px !important;
+    }
+}
+/* ================================================================
+   SWEETALERT PROFESIONAL PARA CERRAR SESIÓN
+================================================================ */
+
+.swal-logout-popup {
+    overflow: hidden !important;
+    border: 1px solid rgba(15, 124, 144, .22) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, .38) !important;
+}
+
+/* Encabezado turquesa */
+
+.swal-logout-header {
+    width: 100%;
+    padding: 27px 25px 23px;
+    color: #ffffff;
+    background: linear-gradient( 135deg, #0F5A63 0%, #0F7C90 55%, #16A9B8 100% );
+    text-align: center;
+}
+
+/* Círculo del icono */
+
+.swal-logout-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: rgba(255, 255, 255, .16);
+    border: 2px solid rgba(255, 255, 255, .70);
+    border-radius: 50%;
+    font-size: 1.85rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .16);
+}
+
+.swal-logout-title {
+    margin: 0;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.65rem;
+    font-weight: 800;
+}
+
+/* Cuerpo blanco */
+
+.swal-logout-body {
+    padding: 27px 38px 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+.swal-logout-question {
+    margin: 0 0 10px;
+    color: #263c42;
+    font-size: 1.18rem;
+    font-weight: 750;
+}
+
+.swal-logout-description {
+    margin: 0;
+    color: #68777c;
+    font-size: .96rem;
+    line-height: 1.6;
+}
+
+/* Área de botones */
+
+.swal-logout-actions {
+    width: 100%;
+    margin: 0 !important;
+    padding: 22px 28px 27px !important;
+    gap: 12px !important;
+}
+
+/* Botones */
+
+.swal-logout-confirm,
+.swal-logout-cancel {
+    min-width: 145px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 10px 20px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: .94rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+
+    .swal-logout-confirm:hover,
+    .swal-logout-cancel:hover {
+        transform: translateY(-2px);
+        filter: brightness(.96);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, .18) !important;
+    }
+
+    .swal-logout-confirm:focus,
+    .swal-logout-cancel:focus {
+        box-shadow: 0 0 0 .23rem rgba(15, 124, 144, .22) !important;
+    }
+
+/* Responsive */
+
+@media (max-width: 576px) {
+
+    .swal-logout-popup {
+        width: calc(100% - 25px) !important;
+    }
+
+    .swal-logout-header {
+        padding: 24px 20px 20px;
+    }
+
+    .swal-logout-body {
+        padding: 24px 24px 5px;
+    }
+
+    .swal-logout-actions {
+        padding: 20px 20px 24px !important;
+    }
+
+    .swal-logout-confirm,
+    .swal-logout-cancel {
+        min-width: 125px !important;
+    }
+}
+
+/* ==========================================================
+   BOTONES DE ACCIONES EN TABLAS
+   ESTÁNDAR PROFESIONAL UCADSA
+========================================================== */
+
+/* Columna donde se muestran las acciones */
+.col-acciones,
+.tabla-sistema th:last-child,
+.tabla-sistema td:last-child {
+    min-width: 285px;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+    /* Contenedor de botones */
+    .acciones-botones,
+    .tabla-sistema td:last-child .d-flex,
+    .tabla-sistema td:last-child .btn-group {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+    }
+
+/* Todos los botones ubicados dentro de tablas */
+.tabla-sistema tbody .btn,
+.table tbody .btn-accion {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 69px !important;
+    min-width: 69px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    padding: 2px 5px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+
+    margin: 0 !important;
+    border: 1px solid transparent !important;
+    border-radius: 5px !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    white-space: normal !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease !important;
+}
+
+    /* Iconos de Font Awesome y Bootstrap Icons */
+    .tabla-sistema tbody .btn i,
+    .tabla-sistema tbody .btn svg,
+    .table tbody .btn-accion i,
+    .table tbody .btn-accion svg {
+        display: block !important;
+        margin: 0 0 3px 0 !important;
+        width: auto !important;
+        height: auto !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+
+        /* Evita que los iconos hereden márgenes laterales */
+        .tabla-sistema tbody .btn i.me-1,
+        .tabla-sistema tbody .btn i.me-2,
+        .table tbody .btn-accion i.me-1,
+        .table tbody .btn-accion i.me-2 {
+            margin-right: 0 !important;
+            margin-bottom: 3px !important;
+        }
+
+   
+ /*  EFECTO HOVER PARA BOTONES DE ACCIONES*/
+
+
+    .tabla-sistema tbody .btn:not(:disabled):not(.disabled):hover,
+    .table tbody .btn-accion:not(:disabled):not(.disabled):hover {
+        transform: translateY(-2px) !important;
+        filter: brightness(1.10) !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, .55), 0 6px 12px rgba(0, 0, 0, .23) !important;
+    }
+
+    /* Evita el aro azul exagerado */
+    .tabla-sistema tbody .btn:focus,
+    .table tbody .btn-accion:focus {
+        box-shadow: 0 0 0 .18rem rgba(15, 124, 144, .20) !important;
+    }
+
+    .tabla-sistema tbody .btn:active,
+    .table tbody .btn-accion:active {
+        transform: translateY(0) !important;
+        filter: brightness(.96) !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, .18) !important;
+    }
+
+    /* ==========================================================
+   COLORES OFICIALES DE LAS ACCIONES
+========================================================== */
+
+    /* Detalles */
+    .tabla-sistema tbody .btn-info,
+    .tabla-sistema tbody .btn-detalles,
+    .table tbody .btn-accion.btn-info,
+    .table tbody .btn-accion.btn-detalles {
+        background-color: #4A9A57 !important;
+        border-color: #4A9A57 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Modificar / Editar */
+    .tabla-sistema tbody .btn-warning,
+    .tabla-sistema tbody .btn-modificar,
+    .tabla-sistema tbody .btn-editar,
+    .table tbody .btn-accion.btn-warning,
+    .table tbody .btn-accion.btn-modificar,
+    .table tbody .btn-accion.btn-editar {
+        background-color: #FACC15 !important;
+        border-color: #FACC15 !important;
+        color: #111111 !important;
+    }
+
+    /* Desactivar / Anular / Eliminar */
+    .tabla-sistema tbody .btn-danger,
+    .tabla-sistema tbody .btn-desactivar,
+    .tabla-sistema tbody .btn-anular,
+    .tabla-sistema tbody .btn-eliminar,
+    .table tbody .btn-accion.btn-danger,
+    .table tbody .btn-accion.btn-desactivar,
+    .table tbody .btn-accion.btn-anular,
+    .table tbody .btn-accion.btn-eliminar {
+        background-color: #EF4444 !important;
+        border-color: #EF4444 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Activar / Reactivar */
+    .tabla-sistema tbody .btn-success,
+    .tabla-sistema tbody .btn-activar,
+    .tabla-sistema tbody .btn-reactivar,
+    .table tbody .btn-accion.btn-success,
+    .table tbody .btn-accion.btn-activar,
+    .table tbody .btn-accion.btn-reactivar {
+        background: #2CB9C8 !important;
+        border-color: #2CB9C8 !important;
+        color: #062E34 !important;
+    }
+
+    /* Ver movimientos / Consultar */
+    .tabla-sistema tbody .btn-primary,
+    .tabla-sistema tbody .btn-consultar,
+    .tabla-sistema tbody .btn-movimientos,
+    .table tbody .btn-accion.btn-primary,
+    .table tbody .btn-accion.btn-consultar,
+    .table tbody .btn-accion.btn-movimientos {
+        background-color: #0F7C90 !important;
+        border-color: #0F7C90 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Botón deshabilitado */
+    .tabla-sistema tbody .btn.disabled,
+    .tabla-sistema tbody .btn:disabled,
+    .table tbody .btn-accion.disabled,
+    .table tbody .btn-accion:disabled {
+        opacity: .55 !important;
+        pointer-events: none !important;
+        filter: none !important;
+        box-shadow: none !important;
+    }
+
+/* ==========================================================
+   AJUSTE PARA PANTALLAS PEQUEÑAS
+========================================================== */
+
+@media (max-width: 1200px) {
+
+    .col-acciones,
+    .tabla-sistema th:last-child,
+    .tabla-sistema td:last-child {
+        min-width: 245px;
+    }
+
+    .tabla-sistema tbody .btn,
+    .table tbody .btn-accion {
+        width: 72px !important;
+        min-width: 72px !important;
+        height: 44px !important;
+        min-height: 44px !important;
+        padding: 3px 4px !important;
+        font-size: 10px !important;
+    }
+
+        .tabla-sistema tbody .btn i,
+        .tabla-sistema tbody .btn svg,
+        .table tbody .btn-accion i,
+        .table tbody .btn-accion svg {
+            font-size: 13px !important;
+        }
+}
+
+/* ==========================================================
+   BOTONES GENERALES FUERA DE TABLAS
+   Formularios, filtros, guardar, registrar, volver, etc.
+========================================================== */
+
+.btn:not(.btn-accion) {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: .95rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease !important;
+}
+
+    .btn:not(.btn-accion):not(:disabled):not(.disabled):hover {
+        transform: translateY(-2px);
+        filter: brightness(1.08);
+        box-shadow: 0 0 8px rgba(255, 255, 255, .50), 0 6px 13px rgba(0, 0, 0, .22) !important;
+    }
+
+    .btn:not(.btn-accion):not(:disabled):not(.disabled):active {
+        transform: translateY(0);
+        filter: brightness(.96);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, .16) !important;
+    }
+
+/* Brillo particular del botón Detalles */
+.tabla-sistema tbody .btn-info:hover,
+.tabla-sistema tbody .btn-detalles:hover,
+.table tbody .btn-accion.btn-info:hover,
+.table tbody .btn-accion.btn-detalles:hover {
+    filter: brightness(1.14) !important;
+    box-shadow: 0 0 9px rgba(74, 154, 87, .55), 0 6px 12px rgba(0, 0, 0, .23) !important;
+}
+.acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px; /* puedes probar 12px */
+    margin-bottom: 20px;
+}
+
+/* ================================================================
+   MENÚ LATERAL PROFESIONAL Y RESPONSIVO*/
+
+
+:root {
+    --sidebar-width: 276px;
+    /* NUEVO COLOR INSTITUCIONAL */
+
+    --sidebar-bg: #16889A;
+    --sidebar-bg-dark: #147E90;
+    --sidebar-accent: #6ED4E1;
+    --sidebar-text: #ffffff;
+    --sidebar-muted: rgba(255,255,255,.78);
+    --header-bg: #16889A;
+}
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1040;
+    width: var(--sidebar-width);
+    padding: 0;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 4px 0 18px rgba(15, 58, 67, 0.14);
+    transition: transform 0.25s ease, width 0.25s ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+    .app-sidebar::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    .app-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .app-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+    }
+
+        .app-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.42);
+        }
+
+.app-main {
+    width: calc(100% - var(--sidebar-width));
+    margin-left: var(--sidebar-width);
+    min-width: 0;
+    transition: width 0.25s ease, margin-left 0.25s ease;
+}
+
+.sidebar-brand {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 76px;
+    padding: 1rem 1rem 0.9rem;
+    background: rgba(8, 82, 94, 0.96);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(8px);
+}
+
+.brand-mark {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    font-size: 1.55rem;
+}
+
+.brand-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    font-weight: 800;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.brand-subtitle {
+    margin-top: 0.15rem;
+    color: var(--sidebar-muted);
+    font-size: 0.94rem;
+    letter-spacing: 0.03em;
+}
+
+.sidebar-close {
+    margin-left: auto;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 1.15rem;
+}
+
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.9rem 0.85rem 0.45rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-avatar,
+.header-user-avatar {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--sidebar-bg-dark);
+    font-weight: 800;
+}
+
+.profile-info,
+.header-user-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name,
+.header-user-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.profile-name {
+    max-width: 155px;
+    font-size: 0.99rem;
+}
+
+.profile-role,
+.header-user-role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-role {
+    max-width: 155px;
+    margin-top: 0.08rem;
+    color: var(--sidebar-muted);
+    font-size: 0.92rem;
+}
+
+.sidebar-navigation {
+    padding: 0.35rem 0.75rem 1rem;
+}
+
+.app-sidebar .nav {
+    gap: 0.18rem;
+}
+
+.app-sidebar .nav-item {
+    width: 100%;
+}
+
+.app-sidebar .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.72rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.62rem 0.72rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.94) !important;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+    .app-sidebar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: rgba(255, 255, 255, 0.14);
+        color: #ffffff !important;
+        transform: none;
+    }
+
+    .app-sidebar .nav-link.active {
+        background: #ffffff;
+        border-color: #ffffff;
+        color: var(--sidebar-bg-dark) !important;
+        box-shadow: 0 7px 18px rgba(4, 61, 70, 0.18);
+        font-weight: 800;
+    }
+
+        .app-sidebar .nav-link.active::before {
+            content: "";
+            position: absolute;
+            left: -0.75rem;
+            top: 8px;
+            bottom: 8px;
+            width: 4px;
+            border-radius: 0 999px 999px 0;
+            background: var(--sidebar-accent);
+        }
+
+.menu-icon {
+    flex: 0 0 22px;
+    width: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.menu-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.menu-section {
+    margin: 0.95rem 0.35rem 0.28rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+    .menu-section:first-of-type {
+        margin-top: 0.55rem;
+    }
+
+.menu-section-title {
+    display: block;
+    color: rgba(255, 255, 255, 0.57);
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.logout-item {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.app-sidebar .logout-link {
+    background: rgba(124, 20, 35, 0.2);
+    border-color: rgba(255, 255, 255, 0.11);
+    color: #fff !important;
+}
+
+    .app-sidebar .logout-link:hover {
+        background: rgba(154, 28, 46, 0.42);
+    }
+
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    min-height: 64px;
+    background: var(--header-bg);
+}
+
+.header-content {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 1rem;
+}
+
+.sidebar-toggle {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 1.55rem;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+    .sidebar-toggle:hover {
+        background: rgba(255, 255, 255, 0.17);
+        transform: scale(1.03);
+    }
+
+.header-title-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.header-title {
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.header-subtitle {
+    margin-top: 0.15rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.94rem;
+}
+
+.header-user {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.header-user-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.header-user-name {
+    max-width: 210px;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.header-user-role {
+    max-width: 210px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.85rem;
+}
+
+.header-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-width: 140px;
+    height: 42px;
+    padding: 0 18px;
+    font-size: .90rem;
+    font-weight: 700;
+    border-radius: 10px;
+}
+/* Hamburguesa destacada cuando el menú está oculto */
+body.sidebar-collapsed .sidebar-toggle {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #0F7180;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+body.sidebar-collapsed .app-sidebar {
+    transform: translateX(-100%);
+}
+
+body.sidebar-collapsed .app-main {
+    width: 100%;
+    margin-left: 0;
+}
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgba(4, 28, 33, 0.56);
+    backdrop-filter: blur(2px);
+}
+
+.app-main .container-fluid {
+    min-width: 0;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 991.98px) {
+    .app-sidebar {
+        width: min(88vw, 310px);
+        transform: translateX(-100%);
+    }
+
+    .app-main {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    body.sidebar-open .app-sidebar {
+        transform: translateX(0);
+    }
+
+    body.sidebar-open .sidebar-backdrop {
+        display: block;
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    .header-user-name {
+        max-width: 140px;
+    }
+
+    .header-user-role {
+        max-width: 140px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .header-content {
+        padding: 0.65rem 0.75rem;
+    }
+
+    .header-user-info {
+        display: none;
+    }
+
+    .header-user-avatar {
+        display: none;
+    }
+
+    .app-main .container-fluid {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    .sidebar-profile {
+        margin-left: 0.7rem;
+        margin-right: 0.7rem;
+    }
+
+    .btn {
+        max-width: 100%;
+    }
+
+}
+@media (max-width: 991.98px) {
+    body:not(.sidebar-open) .sidebar-toggle {
+        background-color: #ffffff;
+        border-color: #ffffff;
+        color: #0F7180;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.20);
+    }
+}
+
+/* ================================================================
+   AJUSTES FINALES DEL MENÚ #0F7180   
+   ================================================================ */
+
+:root {
+    --institutional-teal: #137B8B;
+}
+
+/* Color institucional uniforme */
+.app-sidebar,
+.sidebar-brand,
+.app-header {
+    background: var(--institutional-teal);
+}
+
+    /* Texto del menú ligeramente más grande */
+    .app-sidebar .nav-link {
+        min-height: 44px;
+        padding: 0.62rem 0.72rem;
+        font-size: 1.25rem;
+        line-height: 1.3;
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+        /* Hover sin movimiento */
+        .app-sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff !important;
+            transform: none;
+        }
+
+/* Encabezados de grupos */
+.menu-section-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,.72);
+    text-transform: uppercase;
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+
+/* Barra superior */
+.app-header,
+.header-content {
+    min-height: 58px;
+}
+
+.header-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.header-subtitle {
+    font-size: 0.90rem;
+}
+
+/* Recordatorio visual cuando el lateral está oculto */
+body.sidebar-collapsed .sidebar-toggle {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: var(--institutional-teal);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+/* Footer institucional */
+.app-main {
+    min-height: 100vh;
+}
+
+    .app-main > .container-fluid {
+        flex: 1 0 auto;
+    }
+
+.app-footer {
+    flex-shrink: 0;
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    background-color: var(--institutional-teal);
+    color: #ffffff;
+    border-top: none;
+    font-size: 0.96rem;
+    text-align: center;
+}
+
+@media (max-width: 991.98px) {
+    body:not(.sidebar-open) .sidebar-toggle {
+        background-color: #ffffff;
+        border-color: #ffffff;
+        color: var(--institutional-teal);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.20);
+    }
+}
+/*alerta de puntos sobre menu lateral */
+.menu-alerta {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.menu-alerta-roja {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.menu-alerta-amarilla {
+    color: #212529;
+    background-color: #ffc107;
+}
+
+.app-sidebar .nav-link {
+    display: flex;
+    align-items: center;
+}
+.tooltip {
+    z-index: 2000;
+}
+
+.tooltip-inner {
+    max-width: 230px;
+    text-align: left;
+}
+/* ===========================
+   Tooltips institucionales
+=========================== */
+
+.tooltip-inner {
+    background: #0F5C64;
+    color: #fff;
+    border-radius: .45rem;
+    padding: .45rem .70rem;
+    font-size: .85rem;
+    max-width: 240px;
+    text-align: left;
+    box-shadow: 0 .35rem .8rem rgba(0,0,0,.20);
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before,
+.tooltip.bs-tooltip-start .tooltip-arrow::before,
+.tooltip.bs-tooltip-top .tooltip-arrow::before,
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-right-color: #0F5C64 !important;
+    border-left-color: #0F5C64 !important;
+    border-top-color: #0F5C64 !important;
+    border-bottom-color: #0F5C64 !important;
+}
+/* Tarjeta flotante para alertas del menú */
+.popover {
+    max-width: 280px;
+    border: 1px solid #0f7c90;
+    border-radius: 0.55rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.22);
+}
+
+.popover-header {
+    padding: 0.7rem 1rem;
+    color: #ffffff;
+    background-color: #0f5c64;
+    border-bottom: 0;
+    font-size: 0.99rem;
+    font-weight: 700;
+}
+
+.popover-body {
+    padding: 0.9rem 1rem;
+    color: #263238;
+    background-color: #ffffff;
+    font-size: 0.97rem;
+    line-height: 1.4;
+}
+
+.alerta-popover-contenido {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/* Corregir presupuesto */
+.tabla-sistema tbody .btn-corregir,
+.table tbody .btn-accion.btn-corregir {
+    background-color: #2563EB !important;
+    border-color: #2563EB !important;
+    color: #FFFFFF !important;
+}
+/* PDF - rojo suave */
+/* PDF - rojo suave */
+a.btn.btn-reporte-pdf {
+    color: #dc3545 !important;
+    background-color: #fdecef !important;
+    border: 1px solid #dc3545 !important;
+}
+
+    a.btn.btn-reporte-pdf:hover,
+    a.btn.btn-reporte-pdf:focus {
+        color: #ffffff !important;
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+
+
+/* EXCEL - verde suave */
+.btn-excel-suave {
+    color: #198754 !important;
+    background-color: #e8f6ef !important;
+    border: 1px solid #198754 !important;
+}
+
+    .btn-excel-suave:hover {
+        color: #fff !important;
+        background-color: #198754 !important;
+        border-color: #198754 !important;
+    }
+
+
+/* MOVIMIENTOS - azul suave */
+.btn-movimientos-suave {
+    color: #0d6efd !important;
+    background-color: #eaf2ff !important;
+    border: 1px solid #0d6efd !important;
+}
+
+    .btn-movimientos-suave:hover {
+        color: #fff !important;
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+

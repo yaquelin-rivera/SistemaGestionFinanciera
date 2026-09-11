@@ -1,0 +1,547 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.CentrosCosto>
+
+@{
+    ViewData["Title"] = "Centros de costo";
+
+    var totalCentros = Model.Count();
+    var totalActivos = Model.Count(c => c.Activo);
+    var totalInactivos = Model.Count(c => !c.Activo);
+    var totalConMovimientos = Model.Count(c => c.MovimientosContables != null && c.MovimientosContables.Any());
+}
+
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Gestión de centros de costo</h2>
+            <small class="text-muted">
+                Catálogo utilizado para clasificar los movimientos contables por áreas o departamentos.
+            </small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold mb-1">Centros registrados</small>
+                        <h5 class="fw-bold text-primary mb-0">
+                            @totalCentros
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-sitemap fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold mb-1">Centros activos</small>
+                        <h5 class="fw-bold text-success mb-0">
+                            @totalActivos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-check-circle fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-secondary border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold mb-1">Centros inactivos</small>
+                        <h5 class="fw-bold text-secondary mb-0">
+                            @totalInactivos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-ban fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-resumen shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="text-muted">Con movimientos</small>
+                        <h5 class="fw-bold text-warning mb-0">
+                            @totalConMovimientos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-exchange-alt fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-md-4">
+
+                    <label class="form-label fw-bold">
+
+                        <i class="fas fa-search text-muted me-1"></i>
+                        Buscar
+
+                    </label>
+
+                    <input type="text"
+                           id="filtroTexto"
+                           class="form-control"
+                           placeholder="Código, nombre o descripción..." />
+
+                </div>
+
+                <!-- ESTADO -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        <i class="fas fa-info-circle text-muted me-1"></i>
+                        Estado
+
+                    </label>
+
+                    <select id="filtroEstado"
+                            class="form-select">
+
+                        <option value="">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+
+                    </select>
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="col-md-6">
+
+                    <div class="d-flex flex-wrap
+                            justify-content-between
+                            align-items-end gap-2">
+                        <div class="d-flex gap-2">
+                        <button type="button"
+                                id="btnBuscar"
+                                class="btn btn-primary  btn-filtro px-5 ">
+
+                            <i class="fas fa-search me-1"></i>
+                            Buscar
+
+                        </button>
+
+                        <button type="button"
+                                id="btnLimpiar"
+                                class="btn btn-secondary px-5 btn-filtro">
+
+                            <i class="fas fa-eraser me-1"></i>
+                            Limpiar
+
+                        </button>
+
+                        </div>
+                        <div class="d-flex gap-2 ms-auto">
+                        <button type="button"
+                                id="btnReporteCentros"
+                                class="btn btn-info px-3 btn-filtro">
+
+                            <i class="fas fa-file-pdf me-1"></i>
+                            Vista previa PDF
+
+                        </button>
+
+                        <button type="button"
+                                id="btnExcelCentros"
+                                class="btn btn-success px-3 btn-filtro">
+
+                            <i class="fas fa-file-excel me-1"></i>
+                            Exportar Excel
+
+                        </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-list me-2"></i>
+            Lista de centros de costo registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="tablaCentrosCostos" class="table table-hover align-middle w-100 tabla-sistema">
+                            
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Movimientos</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var estadoTexto = item.Activo ? "Activo" : "Inactivo";
+                            var cantidadMovimientos = item.MovimientosContables != null ? item.MovimientosContables.Count() : 0;
+
+                            <tr data-estado="@estadoTexto"
+                                data-texto="@($"{item.Codigo} {item.Nombre} {item.Descripcion}")">
+
+                                <td class="fw-semibold">@item.Codigo</td>
+
+                                <td>@item.Nombre</td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.Descripcion))
+                                    {
+                                        @item.Descripcion
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin descripción</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (cantidadMovimientos > 0)
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            @cantidadMovimientos movimiento(s)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Sin movimientos
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdCentroCosto"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye me-1"></i> Detalles
+                                        </a>
+
+                                        @if (item.Activo)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.IdCentroCosto"
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-pen-to-square me-1"></i> Modificar
+                                            </a>
+
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@item.IdCentroCosto"
+                                                  method="post"
+                                                  class="d-inline form-desactivar-centro-costo"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-ban me-1"></i> Desactivar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-warning"
+                                                    disabled
+                                                    title="Primero debe activar el centro de costo para poder modificarlo.">
+                                                <i class="fas fa-pen-to-square me-1"></i> Modificar
+                                            </button>
+
+                                            <form asp-action="Activar"
+                                                  asp-route-id="@item.IdCentroCosto"
+                                                  method="post"
+                                                  class="d-inline form-activar-centro-costo"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-success">
+                                                    <i class="fas fa-check me-1"></i> Activar
+                                                </button>
+                                            </form>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+           
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info mt-3 mb-0">
+                    No existen centros de costo registrados.
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            const tabla = $('#tablaCentrosCostos').DataTable({
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [[0, 'desc']],
+
+                columnDefs: [
+                    {
+                        targets: [5],
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+
+                language: {
+                    emptyTable: "No existen centros de costo registrados",
+                    zeroRecords: "No se encontraron centros de costo",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ centros",
+                    infoEmpty: "No hay centros de costo para mostrar",
+                    infoFiltered: "(filtrado de _MAX_ centros totales)",
+                    lengthMenu: "Mostrar _MENU_ centros",
+                    search: "Buscar:",
+                    loadingRecords: "Cargando...",
+                    processing: "Procesando...",
+                    paginate: {
+                        first: "Primero",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Último"
+                    }
+                }
+            });
+
+            $('#btnBuscar').on('click', function () {
+
+                const texto = $('#filtroTexto').val().trim();
+                const estado = $('#filtroEstado').val();
+
+                tabla.search(texto);
+
+                tabla.column(4).search(
+                    estado
+                        ? '^\\s*' + $.fn.dataTable.util.escapeRegex(estado) + '\\s*$'
+                        : '',
+                    true,
+                    false
+                );
+
+                tabla.draw();
+            });
+
+            $('#btnLimpiar').on('click', function () {
+
+                $('#filtroTexto').val('');
+                $('#filtroEstado').val('');
+
+                tabla.search('');
+                tabla.columns().search('');
+                tabla.draw();
+            });
+
+            $('#filtroTexto').on('keyup', function () {
+                tabla.search(this.value).draw();
+            });
+
+            $('#filtroEstado').on('change', function () {
+
+                const estado = this.value;
+
+                tabla.column(4).search(
+                    estado
+                        ? '^\\s*' + $.fn.dataTable.util.escapeRegex(estado) + '\\s*$'
+                        : '',
+                    true,
+                    false
+                ).draw();
+            });
+            // =====================================================
+            // REPORTE PDF Y EXCEL
+            // =====================================================
+            function obtenerFiltrosReporteCentros() {
+
+                const buscar =
+                    document
+                        .getElementById("filtroTexto")
+                        .value
+                        .trim();
+
+                const estado =
+                    document
+                        .getElementById("filtroEstado")
+                        .value;
+
+                return new URLSearchParams({
+                    buscar: buscar,
+                    estado: estado
+                });
+            }
+
+            document
+                .getElementById("btnReporteCentros")
+                .addEventListener("click", function () {
+
+                    const parametros =
+                        obtenerFiltrosReporteCentros();
+
+                    const url =
+                        '@Url.Action("Reporte", "CentrosCostos")'
+                        + "?"
+                        + parametros.toString();
+
+                    window.location.href = url;
+                });
+
+            document
+                .getElementById("btnExcelCentros")
+                .addEventListener("click", function () {
+
+                    const parametros =
+                        obtenerFiltrosReporteCentros();
+
+                    const url =
+                        '@Url.Action("ExportarExcel", "CentrosCostos")'
+                        + "?"
+                        + parametros.toString();
+
+                    window.location.href = url;
+                });
+
+            document.querySelectorAll(".form-desactivar-centro-costo").forEach(form => {
+
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const nombre = form.dataset.nombre;
+
+                    Swal.fire({
+                        title: "¿Desactivar centro de costo?",
+                        html: `El centro de costo <strong>${nombre}</strong> quedará inactivo.<br><br>
+                               No será eliminado del sistema.`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, desactivar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#dc3545",
+                        cancelButtonColor: "#6c757d"
+                    }).then((result) => {
+
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+
+                    });
+                });
+
+            });
+
+
+            document.querySelectorAll(".form-activar-centro-costo").forEach(form => {
+
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const nombre = form.dataset.nombre;
+
+                    Swal.fire({
+                        title: "¿Activar centro de costo?",
+                        html: `El centro de costo <strong>${nombre}</strong> volverá a estar disponible en el sistema.`,
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, activar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#198754",
+                        cancelButtonColor: "#6c757d"
+                    }).then((result) => {
+
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+
+                    });
+                });
+
+            });
+
+        });
+    </script>
+}

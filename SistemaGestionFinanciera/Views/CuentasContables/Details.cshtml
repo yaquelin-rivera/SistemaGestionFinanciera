@@ -1,0 +1,261 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasContable
+
+@{
+    ViewData["Title"] = "Detalle de cuenta contable";
+
+    var ultimosMovimientos = ViewBag.UltimosMovimientos as List<SistemaGestionFinanciera.Models.MovimientosContable>;
+    var colorSaldoActual = Model.SaldoActual >= 0
+    ? "success"
+    : "danger";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Detalle de cuenta contable</h2>
+            <small class="text-muted">Resumen financiero y trazabilidad de la cuenta</small>
+        </div>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Atras
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-circle-info me-2"></i>
+            Información general
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <strong>Código:</strong>
+                    <p>@Model.Codigo</p>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Nombre:</strong>
+                    <p>@Model.Nombre</p>
+                </div>
+
+                <div class="col-md-2">
+                    <strong>Tipo:</strong>
+                    <p>@Model.TipoCuenta</p>
+                </div>
+
+                <div class="col-md-2">
+                    <strong>Naturaleza:</strong>
+                    <p>@Model.Naturaleza</p>
+                </div>
+
+                <div class="col-md-2">
+                    <strong>Estado:</strong>
+                    <p>
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">Activa</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactiva</span>
+                        }
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+
+        <!-- SALDO INICIAL -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-primary border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="text-muted">Saldo inicial</small>
+
+                        <h5 class="fw-bold text-primary mb-0">
+                            ₡@Model.SaldoInicial.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-wallet fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SALDO ACTUAL -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-@colorSaldoActual border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="text-muted">Saldo actual</small>
+
+                        <h5 class="fw-bold text-@colorSaldoActual mb-0">
+                            ₡@Model.SaldoActual.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-scale-balanced fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL DEBE -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-info border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="text-muted">Total debe</small>
+
+                        <h5 class="fw-bold text-info mb-0">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalDebe)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-arrow-down fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL HABER -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-success border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class="text-muted">Total haber</small>
+
+                        <h5 class="fw-bold text-success mb-0">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalHaber)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-arrow-up fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-clock-rotate-left me-2"></i>
+            Últimos movimientos
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Origen</th>
+                            <th>Proyecto</th>
+                            <th>Centro de costo</th>
+                            <th>Debe</th>
+                            <th>Haber</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (ultimosMovimientos == null || !ultimosMovimientos.Any())
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    Esta cuenta contable aún no posee movimientos registrados.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var mov in ultimosMovimientos)
+                            {
+                                <tr>
+                                    <td>@mov.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@(mov.Referencia ?? "Sin referencia")</td>
+                                    <td>@(mov.OrigenModulo ?? "Sin origen")</td>
+                                    <td>@(mov.Proyecto?.Nombre ?? "Sin proyecto")</td>
+                                    <td>@(mov.CentroCosto?.Nombre ?? "Sin centro")</td>
+                                    <td class="text-end text-primary">₡@mov.Debe.ToString("N2")</td>
+                                    <td class="text-end text-success">₡@mov.Haber.ToString("N2")</td>
+                                    <td>
+                                        @if (mov.Anulado == true || mov.Estado == "Anulado")
+                                        {
+                                            <span class="badge bg-secondary">Anulado</span>
+                                        }
+                                        else if (mov.Estado == "Reversado")
+                                        {
+                                            <span class="badge bg-primary">Reversado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Registrado</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-controller="MovimientosContables"
+                                           asp-action="Details"
+                                           asp-route-id="@mov.IdMovimientoContable"
+                                           asp-route-cuentaContableId="@Model.IdCuentaContable"
+                                           asp-route-volverDetalleCuenta="true"
+                                           class="btn btn-primary btn-sm fw-bold">
+                                            <i class="fas fa-eye"></i> Detalles
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+        </a>
+        <a asp-action="LibroMayor"
+           asp-route-id="@Model.IdCuentaContable"
+           asp-route-origenVista="DetalleCuenta"
+           class="btn btn-info">
+            <i class="fas fa-book"></i> Ver Libro Mayor
+        </a>
+
+      @*  <a asp-action="Edit"
+           asp-route-id="@Model.IdCuentaContable"
+           class="btn btn-warning">
+            <i class="fas fa-edit"></i> Modificar
+        </a>
+        *@
+     
+
+    </div>
+
+</div>

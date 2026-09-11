@@ -1,0 +1,305 @@
+﻿@model SistemaGestionFinanciera.Models.Proveedore
+
+@{
+    ViewData["Title"] = "Registrar proveedor";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Registrar proveedor</h2>
+        <small class="text-muted">
+            Registro de proveedores vinculados a compras, gastos y cuentas por pagar.
+        </small>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-truck me-1"></i> Datos del proveedor
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-info shadow-sm">
+                <i class="fas fa-info-circle me-1"></i>
+                El proveedor se registrará automáticamente como <strong>Activo</strong>.
+            </div>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <input type="hidden" asp-for="Activo" value="true" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-semibold"></label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Ejemplo: Ferretería La Construcción" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="Identificacion" class="form-label fw-semibold"></label>
+                        <input asp-for="Identificacion" class="form-control" placeholder="Ejemplo: 310356789" />
+                        <span asp-validation-for="Identificacion" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="Telefono" class="form-label fw-semibold"></label>
+                        <input asp-for="Telefono" class="form-control" placeholder="Ejemplo: 88882222" />
+                        <span asp-validation-for="Telefono" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" class="form-control" placeholder="correo@proveedor.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Direccion" class="form-label fw-semibold">
+                            Dirección principal
+                        </label>
+
+                        <textarea asp-for="Direccion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Dirección física del proveedor"></textarea>
+
+                        <span asp-validation-for="Direccion"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="my-3" />
+                    </div>
+
+                    <div class="col-12">
+                        <div class="mb-2">
+                            <h5 class="fw-bold mb-1">
+                                <i class="fas fa-address-book me-1"></i>
+                                Otros datos de contacto
+                            </h5>
+
+                            <small class="text-muted">
+                                Estos campos son opcionales y permiten registrar contactos adicionales.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- TELÉFONOS ADICIONALES -->
+
+                    <div class="col-md-2">
+                        <label asp-for="OtroTelefono"
+                               class="form-label fw-semibold">
+                            Teléfono adicional
+                        </label>
+
+                        <input asp-for="OtroTelefono"
+                               class="form-control"
+                               placeholder="Ejemplo: 88887777" />
+
+                        <span asp-validation-for="OtroTelefono"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="DescripcionOtroTelefono"
+                               class="form-label fw-semibold">
+                            Descripción del teléfono
+                        </label>
+
+                        <input asp-for="DescripcionOtroTelefono"
+                               class="form-control"
+                               placeholder="Ejemplo: WhatsApp, oficina, bodega" />
+
+                        <span asp-validation-for="DescripcionOtroTelefono"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="OtroTelefono2"
+                               class="form-label fw-semibold">
+                            Segundo teléfono adicional
+                        </label>
+
+                        <input asp-for="OtroTelefono2"
+                               class="form-control"
+                               placeholder="Ejemplo: 88886666" />
+
+                        <span asp-validation-for="OtroTelefono2"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="DescripcionOtroTelefono2"
+                               class="form-label fw-semibold">
+                            Descripción del segundo teléfono
+                        </label>
+
+                        <input asp-for="DescripcionOtroTelefono2"
+                               class="form-control"
+                               placeholder="Ejemplo: Oficina, sucursal, bodega" />
+
+                        <span asp-validation-for="DescripcionOtroTelefono2"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="my-1" />
+                    </div>
+
+                    <!-- CORREOS ADICIONALES -->
+
+                    <div class="col-md-3">
+                        <label asp-for="OtroCorreo"
+                               class="form-label fw-semibold">
+                            Correo adicional
+                        </label>
+
+                        <input asp-for="OtroCorreo"
+                               class="form-control"
+                               placeholder="Ejemplo: facturacion@empresa.com" />
+
+                        <span asp-validation-for="OtroCorreo"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="DescripcionOtroCorreo"
+                               class="form-label fw-semibold">
+                            Descripción del correo
+                        </label>
+
+                        <input asp-for="DescripcionOtroCorreo"
+                               class="form-control"
+                               placeholder="Ejemplo: Facturación" />
+
+                        <span asp-validation-for="DescripcionOtroCorreo"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="OtroCorreo2"
+                               class="form-label fw-semibold">
+                            Segundo correo adicional
+                        </label>
+
+                        <input asp-for="OtroCorreo2"
+                               class="form-control"
+                               placeholder="Ejemplo: administracion@empresa.com" />
+
+                        <span asp-validation-for="OtroCorreo2"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="DescripcionOtroCorreo2"
+                               class="form-label fw-semibold">
+                            Descripción del segundo correo
+                        </label>
+
+                        <input asp-for="DescripcionOtroCorreo2"
+                               class="form-control"
+                               placeholder="Ejemplo: Administración" />
+
+                        <span asp-validation-for="DescripcionOtroCorreo2"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="my-1" />
+                    </div>
+
+                    <!-- DIRECCIONES ADICIONALES -->
+
+                    <div class="col-md-3">
+                        <label asp-for="OtraDireccion"
+                               class="form-label fw-semibold">
+                            Dirección adicional
+                        </label>
+
+                        <textarea asp-for="OtraDireccion"
+                                  class="form-control"
+                                  rows="2"
+                                  placeholder="Ejemplo: Sucursal de Escazú, San José"></textarea>
+
+                        <span asp-validation-for="OtraDireccion"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="DescripcionOtraDireccion"
+                               class="form-label fw-semibold">
+                            Descripción de la dirección
+                        </label>
+
+                        <input asp-for="DescripcionOtraDireccion"
+                               class="form-control"
+                               placeholder="Ejemplo: Sucursal, fiscal, bodega" />
+
+                        <span asp-validation-for="DescripcionOtraDireccion"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="OtraDireccion2"
+                               class="form-label fw-semibold">
+                            Segunda dirección adicional
+                        </label>
+
+                        <textarea asp-for="OtraDireccion2"
+                                  class="form-control"
+                                  rows="2"
+                                  placeholder="Ejemplo: Bodega en Heredia"></textarea>
+
+                        <span asp-validation-for="OtraDireccion2"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="DescripcionOtraDireccion2"
+                               class="form-label fw-semibold">
+                            Descripción de la segunda dirección
+                        </label>
+
+                        <input asp-for="DescripcionOtraDireccion2"
+                               class="form-control"
+                               placeholder="Ejemplo: Bodega, sucursal" />
+
+                        <span asp-validation-for="DescripcionOtraDireccion2"
+                              class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

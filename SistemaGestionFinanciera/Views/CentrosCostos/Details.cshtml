@@ -1,0 +1,95 @@
+﻿@model SistemaGestionFinanciera.Models.CentrosCosto
+
+@{
+    ViewData["Title"] = "Detalle de centro de costo";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Detalle de centro de costo</h2>
+        <small class="text-muted">
+            Consulta de la información registrada para el centro de costo seleccionado.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos del centro de costo
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Código</div>
+                <div class="col-md-9">
+                    <span class="badge bg-light text-dark border">
+                        @Model.Codigo
+                    </span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Nombre</div>
+                <div class="col-md-9">@Model.Nombre</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Descripción</div>
+                <div class="col-md-9">
+                    @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+                    {
+                        @Model.Descripcion
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin descripción registrada</span>
+                    }
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Estado</div>
+                <div class="col-md-9">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactivo</span>
+                    }
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-dark">
+                    <i class="fas fa-arrow-left me-1"></i>  Volver al listado
+                </a>
+                @if (Model.Activo)
+                {
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.IdCentroCosto"
+                       class="btn btn-warning">
+                        <i class="fas fa-pen-to-square me-1"></i> Modificar
+                    </a>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn btn-warning"
+                            disabled
+                            title="Primero debe activar el centro de costo para poder modificarlo.">
+                        <i class="fas fa-pen-to-square me-1"></i> Modificar
+                    </button>
+                }
+
+               
+            </div>
+
+        </div>
+    </div>
+
+</div>

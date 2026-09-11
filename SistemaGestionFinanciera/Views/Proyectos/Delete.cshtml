@@ -1,0 +1,173 @@
+﻿@model SistemaGestionFinanciera.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Desactivar proyecto";
+    bool tieneRegistros = ViewBag.TieneRegistros == true;
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Desactivar proyecto</h2>
+        <small class="text-muted">Confirmación segura del catálogo de proyectos</small>
+    </div>
+
+    @if (tieneRegistros)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-ban"></i>
+            Este proyecto no puede desactivarse porque posee registros financieros asociados.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Esta acción no elimina el proyecto de la base de datos. Solo quedará marcado como Inactivo.
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Proyecto seleccionado
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Nombre</label>
+                    <div class="form-control bg-light">@Model.Nombre</div>
+                </div>
+                <div class="col-md-2">
+                    <label class="fw-bold">Presupuesto asignado</label>
+                    <div class="form-control bg-light">
+                        ₡@((Model.PresupuestoAsignado ?? 0).ToString("N2"))
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="fw-bold">Fecha inicio</label>
+                    <div class="form-control bg-light">
+                        @(Model.FechaInicio?.ToString("dd/MM/yyyy") ?? "Sin fecha")
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="fw-bold">Fecha fin</label>
+                    <div class="form-control bg-light">
+                        @(Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Sin fecha")
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <label class="fw-bold">Estado actual</label>
+                    <div>
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success fs-6 px-3 py-2">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary fs-6 px-3 py-2">Inactivo</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="fw-bold">Descripción</label>
+                    <div class="form-control bg-light" style="min-height:80px;">
+                        @(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Sin descripción registrada." : Model.Descripcion)
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-3">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Reglas de desactivación
+        </div>
+
+        <div class="card-body">
+            <p>Antes de confirmar, el sistema validará que el proyecto:</p>
+
+            <ul>
+                <li>No tenga ingresos asociados.</li>
+                <li>No tenga gastos asociados.</li>
+                <li>No tenga cuentas por cobrar o cuentas por pagar asociadas.</li>
+                <li>No tenga facturas asociadas.</li>
+                <li>No tenga movimientos contables asociados.</li>
+                <li>No tenga presupuestos mensuales asociados.</li>
+            </ul>
+
+            <div class="alert alert-light border mb-0">
+                Si alguna regla no se cumple, el proyecto permanecerá activo para conservar la trazabilidad financiera.
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+
+        @if (!tieneRegistros && Model.Activo)
+        {
+            <button type="button"
+                    class="btn btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalConfirmarDesactivacion">
+                <i class="fas fa-ban"></i> Confirmar desactivación
+            </button>
+        }
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver al listado
+        </a>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalConfirmarDesactivacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar desactivación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Está a punto de desactivar el siguiente proyecto:</p>
+
+                <div class="border rounded p-3 bg-light">
+                    <strong>@Model.Nombre</strong><br />
+                    <small>Presupuesto: ₡@((Model.PresupuestoAsignado ?? 0).ToString("N2"))</small><br />
+                    <small>Estado actual: @Model.Estado</small>
+                </div>
+
+                <div class="alert alert-warning mt-3 mb-0">
+                    El proyecto quedará marcado como <strong>Inactivo</strong>. No será eliminado del sistema.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="IdProyecto" />
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban"></i> Desactivar proyecto
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

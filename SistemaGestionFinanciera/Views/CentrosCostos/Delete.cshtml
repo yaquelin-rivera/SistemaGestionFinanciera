@@ -1,0 +1,55 @@
+﻿@model SistemaGestionFinanciera.Models.CentrosCosto
+
+@{
+    ViewData["Title"] = "Eliminar Centro de Costo";
+}
+
+<h1>Eliminar Centro de Costos</h1>
+
+<div class="card shadow-sm">
+<div class="card-header">
+    DATOS DE CENTRO DE COSTOS 
+</div>
+
+<div class="card-body">
+    <div class="alert alert-warning">
+        ¿Desea desactivar este centro de costos?
+    </div>
+
+    <dl class="row">
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.Codigo)
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Codigo)
+        </dd>
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.Activo)
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Activo)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="IdCentroCosto" />
+        <input type="submit" value="Desactivar" class="btn btn-danger" />
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver al listado
+        </a>
+    </form>
+</div>
+</div>

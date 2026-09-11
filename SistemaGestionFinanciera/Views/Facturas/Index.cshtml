@@ -1,0 +1,917 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Factura>
+
+@{
+    ViewData["Title"] = "Factura";
+    int totalProximas =
+       Convert.ToInt32(
+           ViewBag.TotalFacturasProximas ?? 0);
+
+    decimal montoProximas =
+        Convert.ToDecimal(
+            ViewBag.MontoFacturasProximas ?? 0m);
+
+    int ventasProximas =
+        Convert.ToInt32(
+            ViewBag.VentasProximas ?? 0);
+
+    int comprasProximas =
+        Convert.ToInt32(
+            ViewBag.ComprasProximas ?? 0);
+
+    int totalVencidas =
+        Convert.ToInt32(
+            ViewBag.TotalFacturasVencidas ?? 0);
+
+    decimal montoVencidas =
+        Convert.ToDecimal(
+            ViewBag.MontoFacturasVencidas ?? 0m);
+
+    int ventasVencidas =
+        Convert.ToInt32(
+            ViewBag.VentasVencidas ?? 0);
+
+    int comprasVencidas =
+        Convert.ToInt32(
+            ViewBag.ComprasVencidas ?? 0);
+
+    int cantidadAlertas =
+        (totalProximas > 0 ? 1 : 0) +
+        (totalVencidas > 0 ? 1 : 0);
+
+    string columnaAlerta =
+        cantidadAlertas == 1
+            ? "col-lg-12"
+            : "col-lg-6";
+}
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">Gestionar Facturación</h2>
+            <small class="text-muted">Administración de facturación del sistema financiero</small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-sistema btn-registrar">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+    @* Alerta para revisión de facturas pendientes y vencidas. *@
+    @if (cantidadAlertas > 0)
+    {
+        <div class="row g-2 mb-3">
+
+            <!-- FACTURAS PRÓXIMAS A VENCER -->
+            @if (totalProximas > 0)
+            {
+                <div class="@columnaAlerta">
+
+                    <div class="alert alerta-proxima-vencer
+                            d-flex flex-wrap
+                            justify-content-between
+                            align-items-center
+                            h-100 mb-0 py-2 px-3"
+                         role="alert">
+
+                        <div class="me-2">
+
+                            <div>
+                                <i class="fas fa-clock me-2"></i>
+
+                                <strong>
+                                    @totalProximas
+                                    @(totalProximas == 1
+                                        ? " factura próxima a vencer"
+                                        : " facturas próximas a vencer")
+                                </strong>
+                            </div>
+
+                            <small class="d-block mt-1">
+                                Ventas:
+                                <strong>@ventasProximas</strong>
+
+                                <span class="mx-1">|</span>
+
+                                Compras:
+                                <strong>@comprasProximas</strong>
+                            </small>
+
+                            <small class="d-block fw-semibold mt-1">
+                                Próximos 7 días ·
+                                @montoProximas.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+                            </small>
+
+                        </div>
+
+                        <a asp-action="Index"
+                           asp-route-proximasVencer="true"
+                           class="btn btn-alerta-proxima btn-sm fw-bold">
+
+                            <i class="fas fa-eye me-1"></i>
+                            Ver próximas
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+            <!-- FACTURAS VENCIDAS -->
+            @if (totalVencidas > 0)
+            {
+                <div class="@columnaAlerta">
+
+                    <div class="alert alert-danger
+                            d-flex flex-wrap
+                            justify-content-between
+                            align-items-center
+                            h-100 mb-0 py-2 px-3"
+                         role="alert">
+
+                        <div class="me-2">
+
+                            <div>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+
+                                <strong>
+                                    @totalVencidas
+                                    @(totalVencidas == 1
+                                        ? " factura vencida"
+                                        : " facturas vencidas")
+                                </strong>
+                            </div>
+
+                            <small class="d-block mt-1">
+                                Ventas:
+                                <strong>@ventasVencidas</strong>
+
+                                <span class="mx-1">|</span>
+
+                                Compras:
+                                <strong>@comprasVencidas</strong>
+                            </small>
+
+                            <small class="d-block fw-semibold mt-1">
+                                @montoVencidas.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+                            </small>
+
+                        </div>
+
+                        <a asp-action="Index"
+                           asp-route-estado="Vencida"
+                           class="btn btn-danger btn-sm fw-bold">
+
+                            <i class="fas fa-eye me-1"></i>
+                            Ver vencidas
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    @*totales  en CARDS *@
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-primary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total ventas
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-primary mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalVentas)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-file-invoice-dollar fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-primary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total cobrado
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-success mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalCobrado)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-hand-holding-dollar fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-primary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Saldo por cobrar
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-primary mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.SaldoPorCobrar)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-wallet fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-danger h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total compras
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-danger mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalCompras)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-shopping-cart fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-danger h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total pagado compras
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-danger mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalPagadoCompras)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-credit-card fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 card-resumen border-start border-4 border-danger h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Saldo por pagar
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-danger mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.SaldoPorPagar)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-file-invoice fa-2x icono-card"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index" method="get">
+                @if (ViewData["ProximasVencer"] is bool filtroProximas &&
+                filtroProximas)
+                {
+                    <input type="hidden"
+                           name="proximasVencer"
+                           value="true" />
+                }
+                <div class="row g-3">
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-file-invoice text-muted me-1"></i>
+                            Tipo
+                        </label>
+                        <select name="tipoFactura" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="Venta" selected="@(ViewData["TipoFactura"]?.ToString() == "Venta")">Venta</option>
+                            <option value="Compra" selected="@(ViewData["TipoFactura"]?.ToString() == "Compra")">Compra</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-info-circle text-muted me-1"></i>
+                            Estado
+                        </label>
+                        <select name="estado" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="Pendiente" selected="@(ViewData["Estado"]?.ToString() == "Pendiente")">Pendiente</option>
+                            <option value="Pagada" selected="@(ViewData["Estado"]?.ToString() == "Pagada")">Pagada</option>
+                            <option value="Vencida" selected="@(ViewData["Estado"]?.ToString() == "Vencida")">Vencida</option>
+                            <option value="Anulada" selected="@(ViewData["Estado"]?.ToString() == "Anulada")">Anulada</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-money-check-alt text-muted me-1"></i>
+                            Condición
+                        </label>
+                        <select name="condicionPago" class="form-control">
+                            <option value="">Todas</option>
+                            <option value="Contado" selected="@(ViewData["CondicionPago"]?.ToString() == "Contado")">Contado</option>
+                            <option value="Credito" selected="@(ViewData["CondicionPago"]?.ToString() == "Credito")">Crédito</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-user text-muted me-1"></i>
+                            Cliente
+                        </label>
+                        <select name="clienteId" class="form-control" asp-items="ViewBag.Clientes">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-truck text-muted me-1"></i>
+                            Proveedor
+                        </label>
+                        <select name="proveedorId" class="form-control" asp-items="ViewBag.Proveedores">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-project-diagram text-muted me-1"></i>
+                            Proyecto
+                        </label>
+                        <select name="proyectoId" class="form-control" asp-items="ViewBag.Proyectos">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt text-muted me-1"></i>
+                            Año
+                        </label>
+
+                        <select name="anio" class="form-control">
+
+                            <option value="">Todos</option>
+
+                            @foreach (var anioItem in ViewBag.Anios)
+                            {
+                                <option value="@anioItem"
+                                        selected="@(ViewData["Anio"]?.ToString() == anioItem.ToString())">
+                                    @anioItem
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar text-muted me-1"></i>
+                            Mes
+                        </label>
+                        <select name="mes" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1" selected="@(ViewData["Mes"]?.ToString() == "1")">Enero</option>
+                            <option value="2" selected="@(ViewData["Mes"]?.ToString() == "2")">Febrero</option>
+                            <option value="3" selected="@(ViewData["Mes"]?.ToString() == "3")">Marzo</option>
+                            <option value="4" selected="@(ViewData["Mes"]?.ToString() == "4")">Abril</option>
+                            <option value="5" selected="@(ViewData["Mes"]?.ToString() == "5")">Mayo</option>
+                            <option value="6" selected="@(ViewData["Mes"]?.ToString() == "6")">Junio</option>
+                            <option value="7" selected="@(ViewData["Mes"]?.ToString() == "7")">Julio</option>
+                            <option value="8" selected="@(ViewData["Mes"]?.ToString() == "8")">Agosto</option>
+                            <option value="9" selected="@(ViewData["Mes"]?.ToString() == "9")">Septiembre</option>
+                            <option value="10" selected="@(ViewData["Mes"]?.ToString() == "10")">Octubre</option>
+                            <option value="11" selected="@(ViewData["Mes"]?.ToString() == "11")">Noviembre</option>
+                            <option value="12" selected="@(ViewData["Mes"]?.ToString() == "12")">Diciembre</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-day text-muted me-1"></i>
+                            Desde
+                        </label>
+                        <input type="date"
+                               name="fechaDesde"
+                               value="@ViewData["FechaDesde"]"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-check text-muted me-1"></i>
+                            Hasta
+                        </label>
+                        <input type="date"
+                               name="fechaHasta"
+                               value="@ViewData["FechaHasta"]"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-5">
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-secondary px-5">
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+                            </a>
+
+                        </div>
+
+                        <!-- ACCIONES DEL REPORTE -->
+                        <div class="ms-auto d-flex gap-2">
+                            <a asp-action="Reporte"
+                               asp-route-tipoFactura="@ViewData["TipoFactura"]"
+                               asp-route-estado="@ViewData["Estado"]"
+                               asp-route-proximasVencer="@ViewData["ProximasVencer"]"
+                               asp-route-condicionPago="@ViewData["CondicionPago"]"
+                               asp-route-clienteId="@ViewData["ClienteId"]"
+                               asp-route-proveedorId="@ViewData["ProveedorId"]"
+                               asp-route-proyectoId="@ViewData["ProyectoId"]"
+                               asp-route-anio="@ViewData["Anio"]"
+                               asp-route-mes="@ViewData["Mes"]"
+                               asp-route-fechaDesde="@ViewData["FechaDesde"]"
+                               asp-route-fechaHasta="@ViewData["FechaHasta"]"
+                            
+                               class="btn btn-info px-4">
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+                            </a>
+
+                            <a asp-action="ExportarExcel"
+                               asp-route-tipoFactura="@ViewData["TipoFactura"]"
+                               asp-route-estado="@ViewData["Estado"]"
+                               asp-route-proximasVencer="@ViewData["ProximasVencer"]"
+                               asp-route-condicionPago="@ViewData["CondicionPago"]"
+                               asp-route-clienteId="@ViewData["ClienteId"]"
+                               asp-route-proveedorId="@ViewData["ProveedorId"]"
+                               asp-route-proyectoId="@ViewData["ProyectoId"]"
+                               asp-route-anio="@ViewData["Anio"]"
+                               asp-route-mes="@ViewData["Mes"]"
+                               asp-route-fechaDesde="@ViewData["FechaDesde"]"
+                               asp-route-fechaHasta="@ViewData["FechaHasta"]"
+                               class="btn btn-success px-4">
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+
+            </form>
+
+        </div>
+
+    </div>
+  
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-list me-2"></i>
+            Lista de facturas registradas
+
+            @if (ViewData["ProximasVencer"] is bool filtroProximasListado &&
+            filtroProximasListado)
+            {
+                <span class="badge bg-warning text-dark ms-2">
+                    <i class="fas fa-clock me-1"></i>
+                    Próximas a vencer en 7 días
+                </span>
+            }
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="tablaFacturas"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-file-invoice me-1"></i>
+                                Tipo de factura
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hashtag me-1"></i>
+                                N.º factura
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Emisión
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar-times me-1"></i>
+                                Vencimiento
+                            </th>
+
+                            <th>
+                                <i class="fas fa-user me-1"></i>
+                                Cliente
+                            </th>
+
+                            <th>
+                                <i class="fas fa-truck me-1"></i>
+                                Proveedor
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-coins me-1"></i>
+                                Subtotal
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-tags me-1"></i>
+                                Descuento
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-percent me-1"></i>
+                                Impuesto
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-money-bill-wave me-1"></i>
+                                Total
+                            </th>
+
+                            <th>
+                                <i class="fas fa-money-check-alt me-1"></i>
+                                Condición
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-clock me-1"></i>
+                                Días crédito
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-hand-holding-dollar me-1"></i>
+                                Pagado
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Estado
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-wallet me-1"></i>
+                                Saldo pendiente
+                            </th>
+
+                            <th class="col-acciones text-center">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+   <tbody>
+    @if (!Model.Any())
+    {
+        <tr>
+            <td colspan="16" class="text-center text-muted py-4">
+                No hay facturas registradas que coincidan con la búsqueda realizada.
+            </td>
+        </tr>
+    }
+    else
+    {
+            @foreach (var item in Model) {
+               
+    bool puedeModificar =
+        item.Estado != "Anulada" &&
+        item.MontoPagado == 0;
+
+    bool puedeAnular =
+        item.Estado != "Anulada" &&
+        item.MontoPagado == 0;
+
+                                <tr>
+                                    @{
+                                        bool esCredito = item.CondicionPago == "Credito" || item.CondicionPago == "Crédito";
+                                        bool esContado = item.CondicionPago == "Contado";
+                                        bool tienePagosActivos = esCredito && item.MontoPagado > 0;
+
+                                        bool puedeModificarOAnular =
+                                        item.Estado != "Anulada" &&
+                                        (
+                                        esContado ||
+                                        (esCredito && !tienePagosActivos)
+                                        );
+                                    }
+                                <td>@Html.DisplayFor(modelItem => item.TipoFactura)</td>
+                                <td>@Html.DisplayFor(modelItem => item.NumeroFactura)</td>
+                                    <td>
+                                        @item.FechaEmision.ToString("dd/MM/yyyy")
+                                    </td>
+                                <td>@(item.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "-")</td>
+
+                                <td>@item.ClienteBeneficiario?.Nombre</td>
+                                <td>@item.Proveedor?.Nombre</td>
+
+                                <td>₡@item.SubTotal.ToString("N2")</td>
+                                <td>₡@((item.DescuentoTotal ?? 0).ToString("N2"))</td>
+                                <td>₡@item.ImpuestoTotal.ToString("N2")</td>
+                                <td>₡@item.Total.ToString("N2")</td>
+                                <td>@(item.CondicionPago == "Credito" ? "Crédito" : item.CondicionPago)</td>
+                                <td>@(item.DiasCredito.HasValue ? item.DiasCredito.ToString() : "-")</td>
+
+                                <td class="@(item.MontoPagado > 0 ? "text-success fw-bold" : "text-muted")">
+                                    ₡@item.MontoPagado.ToString("N2")
+                                </td>
+                                <td>
+                                    @if (item.Estado == "Pagada")
+                                    {
+                                        <span class="badge bg-success">Pagada</span>
+                                    }
+                                    else if (item.Estado == "Pendiente")
+                                    {
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    }
+                                    else if (item.Estado == "Vencida")
+                                    {
+                                        <span class="badge bg-danger">Vencida</span>
+                                    }
+                                    else if (item.Estado == "Anulada")
+                                    {
+                                        <span class="badge bg-secondary">Anulada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark">@item.Estado</span>
+                                    }
+
+                                        @if (tienePagosActivos &&
+                                       item.Estado != "Pagada" &&
+                                       item.Estado != "Anulada")
+                                        {
+                                            <div class="mt-1">
+                                                <span class="badge bg-info text-dark">
+                                                    Con pagos
+                                                </span>
+                                            </div>
+                                        }
+                                </td>
+                                <td class="@(item.Estado == "Anulada" ? "text-muted fw-bold" : item.SaldoPendiente > 0 ? "text-danger fw-bold" : "text-success fw-bold")">
+                                    ₡@(item.Estado == "Anulada" ? "0.00" : item.SaldoPendiente.ToString("N2"))
+                                </td>
+                             
+
+                                <td class="col-acciones">
+                                    <div class="acciones-botones">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdFactura"
+                                           class="btn btn-success btn-sm">
+                                            <i class="fas fa-eye"></i>Detalles
+                                        </a>
+
+                                        @if (item.Estado == "Anulada")
+                                        {
+                                            <span class="btn btn-secondary btn-sm disabled">
+                                                <i class="fas fa-times-circle me-1"></i>Anulada
+                                            </span>
+                                        }
+                                        else if (puedeModificarOAnular)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.IdFactura"
+                                               class="btn btn-warning btn-sm">
+                                                <i class="fas fa-pen-to-square me-1"></i> Modificar
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@item.IdFactura"
+                                               class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash me-1"></i>Anular
+                                            </a>
+                                        }
+                                       @* else if (tienePagosActivos)
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-money-check-alt me-1"></i> Con pagos
+                                            </span>
+                                        }*@
+
+                                    </div>
+                                </td>
+        </tr>
+}
+}
+    </tbody>
+</table>
+            </div>
+        </div>
+  </div>
+</div>
+
+<style>
+    .icono-card {
+        color: #adb5bd !important;
+        opacity: .85;
+    }
+
+    #tablaFacturas {
+        min-width: 1700px;
+    }
+
+        #tablaFacturas thead th {
+            background-color: #d8f0f3;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #tablaFacturas .col-acciones {
+            min-width: 220px;
+            white-space: nowrap;
+            text-align: center;
+        }
+    /* ==========================================================
+       ALERTA DE FACTURAS PRÓXIMAS A VENCER
+       ========================================================== */
+
+    .alerta-proxima-vencer {
+        background-color: #fff4e5;
+        border: 1px solid #f5b66b;
+        color: #9a4d00;
+    }
+
+    .btn-alerta-proxima {
+        background-color: #f59e0b;
+        border-color: #f59e0b;
+        color: #ffffff;
+    }
+
+        .btn-alerta-proxima:hover,
+        .btn-alerta-proxima:focus {
+            background-color: #d97706;
+            border-color: #d97706;
+            color: #ffffff;
+        }
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter {
+        margin-bottom: 12px;
+    }
+
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin-top: 12px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const existenRegistros =
+        @Html.Raw(Model.Any().ToString().ToLower());
+
+            if (existenRegistros &&
+                typeof $ !== "undefined" &&
+                $.fn.DataTable) {
+
+                if ($.fn.DataTable.isDataTable('#tablaFacturas')) {
+                    $('#tablaFacturas').DataTable().destroy();
+                }
+
+                $('#tablaFacturas').DataTable({
+                    pageLength: 10,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+
+                    // Fecha de emisión descendente:
+                    // la factura más reciente aparece primero.
+                    order: [],
+
+                    autoWidth: false,
+                    responsive: false,
+
+                    columnDefs: [
+                        {
+                            targets: [15],
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+                        info: 'Mostrando _START_ a _END_ de _TOTAL_ facturas',
+                        infoEmpty: 'Mostrando 0 a 0 de 0 facturas',
+                        infoFiltered: '(filtrado de _MAX_ facturas totales)',
+                        lengthMenu: 'Mostrar _MENU_ facturas',
+                        loadingRecords: 'Cargando...',
+                        processing: 'Procesando...',
+                        search: 'Buscar:',
+                        searchPlaceholder: 'Buscar factura...',
+                        zeroRecords: 'No se encontraron facturas.',
+                        paginate: {
+                            first: 'Primero',
+                            last: 'Último',
+                            next: 'Siguiente',
+                            previous: 'Anterior'
+                        }
+                    }
+                });
+            }
+
+        });
+    </script>
+}

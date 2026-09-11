@@ -1,0 +1,16 @@
+.vs/
+bin/
+obj/
+
+*.user
+*.suo
+
+# Configuración local
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Temporales
+*.tmp
+*.temp

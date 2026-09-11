@@ -1,0 +1,54 @@
+﻿@model SistemaGestionFinanciera.Models.CategoriasGasto
+
+@{
+    ViewData["Title"] = "Desactivar Categoria Gastos";
+}
+
+<h1>Eliminar Categoria Gastos</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DE CATEGORIA
+    </div>
+
+    <div class="card-body">
+        <div class="alert alert-warning">
+            ¿Desea desactivar categoria gastos?
+        </div>
+
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LimiteMensual)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LimiteMensual)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Activo)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Activo)
+        </dd>
+    </dl>
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="IdCategoriaGasto" />
+            <input type="submit" value="Desactivar" class="btn btn-danger" />
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Volver al listado
+            </a>
+    </form>
+</div>
+</div>

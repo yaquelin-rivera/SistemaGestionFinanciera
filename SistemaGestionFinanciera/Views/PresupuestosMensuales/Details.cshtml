@@ -1,0 +1,295 @@
+﻿@model SistemaGestionFinanciera.Models.PresupuestosMensuale
+
+@{
+    ViewData["Title"] = "Detalle de Presupuesto Mensual";
+
+    var nombreMes = Model.Mes switch
+    {
+        1 => "Enero",
+        2 => "Febrero",
+        3 => "Marzo",
+        4 => "Abril",
+        5 => "Mayo",
+        6 => "Junio",
+        7 => "Julio",
+        8 => "Agosto",
+        9 => "Septiembre",
+        10 => "Octubre",
+        11 => "Noviembre",
+        12 => "Diciembre",
+        _ => "No definido"
+    };
+
+    var ingresoPlanificado = Model.MontoIngresadoPlanificado ?? 0;
+    var ingresoReal = Model.TotalIngresoReal ?? 0;
+    var gastoPlanificado = Model.MontoGastoPlanificado ?? 0;
+    var gastoReal = Model.TotalGastoReal ?? 0;
+    var diferenciaIngreso = Model.DiferenciaIngreso ?? 0;
+    var diferenciaGasto = Model.DiferenciaGasto ?? 0;
+    var saldoDisponible = Model.SaldoDisponible ?? 0;
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold">Detalle de Presupuesto Mensual</h2>
+    <p class="text-muted">
+        Consulta de la planificación mensual y su comparación con los movimientos reales.
+    </p>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Información del presupuesto
+        </div>
+
+        <div class="card-body">
+
+            <p class="text-primary fw-bold mb-2">Información general</p>
+            <hr />
+
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <strong>Proyecto</strong>
+                    <div>@(Model.Proyecto != null ? Model.Proyecto.Nombre : "Sin proyecto")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Año</strong>
+                    <div>@Model.Anio</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Mes</strong>
+                    <div>@nombreMes</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado</strong>
+                    <div>
+                        @if (Model.Estado == "Sin movimientos")
+                        {
+                            <span class="badge bg-secondary">Sin movimientos</span>
+                        }
+                        else if (Model.Estado == "Gasto excedido")
+                        {
+                            <span class="badge bg-danger">Gasto excedido</span>
+                        }
+                        else if (Model.Estado == "Ingresos bajos")
+                        {
+                            <span class="badge bg-warning text-dark">Ingresos bajos</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">En ejecución</span>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            @if (saldoDisponible < 0)
+            {
+                <div class="alert alert-danger">
+                    <strong>Déficit presupuestario:</strong>
+                    El proyecto registra gastos reales superiores a sus ingresos reales del período. Se recomienda revisar la ejecución presupuestaria
+                </div>
+            }
+            else if (gastoReal > gastoPlanificado)
+            {
+                <div class="alert alert-danger">
+                    <strong>Gasto excedido:</strong>
+                    el gasto real supera el monto planificado para el periodo.
+                </div>
+            }
+            else if (ingresoReal < ingresoPlanificado)
+            {
+                <div class="alert" style="background-color:#FFF7ED; color:#F97316; border:1px solid #FDBA74;">
+                    <strong>Ingreso menor al planificado:</strong>
+                    los ingresos ejecutados son menores a los ingresos planificados.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    <strong>Presupuesto controlado:</strong>
+                    el presupuesto se encuentra dentro de los parámetros establecidos.
+                </div>
+            }
+
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <small class="text-muted fw-bold">Ingreso planificado</small>
+                            <h5 class="mt-2">₡@ingresoPlanificado.ToString("N2")</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <small class="text-muted fw-bold">Ingreso real</small>
+                            <h5 class="mt-2 text-success">₡@ingresoReal.ToString("N2")</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <small class="text-muted fw-bold">Gasto real</small>
+                            <h5 class="mt-2 text-danger">₡@gastoReal.ToString("N2")</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <small class="text-muted fw-bold">Balance real del periodo</small>
+
+                            @if (saldoDisponible < 0)
+                            {
+                                <h5 class="mt-2 text-danger">₡@saldoDisponible.ToString("N2")</h5>
+                            }
+                            else
+                            {
+                                <h5 class="mt-2 text-primary">₡@saldoDisponible.ToString("N2")</h5>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Resumen financiero</p>
+            <hr />
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>Ingreso planificado</strong>
+                    <div>₡@ingresoPlanificado.ToString("N2")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Ingreso real</strong>
+                    <div class="text-success fw-bold">
+                        ₡@ingresoReal.ToString("N2")
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Diferencia de ingreso</strong>
+
+                    @if (diferenciaIngreso < 0)
+                    {
+                        <div class="text-danger fw-bold">
+                            ₡@diferenciaIngreso.ToString("N2")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-success fw-bold">
+                            ₡@diferenciaIngreso.ToString("N2")
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Fecha creación</strong>
+                    <div>
+                        @(Model.FechaCreacion.HasValue
+                            ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy")
+                            : "Sin fecha")
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>Gasto planificado</strong>
+                    <div>₡@gastoPlanificado.ToString("N2")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Gasto real</strong>
+                    <div class="text-danger fw-bold">
+                        ₡@gastoReal.ToString("N2")
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Diferencia de gasto</strong>
+
+                    @if (diferenciaGasto < 0)
+                    {
+                        <div class="text-danger fw-bold">
+                            ₡@diferenciaGasto.ToString("N2")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-success fw-bold">
+                            ₡@diferenciaGasto.ToString("N2")
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Balance real del periodo</strong>
+
+                    @if (saldoDisponible < 0)
+                    {
+                        <div class="text-danger fw-bold">
+                            ₡@saldoDisponible.ToString("N2")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-primary fw-bold">
+                            ₡@saldoDisponible.ToString("N2")
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            <div class="alert alert-secondary mt-4">
+                Los ingresos y gastos reales se actualizan automáticamente conforme se registran movimientos
+                en los módulos de Ingresos y Gastos.
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>  Volver al listado
+                </a>
+
+                <div>
+                    <a asp-controller="PresupuestosDetalles"
+                       asp-action="Movimientos"
+                       asp-route-id="@Model.IdPresupuestoMensual"
+                       asp-route-origen="DetallePresupuestoMensual"
+                       class="btn btn-primary">
+                        <i class="fas fa-eye"></i>  Ver movimientos
+                    </a>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.IdPresupuestoMensual"
+                       class="btn btn-warning">
+                        <i class="fas fa-pen-to-square me-1"></i> Modificar
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>

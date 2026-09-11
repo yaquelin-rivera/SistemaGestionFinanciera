@@ -1,0 +1,73 @@
+﻿@model SistemaGestionFinanciera.Models.Usuario
+
+@{
+    ViewData["Title"] = "Modificar usuario";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Modificar usuario</h2>
+        <small class="text-muted">Actualización de datos del usuario del sistema financiero</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos del usuario
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Edit" method="post" class="row g-3" autocomplete="off">
+
+                <input type="hidden" asp-for="IdUsuario" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label fw-semibold">Nombre completo</label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-semibold">Correo electrónico</label>
+                    <input asp-for="Email" class="form-control" autocomplete="new-email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PasswordHash" class="form-label fw-semibold">Nueva contraseña</label>
+                    <input asp-for="PasswordHash" type="password" class="form-control"
+                           placeholder="Escribir contraseña"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RolId" class="form-label fw-semibold">Rol</label>
+                    <select asp-for="RolId" class="form-select" asp-items="ViewBag.RolId">
+                        <option value="0">Seleccione un rol</option>
+                    </select>
+                    <span class="text-danger">@Html.ValidationMessage("RolId")</span>
+                </div>
+
+                <div class="col-12 mt-4 d-flex  gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

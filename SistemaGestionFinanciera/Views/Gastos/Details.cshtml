@@ -1,0 +1,299 @@
+﻿@model SistemaGestionFinanciera.Models.Gasto
+
+@{
+    ViewData["Title"] = "Detalle del Gasto";
+
+    decimal limiteMensual =
+        ViewBag.PresupuestoMensual != null
+            ? Convert.ToDecimal(ViewBag.PresupuestoMensual)
+            : 0m;
+
+    decimal gastadoMes =
+        ViewBag.GastadoMes != null
+            ? Convert.ToDecimal(ViewBag.GastadoMes)
+            : 0m;
+
+    decimal saldoDisponible =
+        ViewBag.SaldoDisponible != null
+            ? Convert.ToDecimal(ViewBag.SaldoDisponible)
+            : 0m;
+}
+
+<div class="container-fluid mt-4 px-4">
+
+    <div class="card shadow-sm border-0 w-100">
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-file-invoice-dollar me-2"></i>
+            Detalle del gasto
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <h5 class="text-primary">Información General</h5>
+                    <hr />
+
+                    <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Concepto:</strong> @Model.Concepto</p>
+                    <p><strong>Observación:</strong> @(string.IsNullOrWhiteSpace(Model.Observacion) ? "Sin observación" : Model.Observacion)</p>
+
+                    <p>
+                        <strong>Estado:</strong>
+                        @if (Model.Estado == "Pendiente de autorización")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente de autorización</span>
+                        }
+                        else if (Model.Estado == "Aprobado")
+                        {
+                            <span class="badge bg-success">Aprobado</span>
+                        }
+                        else if (Model.Estado == "Rechazado")
+                        {
+                            <span class="badge bg-danger">Rechazado</span>
+                        }
+                        else if (Model.Estado == "Anulado")
+                        {
+                            <span class="badge bg-secondary">Anulado</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-dark">@Model.Estado</span>
+                        }
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="text-primary">Información Financiera</h5>
+                    <hr />
+
+                    <p><strong>Subtotal:</strong> ₡@String.Format("{0:N2}", Model.Subtotal)</p>
+                    <p><strong>Impuesto:</strong> ₡@String.Format("{0:N2}", Model.Impuesto)</p>
+                    <p><strong>Tipo impuesto:</strong> @Model.TipoImpuesto</p>
+                    <p><strong>Descuento:</strong> ₡@String.Format("{0:N2}", Model.Descuento)</p>
+                    <p><strong>Monto total:</strong> ₡@String.Format("{0:N2}", Model.MontoTotal)</p>
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <h5 class="text-primary">Clasificación</h5>
+                    <hr />
+
+                    <p><strong>Categoría:</strong> @Model.CategoriaGasto?.Nombre</p>
+
+                    <p><strong>Proveedor:</strong> @Model.Proveedor?.Nombre</p>
+
+                    <p><strong>Proyecto:</strong> @(Model.Proyecto?.Nombre ?? "No asignado")</p>
+                    <p>
+                        <strong>Período presupuestario:</strong>
+
+                        @if (Model.PresupuestoMensualRegistro != null)
+                        {
+                            @(
+                                new DateTime(
+                                Model.PresupuestoMensualRegistro.Anio,
+                                Model.PresupuestoMensualRegistro.Mes,
+                                1
+                                ).ToString(
+                                "MMMM yyyy",
+                                new System.Globalization.CultureInfo("es-CR"))
+                                )
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                Sin período asociado
+                            </span>
+                        }
+                    </p>
+
+                    <p>
+                        <strong>Centro de costo:</strong>
+                        @(Model.CentroCosto?.Nombre ?? "Sin centro de costo")
+                    </p>
+
+                    <p>
+                        <strong>Número de factura:</strong>
+                        @(string.IsNullOrWhiteSpace(Model.NumeroFactura)
+                            ? "Sin factura"
+                            : Model.NumeroFactura)
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-primary">Origen del gasto</h5>
+                    <hr />
+
+                    @{
+                        bool esGastoDesdeCxP =
+                        !string.IsNullOrWhiteSpace(Model.NumeroFactura) &&
+                        Model.Concepto != null &&
+                        Model.Concepto.ToLower().Contains("cuenta por pagar");
+
+                        bool esGastoDesdeFactura =
+                        !string.IsNullOrWhiteSpace(Model.NumeroFactura) &&
+                        Model.Concepto != null &&
+                        Model.Concepto.ToLower().Contains("factura");
+
+                        bool esGastoManual =
+                        !esGastoDesdeCxP &&
+                        !esGastoDesdeFactura;
+                    }
+
+                    @if (esGastoDesdeCxP)
+                    {
+                        <p><strong>Origen:</strong> <span class="badge bg-warning text-dark">CxP</span></p>
+                        <p class="text-muted">Este gasto fue generado automáticamente desde Cuentas por Pagar.</p>
+                    }
+                    else if (esGastoDesdeFactura)
+                    {
+                        <p><strong>Origen:</strong> <span class="badge bg-info text-dark">Factura</span></p>
+                        <p class="text-muted">Este gasto fue generado automáticamente desde una factura de compra.</p>
+                    }
+                    else
+                    {
+                        <p><strong>Origen:</strong> <span class="badge bg-secondary">Manual</span></p>
+                        <p class="text-muted">Este gasto fue registrado directamente desde el módulo de Gastos.</p>
+                    }
+                </div>
+
+                <div class="mt-4">
+                    <h5 class="text-primary">Control presupuestario</h5>
+                    <hr />
+
+                    @if (Model.Estado == "Anulado" || Model.Estado == "Rechazado")
+                    {
+                        <p>
+                            <strong>Estado presupuestario:</strong>
+                            <span class="badge bg-secondary">No aplica</span>
+                        </p>
+
+                        <p class="text-muted">
+                            Este gasto no se considera dentro del consumo vigente del límite mensual
+                            porque se encuentra @Model.Estado.ToLower().
+                        </p>
+                    }
+                    else if (limiteMensual <= 0)
+                    {
+                        <p>
+                            <strong>Límite mensual de la categoría:</strong>
+                            <span class="text-muted">No definido</span>
+                        </p>
+
+                        <p>
+                            <strong>Estado presupuestario:</strong>
+                            <span class="badge bg-secondary">Sin límite asignado</span>
+                        </p>
+                    }
+                    else
+                    {
+                        <p>
+                            <strong>Límite mensual de la categoría:</strong>
+                            ₡@limiteMensual.ToString("N2")
+                        </p>
+
+                        <p>
+                            <strong>Aprovado previamente:</strong>
+                            ₡@gastadoMes.ToString("N2")
+                        </p>
+
+                        <p>
+                            <strong>Saldo disponible:</strong>
+
+                            @if (saldoDisponible < 0)
+                            {
+                                <span class="text-danger fw-bold">
+                                    (₡@Math.Abs(saldoDisponible).ToString("N2"))
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-success fw-bold">
+                                    ₡@saldoDisponible.ToString("N2")
+                                </span>
+                            }
+                        </p>
+
+                        <p>
+                            <strong>Estado presupuestario:</strong>
+
+                            @if (saldoDisponible < 0)
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Límite excedido
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Dentro del límite
+                                </span>
+                            }
+                        </p>
+                    }
+                </div>
+
+                @if (Model.Estado == "Rechazado")
+                {
+                    <div class="alert alert-danger mt-3">
+                        <div class="fw-bold mb-1">
+                            <i class="fas fa-times-circle me-1"></i>
+                            Motivo del rechazo
+                        </div>
+
+                        <div>
+                            @(string.IsNullOrWhiteSpace(Model.MotivoRechazo)
+                                ? "No se registró un motivo."
+                                : Model.MotivoRechazo)
+                        </div>
+
+                        @if (Model.FechaRechazo.HasValue)
+                        {
+                            <div class="small mt-2">
+                                Fecha:
+                                @Model.FechaRechazo.Value.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        }
+                    </div>
+                }
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer">
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+        </a>
+        @{
+            bool puedeModificarDetalle =
+            Model.Activo &&
+            Model.Estado == "Pendiente de autorización" &&
+            esGastoManual;
+        }
+
+        @if (puedeModificarDetalle)
+        {
+            <a asp-action="Edit"
+               asp-route-id="@Model.IdGasto"
+               class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modificar
+            </a>
+        }
+           
+
+        </div>
+
+    </div>
+
+</div>

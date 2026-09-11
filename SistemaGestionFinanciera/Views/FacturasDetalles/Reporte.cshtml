@@ -1,0 +1,1038 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.FacturaDetalle>
+
+@{
+    Layout = null;
+
+    ViewData["Title"] =
+        "Reporte del catálogo de servicios y productos";
+
+    int totalRegistros =
+        Convert.ToInt32(ViewBag.TotalRegistros ?? 0);
+
+    int totalActivos =
+        Convert.ToInt32(ViewBag.TotalActivos ?? 0);
+
+    int totalInactivos =
+        Convert.ToInt32(ViewBag.TotalInactivos ?? 0);
+
+    decimal precioPromedio =
+        Convert.ToDecimal(ViewBag.PrecioPromedio ?? 0);
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion != null
+            ? Convert.ToDateTime(ViewBag.FechaGeneracion)
+            : DateTime.Now;
+
+    string buscar =
+        ViewBag.Buscar as string ?? "";
+
+    string estado =
+        ViewBag.Estado as string ?? "";
+
+    bool hayFiltros =
+        !string.IsNullOrWhiteSpace(buscar) ||
+        !string.IsNullOrWhiteSpace(estado);
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+</head>
+
+<body>
+
+    <!-- =========================================================
+         BOTONES
+         ========================================================= -->
+
+    <div class="acciones-reporte no-imprimir">
+
+        <button type="button"
+                class="btn btn-info btn-sm"
+                onclick="window.print();">
+
+            <i class="fas fa-print me-1"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary btn-sm"
+                onclick="history.back();">
+
+            <i class="fas fa-arrow-left me-1"></i>
+            Volver
+
+        </button>
+
+    </div>
+
+    <div class="reporte-contenedor">
+
+        <!-- =====================================================
+             ENCABEZADO
+             ===================================================== -->
+
+        <div class="encabezado-reporte">
+
+            <h2>
+
+                <i class="fas fa-building me-2"></i>
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+
+            </h2>
+
+            <h4>
+
+                <i class="fas fa-box-open me-1"></i>
+                Reporte del Catálogo de Servicios y Productos
+
+            </h4>
+
+            <div class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+
+                Fecha de generación:
+
+                <strong>
+                    @fechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             FILTROS APLICADOS
+             ===================================================== -->
+
+        <div class="seccion-reporte">
+
+            <div class="titulo-seccion">
+
+                <i class="fas fa-filter me-1"></i>
+                Filtros aplicados
+
+            </div>
+
+            @if (hayFiltros)
+            {
+                <div class="row g-2 filtros-detalle">
+
+                    @if (!string.IsNullOrWhiteSpace(buscar))
+                    {
+                        <div class="col-md-6">
+
+                            <strong>Nombre o descripción:</strong>
+                            @buscar
+
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(estado))
+                    {
+                        <div class="col-md-6">
+
+                            <strong>Estado:</strong>
+                            @estado
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <span class="text-muted">
+
+                    No se aplicaron filtros. El reporte muestra todos los
+                    servicios y productos registrados.
+
+                </span>
+            }
+
+        </div>
+
+        <!-- =====================================================
+             TARJETAS DEL RESUMEN
+             ===================================================== -->
+
+        <div class="row row-cols-2 row-cols-md-4
+                    g-2 mb-3 cards-reporte">
+
+            <!-- TOTAL -->
+            <div class="col">
+
+                <div class="resumen-reporte card-total">
+
+                    <div class="icono">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+
+                    <small>Total de servicios</small>
+
+                    <div class="fw-bold">
+                        @totalRegistros
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIVOS -->
+            <div class="col">
+
+                <div class="resumen-reporte card-activos">
+
+                    <div class="icono">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+
+                    <small>Activos</small>
+
+                    <div class="fw-bold">
+                        @totalActivos
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- INACTIVOS -->
+            <div class="col">
+
+                <div class="resumen-reporte card-inactivos">
+
+                    <div class="icono">
+                        <i class="fas fa-ban"></i>
+                    </div>
+
+                    <small>Inactivos</small>
+
+                    <div class="fw-bold">
+                        @totalInactivos
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- PRECIO PROMEDIO -->
+            <div class="col">
+
+                <div class="resumen-reporte card-promedio">
+
+                    <div class="icono">
+                        <i class="fas fa-coins"></i>
+                    </div>
+
+                    <small>Precio promedio</small>
+
+                    <div class="fw-bold">
+                        ₡@precioPromedio.ToString("N2")
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             TABLA
+             ===================================================== -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-sm tabla-reporte">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Nombre</th>
+
+                        <th>Descripción</th>
+
+                        <th>Precio unitario</th>
+
+                        <th>Estado</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model.Any())
+                    {
+                        foreach (var servicio in Model)
+                        {
+                            string claseFila =
+                            servicio.Activo
+                            ? ""
+                            : "fila-inactiva";
+
+                            <tr class="@claseFila">
+
+                                <td class="fw-semibold">
+
+                                    @servicio.Nombre
+
+                                </td>
+
+                                <td class="descripcion-servicio">
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                   servicio.Descripcion))
+                                    {
+                                        @servicio.Descripcion
+                                    }
+                                    else
+                                    {
+                                        <span class="texto-secundario">
+                                            Sin descripción
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="precio-servicio">
+
+                                    ₡@servicio.PrecioUnitario.ToString("N2")
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (servicio.Activo)
+                                    {
+                                        <span class="badge-reporte
+                                                     badge-activo">
+
+                                            Activo
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-reporte
+                                                     badge-inactivo">
+
+                                            Inactivo
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="4"
+                                class="text-center text-muted py-4">
+
+                                No existen servicios o productos con los
+                                filtros seleccionados.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+                @if (Model.Any())
+                {
+                    <tfoot>
+
+                        <tr class="fila-totales">
+
+                            <td colspan="2"
+                                class="text-end fw-bold">
+
+                                TOTAL DE REGISTROS MOSTRADOS:
+
+                            </td>
+
+                            <td colspan="2"
+                                class="text-center fw-bold">
+
+                                @Model.Count() registros
+
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+        <!-- =====================================================
+             RESUMEN INFERIOR
+             ===================================================== -->
+
+        <div class="estado-resumen">
+
+            <h5>
+
+                <i class="fas fa-chart-pie me-1"></i>
+                Resumen del catálogo
+
+            </h5>
+
+            <div class="row g-0">
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad">
+                        @totalRegistros
+                    </span>
+
+                    <span class="nombre">
+                        Total
+                    </span>
+
+                </div>
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad">
+                        @totalActivos
+                    </span>
+
+                    <span class="nombre">
+                        Activos
+                    </span>
+
+                </div>
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad">
+                        @totalInactivos
+                    </span>
+
+                    <span class="nombre">
+                        Inactivos
+                    </span>
+
+                </div>
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad">
+                        ₡@precioPromedio.ToString("N2")
+                    </span>
+
+                    <span class="nombre">
+                        Precio promedio
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             PIE DEL REPORTE
+             ===================================================== -->
+
+        <div class="pie-reporte">
+
+            <div>
+                Sistema Web de Gestión Financiera
+            </div>
+
+            <div>
+                UCAD Santa Ana
+            </div>
+
+            <div>
+                Generado: @fechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+            </div>
+
+        </div>
+
+    </div>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f4f6f7;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .acciones-reporte {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 8px 15px 0;
+        }
+
+        .reporte-contenedor {
+            width: calc(100% - 14px);
+            margin: 8px auto 20px;
+            padding: 18px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* =====================================================
+                   ENCABEZADO
+                   ===================================================== */
+
+        .encabezado-reporte {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #0f7c90;
+        }
+
+            .encabezado-reporte h2 {
+                margin: 0;
+                color: #15454d;
+                font-size: 1.45rem;
+                font-weight: 800;
+            }
+
+            .encabezado-reporte h4 {
+                margin: 5px 0 0;
+                color: #394b4f;
+                font-size: 1.05rem;
+                font-weight: 700;
+            }
+
+        .fecha-generacion {
+            margin-top: 6px;
+            color: #5e676b;
+            font-size: 0.85rem;
+        }
+
+        /* =====================================================
+                   FILTROS
+                   ===================================================== */
+
+        .seccion-reporte {
+            margin-bottom: 12px;
+            padding: 10px;
+            border: 1px solid #cedadd;
+            border-left: 4px solid #0f7c90;
+            border-radius: 5px;
+            background: #f5f8f8;
+        }
+
+        .titulo-seccion {
+            margin-bottom: 5px;
+            color: #0f5c64;
+            font-weight: 800;
+        }
+
+        .filtros-detalle {
+            font-size: 0.88rem;
+        }
+
+        /* =====================================================
+                   TARJETAS
+                   ===================================================== */
+
+        .resumen-reporte {
+            height: 100%;
+            min-height: 88px;
+            padding: 10px 7px;
+            text-align: center;
+            background: #ffffff;
+            border: 1px solid #d5e2e4;
+            border-top: 4px solid #0f7c90;
+            border-radius: 6px;
+        }
+
+            .resumen-reporte .icono {
+                margin-bottom: 3px;
+                color: #0f7c90;
+                font-size: 1.05rem;
+            }
+
+            .resumen-reporte small {
+                display: block;
+                margin-bottom: 3px;
+                color: #59666a;
+                font-size: 0.80rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .resumen-reporte .fw-bold {
+                color: #15454d;
+                font-size: 0.95rem;
+                white-space: nowrap;
+            }
+
+        .card-total {
+            border-top-color: #0d6efd;
+        }
+
+            .card-total .icono,
+            .card-total .fw-bold {
+                color: #0d6efd;
+            }
+
+        .card-activos {
+            border-top-color: #198754;
+        }
+
+            .card-activos .icono,
+            .card-activos .fw-bold {
+                color: #198754;
+            }
+
+        .card-inactivos {
+            border-top-color: #6c757d;
+        }
+
+            .card-inactivos .icono,
+            .card-inactivos .fw-bold {
+                color: #6c757d;
+            }
+
+        .card-promedio {
+            border-top-color: #ffc107;
+        }
+
+            .card-promedio .icono,
+            .card-promedio .fw-bold {
+                color: #a66b00;
+            }
+
+        /* =====================================================
+                   TABLA
+                   ===================================================== */
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            margin-bottom: 0;
+            font-size: 0.82rem;
+            vertical-align: middle;
+        }
+
+            .tabla-reporte thead th {
+                padding: 8px 5px;
+                color: #ffffff !important;
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+                background: #0f5c64 !important;
+            }
+
+            .tabla-reporte tbody td {
+                padding: 7px 5px;
+                vertical-align: middle;
+                overflow-wrap: anywhere;
+            }
+
+        .fila-inactiva td {
+            color: #495057 !important;
+            background-color: #e9ecef !important;
+        }
+
+        .descripcion-servicio {
+            min-width: 280px;
+            max-width: 620px;
+            line-height: 1.3;
+        }
+
+        .precio-servicio {
+            color: #0f5c64;
+            font-weight: 700;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .texto-secundario {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .badge-reporte {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-activo {
+            color: #0f5132;
+            background: #d1e7dd;
+        }
+
+        .badge-inactivo {
+            color: #41464b;
+            background: #e2e3e5;
+        }
+
+        .fila-totales td {
+            color: #123f46;
+            background: #d9edef !important;
+            border-top: 2px solid #0f5c64;
+        }
+
+        /* =====================================================
+                   RESUMEN INFERIOR
+                   ===================================================== */
+
+        .estado-resumen {
+            margin-top: 12px;
+            padding: 10px;
+            background: #f5f8f8;
+            border: 1px solid #d8e2e3;
+            border-radius: 6px;
+        }
+
+            .estado-resumen h5 {
+                margin-bottom: 10px;
+                color: #0f5c64;
+                font-size: 0.95rem;
+                font-weight: 800;
+            }
+
+        .resumen-item {
+            padding: 8px;
+            text-align: center;
+            border-right: 1px solid #d4dfe1;
+        }
+
+            .resumen-item:last-child {
+                border-right: none;
+            }
+
+            .resumen-item .cantidad {
+                display: block;
+                color: #0f5c64;
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+
+            .resumen-item .nombre {
+                display: block;
+                color: #5c696c;
+                font-size: 0.76rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+        /* =====================================================
+                   PIE
+                   ===================================================== */
+
+        .pie-reporte {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 8px;
+            color: #697679;
+            font-size: 0.72rem;
+            border-top: 1px solid #ced9db;
+        }
+
+        /* =====================================================
+                   IMPRESIÓN
+                   ===================================================== */
+
+        @@media print {
+
+            @@page {
+                size: A4 landscape;
+                margin: 6mm;
+            }
+
+            body {
+                background: #ffffff !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .no-imprimir {
+                display: none !important;
+            }
+
+            .reporte-contenedor {
+                width: 98% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+            /* ENCABEZADO */
+
+            .encabezado-reporte {
+                margin-bottom: 5px !important;
+                padding-bottom: 4px !important;
+            }
+
+                .encabezado-reporte h2 {
+                    margin: 0 !important;
+                    font-size: 16px !important;
+                    line-height: 1.05 !important;
+                }
+
+                    .encabezado-reporte h2 i {
+                        font-size: 15px !important;
+                    }
+
+                .encabezado-reporte h4 {
+                    margin: 2px 0 0 !important;
+                    font-size: 12px !important;
+                    line-height: 1.05 !important;
+                }
+
+                    .encabezado-reporte h4 i {
+                        font-size: 11px !important;
+                    }
+
+            .fecha-generacion {
+                margin-top: 2px !important;
+                font-size: 8px !important;
+                line-height: 1 !important;
+            }
+
+                .fecha-generacion i,
+                .fecha-generacion strong {
+                    font-size: 8px !important;
+                }
+            /* FILTROS */
+
+            .seccion-reporte {
+                margin-bottom: 5px !important;
+                padding: 4px !important;
+                font-size: 11px !important;
+                line-height: 1.15 !important;
+            }
+
+            .titulo-seccion,
+            .filtros-detalle {
+                font-size:11px !important;
+            }
+            /* TARJETAS */
+
+            .cards-reporte {
+                margin-bottom: 5px !important;
+            }
+
+            .resumen-reporte {
+                min-height: 38px !important;
+                padding: 3px !important;
+            }
+
+                .resumen-reporte .icono {
+                    margin-bottom: 0 !important;
+                    font-size: 12px !important;
+                    line-height: 1 !important;
+                }
+
+                .resumen-reporte small {
+                    margin-bottom: 0 !important;
+                    font-size: 12px !important;
+                    line-height: 1 !important;
+                }
+
+                .resumen-reporte .fw-bold {
+                    font-size: 12px !important;
+                    line-height: 1 !important;
+                }
+            /* TABLA */
+
+            .table-responsive {
+                width: 98% !important;
+                margin: 0 auto !important;
+                overflow: visible !important;
+            }
+
+            .tabla-reporte {
+                width: 100% !important;
+                margin: 0 !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+                font-size: 12px !important;
+                line-height: 1.1 !important;
+            }
+
+                .tabla-reporte thead {
+                    display: table-header-group !important;
+                }
+
+                .tabla-reporte tfoot {
+                    display: table-row-group !important;
+                }
+
+                .tabla-reporte tr {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+
+                .tabla-reporte th,
+                .tabla-reporte td {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    font-size: 12px !important;
+                    line-height: 1.1 !important;
+                    vertical-align: middle !important;
+                }
+
+                .tabla-reporte thead th {
+                    padding: 4px 2px !important;
+                    font-size: 8px !important;
+                    white-space: normal !important;
+                    overflow-wrap: anywhere !important;
+                    word-break: normal !important;
+                }
+
+                .tabla-reporte tbody td {
+                    padding: 3.5px 2px !important;
+                    font-size: 12px !important;
+                    white-space: normal !important;
+                    overflow-wrap: anywhere !important;
+                    word-break: normal !important;
+                }
+
+                .tabla-reporte tfoot td {
+                    padding: 4px 2px !important;
+                    font-size: 12px !important;
+                }
+
+                .tabla-reporte td strong,
+                .tabla-reporte td span,
+                .tabla-reporte td div {
+                    font-size: inherit !important;
+                    line-height: inherit !important;
+                }
+
+            .badge-reporte {
+                padding: 2px 3px !important;
+                font-size: 12px !important;
+                line-height: 1 !important;
+            }
+
+            .descripcion-servicio {
+                min-width: 0 !important;
+                max-width: none !important;
+                font-size: 11px !important;
+                line-height: 1.1 !important;
+            }
+
+            .precio-servicio {
+                font-size: 11px !important;
+                line-height: 1.1 !important;
+                white-space: nowrap !important;
+            }
+            /* Nombre */
+            .tabla-reporte th:nth-child(1),
+            .tabla-reporte td:nth-child(1) {
+                width: 27% !important;
+            }
+            /* Descripción */
+            .tabla-reporte th:nth-child(2),
+            .tabla-reporte td:nth-child(2) {
+                width: 48% !important;
+            }
+            /* Precio */
+            .tabla-reporte th:nth-child(3),
+            .tabla-reporte td:nth-child(3) {
+                width: 16% !important;
+            }
+            /* Estado */
+            .tabla-reporte th:nth-child(4),
+            .tabla-reporte td:nth-child(4) {
+                width: 9% !important;
+            }
+            /* ALINEACIÓN GENERAL */
+
+            .seccion-reporte,
+            .cards-reporte,
+            .table-responsive,
+            .estado-resumen,
+            .pie-reporte {
+                width: 98% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            /* RESUMEN INFERIOR */
+
+            .estado-resumen {
+                margin-top: 5px !important;
+                padding: 4px !important;
+            }
+
+                .estado-resumen h5 {
+                    margin-bottom: 3px !important;
+                    font-size: 12px !important;
+                }
+
+            .resumen-item {
+                padding: 3px !important;
+            }
+
+                .resumen-item .cantidad {
+                    font-size: 12px !important;
+                }
+
+                .resumen-item .nombre {
+                    font-size: 12px !important;
+                }
+            /* PIE */
+
+            .pie-reporte {
+                margin-top: 5px !important;
+                padding-top: 3px !important;
+                font-size: 9px !important;
+            }
+        }
+
+    </style>
+
+</body>
+
+</html>

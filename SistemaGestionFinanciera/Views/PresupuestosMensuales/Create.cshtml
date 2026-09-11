@@ -1,0 +1,420 @@
+﻿@model SistemaGestionFinanciera.Models.PresupuestosMensuale
+
+@{
+    ViewData["Title"] = "Registrar Presupuesto Mensual";
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold">Registrar Presupuesto Mensual</h2>
+    <p class="text-muted">
+        Registro de montos planificados para ingresos y gastos por proyecto.
+    </p>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Complete la información del presupuesto
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary">
+                El sistema calculará automáticamente los ingresos reales, gastos reales,
+                diferencias, saldo disponible y estado del presupuesto.
+            </div>
+
+            <form asp-action="Create" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="desdeProyectos"
+                       value="@(ViewBag.DesdeProyectos == true
+               ? "true"
+               : "false")" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mb-2">Información general</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4">
+                        <label asp-for="ProyectoId" class="form-label">Proyecto</label>
+                        <select asp-for="ProyectoId"
+                                class="form-select"
+                                asp-items="ViewBag.ProyectoId">
+                            <option value="">-- Seleccione un proyecto --</option>
+                        </select>
+                        <span asp-validation-for="ProyectoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Anio" class="form-label">Año</label>
+                        <input asp-for="Anio"
+                               class="form-control"
+                               type="number"
+                               min="2000"
+                               max="@(DateTime.Today.Year + 10)" />
+                        <span asp-validation-for="Anio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Mes" class="form-label">Mes</label>
+                        <select asp-for="Mes" class="form-select">
+                            <option value="">-- Seleccione el mes --</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                        <span asp-validation-for="Mes" class="text-danger"></span>
+                    </div>
+                    <div id="resumenProyecto"
+                         class="card border-info mt-4 d-none">
+
+                        <div class="card-header bg-info-subtle fw-bold">
+                            <i class="fas fa-chart-pie me-1"></i>
+                            Resumen presupuestario del proyecto
+                        </div>
+
+                        <div class="card-body">
+
+                            <div id="mensajeResumenProyecto"
+                                 class="alert alert-danger d-none">
+                            </div>
+
+                            <div id="contenidoResumenProyecto">
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Vigencia
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenVigencia">
+                                            —
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Presupuesto global
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenGlobal">
+                                            ₡0.00
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Comprometido
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenComprometido">
+                                            ₡0.00
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Disponible
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenDisponible">
+                                            ₡0.00
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Presupuestos registrados
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenCreados">
+                                            0
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted">
+                                            Períodos pendientes
+                                        </small>
+
+                                        <div class="fw-bold"
+                                             id="resumenPendientes">
+                                            No calculable
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div id="recomendacionDistribucion"
+                                     class="alert alert-info mt-3 mb-0 d-none">
+                                </div>
+
+                                <div id="alertaPresupuestoAgotado"
+                                     class="alert alert-danger mt-3 mb-0 d-none">
+
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+
+                                    El presupuesto global del proyecto está
+                                    completamente comprometido. Puede crear el
+                                    presupuesto mensual con gasto planificado en
+                                    cero, pero no puede planificar nuevos gastos
+                                    hasta que el presupuesto global sea ajustado.
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Montos planificados</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="MontoIngresadoPlanificado" class="form-label">
+                            Ingreso planificado
+                        </label>
+                        <input asp-for="MontoIngresadoPlanificado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="Ej: 1000000.00" />
+                        <span asp-validation-for="MontoIngresadoPlanificado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Monto que se espera recibir durante el mes seleccionado.
+                        </small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="MontoGastoPlanificado" class="form-label">
+                            Gasto planificado
+                        </label>
+                        <input asp-for="MontoGastoPlanificado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="Ej: 750000.00" />
+                        <span asp-validation-for="MontoGastoPlanificado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Monto máximo estimado para gastos del mes seleccionado.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    Los valores reales se obtendrán automáticamente desde los módulos de ingresos y gastos.
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    @if (ViewBag.DesdeProyectos == true)
+                    {
+                        <a asp-controller="Proyectos"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver a Proyectos
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver al listado
+                        </a>
+                    }
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+<script>
+    $(document).ready(function () {
+
+        const proyectoSelect =
+            $("#ProyectoId");
+
+        const contenedor =
+            $("#resumenProyecto");
+
+        const contenido =
+            $("#contenidoResumenProyecto");
+
+        const mensajeError =
+            $("#mensajeResumenProyecto");
+
+        const alertaAgotado =
+            $("#alertaPresupuestoAgotado");
+
+        const recomendacion =
+            $("#recomendacionDistribucion");
+
+        const formatoMoneda =
+            new Intl.NumberFormat(
+                "es-CR",
+                {
+                    style: "currency",
+                    currency: "CRC",
+                    minimumFractionDigits: 2
+                });
+
+        function limpiarResumen() {
+            contenedor.addClass("d-none");
+            mensajeError.addClass("d-none").text("");
+            alertaAgotado.addClass("d-none");
+            recomendacion.addClass("d-none").text("");
+        }
+
+        function cargarResumenProyecto() {
+
+            const proyectoId =
+                proyectoSelect.val();
+
+            if (!proyectoId) {
+                limpiarResumen();
+                return;
+            }
+
+            contenedor.removeClass("d-none");
+            contenido.addClass("opacity-50");
+
+            $.ajax({
+                url: "@Url.Action(
+               "ObtenerResumenProyecto",
+                "PresupuestosMensuales")",
+
+                    type: "GET",
+
+                data: {
+                proyectoId: proyectoId
+            },
+
+                success: function (data) {
+
+                    mensajeError
+                        .addClass("d-none")
+                        .text("");
+
+                    const fechaFin =
+                        data.fechaFin ??
+                        "Sin fecha final";
+
+                    $("#resumenVigencia").text(
+                        `${data.fechaInicio} al ${fechaFin}`
+                    );
+
+                    $("#resumenGlobal").text(
+                        formatoMoneda.format(
+                            data.presupuestoGlobal)
+                    );
+
+                    $("#resumenComprometido").text(
+                        formatoMoneda.format(
+                            data.comprometido)
+                    );
+
+                    $("#resumenDisponible").text(
+                        formatoMoneda.format(
+                            data.disponible)
+                    );
+
+                    $("#resumenCreados").text(
+                        data.presupuestosCreados
+                    );
+
+                    $("#resumenPendientes").text(
+                        data.periodosPendientes !== null
+                            ? data.periodosPendientes
+                            : "No calculable"
+                    );
+
+                    if (
+                        data.distribucionOrientativa !== null &&
+                        data.distribucionOrientativa > 0
+                    ) {
+                        recomendacion
+                            .removeClass("d-none")
+                            .text(
+                                "Distribución orientativa: " +
+                                formatoMoneda.format(
+                                    data.distribucionOrientativa
+                                ) +
+                                " por cada período pendiente."
+                            );
+                    } else {
+                        recomendacion
+                            .addClass("d-none")
+                            .text("");
+                    }
+
+                    alertaAgotado.toggleClass(
+                        "d-none",
+                        !data.presupuestoAgotado
+                    );
+
+                    contenido.removeClass("opacity-50");
+                },
+
+                error: function (xhr) {
+
+                    contenido.removeClass("opacity-50");
+
+                    mensajeError
+                        .removeClass("d-none")
+                        .text(
+                            xhr.responseJSON?.mensaje ??
+                            "No fue posible obtener la información del proyecto."
+                        );
+                }
+                });
+            }
+
+    proyectoSelect.on(
+        "change",
+        cargarResumenProyecto
+    );
+
+    if (proyectoSelect.val()) {
+        cargarResumenProyecto();
+    }
+        });
+    </script>
+}

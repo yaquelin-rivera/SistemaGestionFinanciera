@@ -1,0 +1,580 @@
+﻿@model SistemaGestionFinanciera.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Financiero";
+
+    var balanceMes = Model.IngresosMes - Model.GastosMes;
+
+    decimal porcentajeIngresos = 0;
+    decimal porcentajeGastos = 0;
+
+    if (Model.PresupuestoIngresosPlanificado > 0)
+    {
+        porcentajeIngresos =
+            (Model.PresupuestoIngresosReal /
+             Model.PresupuestoIngresosPlanificado) * 100;
+    }
+
+    if (Model.PresupuestoGastosPlanificado > 0)
+    {
+        porcentajeGastos =
+            (Model.PresupuestoGastosReal /
+             Model.PresupuestoGastosPlanificado) * 100;
+    }
+
+    decimal anchoIngresos =
+        porcentajeIngresos > 100 ? 100 : porcentajeIngresos;
+
+    decimal anchoGastos =
+        porcentajeGastos > 100 ? 100 : porcentajeGastos;
+
+    bool filtroAplicado =
+        ViewBag.FiltroAplicado is bool aplicado && aplicado;
+
+    int? mesSeleccionado = ViewBag.MesSeleccionado as int?;
+
+    string textoPeriodo;
+
+    if (!filtroAplicado)
+    {
+        textoPeriodo = "Mes actual";
+    }
+    else if (mesSeleccionado.HasValue)
+    {
+        textoPeriodo = "Filtro aplicado";
+    }
+    else
+    {
+        textoPeriodo = "Año completo";
+    }
+
+    string tituloPresupuesto =
+    mesSeleccionado.HasValue
+        ? "Cumplimiento del presupuesto mensual"
+        : "Cumplimiento del presupuesto anual";
+}
+
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Dashboard Financiero</h2>
+        <small class="text-muted">
+            Resumen ejecutivo del sistema financiero de UCAD Santa Ana
+        </small>
+    </div>
+    @*filtroS*@
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-filter me-2"></i>
+            Período del dashboard
+        </div>
+      
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get"
+                  class="row g-3">
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                        Año
+                    </label>
+
+                    <select name="anio"
+                            class="form-select">
+
+                        @foreach (var anioItem in ViewBag.Anios)
+                        {
+                            <option value="@anioItem"
+                                    selected="@(ViewBag.AnioSeleccionado == anioItem)">
+                                @anioItem
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar text-muted me-1"></i>
+                        Mes
+                    </label>
+
+                    <select name="mes"
+                            class="form-select">
+
+                        <option value="">
+                            Todos los meses
+                        </option>
+
+                        <option value="1" selected="@(ViewBag.MesSeleccionado == 1)">Enero</option>
+                        <option value="2" selected="@(ViewBag.MesSeleccionado == 2)">Febrero</option>
+                        <option value="3" selected="@(ViewBag.MesSeleccionado == 3)">Marzo</option>
+                        <option value="4" selected="@(ViewBag.MesSeleccionado == 4)">Abril</option>
+                        <option value="5" selected="@(ViewBag.MesSeleccionado == 5)">Mayo</option>
+                        <option value="6" selected="@(ViewBag.MesSeleccionado == 6)">Junio</option>
+                        <option value="7" selected="@(ViewBag.MesSeleccionado == 7)">Julio</option>
+                        <option value="8" selected="@(ViewBag.MesSeleccionado == 8)">Agosto</option>
+                        <option value="9" selected="@(ViewBag.MesSeleccionado == 9)">Septiembre</option>
+                        <option value="10" selected="@(ViewBag.MesSeleccionado == 10)">Octubre</option>
+                        <option value="11" selected="@(ViewBag.MesSeleccionado == 11)">Noviembre</option>
+                        <option value="12" selected="@(ViewBag.MesSeleccionado == 12)">Diciembre</option>
+
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end gap-2">
+
+                    <button type="submit"
+                            class="btn text-white fw-bold flex-fill"
+                            style="background-color:#0FB7C9;">
+                        <i class="fas fa-search me-1"></i>
+                        Consultar
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary fw-bold flex-fill">
+                        <i class="fas fa-eraser me-1"></i>
+                        Limpiar
+                    </a>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-primary h-100">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Ingresos cobrados del periodo</small>
+                    <small class="text-muted">
+                        @textoPeriodo
+                    </small>
+                    <h3 class="fw-bold mb-0">₡@Model.IngresosMes.ToString("N2")</h3>
+                    <i class="fas fa-arrow-trend-up fa-2x text-muted opacity-50 float-end"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen border-start border-4 border-danger">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Gastos del periodo</small>
+                    <small class="text-muted">
+                        @textoPeriodo
+                    </small>
+                    <h3 class="fw-bold mb-0">₡@Model.GastosMes.ToString("N2")</h3>
+                    <i class="fas fa-arrow-trend-down fa-2x text-muted opacity-50 float-end"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen  border-start border-4 border-orange">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">CxC pendientes</small>
+                    <small class="text-muted">
+                        Estado actual 
+                    </small>
+                    <h3 class="fw-bold mb-0">₡@Model.CuentasPorCobrarPendientes.ToString("N2")</h3>
+                    <i class="fas fa-file-invoice-dollar fa-2x text-muted opacity-50 float-end"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen  border-start border-4 border-warning">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">CxP pendientes</small>
+                    <small class="text-muted">
+                        Estado actual
+                    </small>
+                    <h3 class="fw-bold mb-0">₡@Model.CuentasPorPagarPendientes.ToString("N2")</h3>
+                    <i class="fas fa-money-bill-wave fa-2x text-muted opacity-50 float-end"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 card-resumen  border-start border-4 border-succes">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Resultado del periodo</small>
+                    <small class="text-muted">
+                        @textoPeriodo
+                    </small>
+                    <h3 class="fw-bold @(balanceMes >= 0 ? "text-success" : "text-danger")">
+                        ₡@balanceMes.ToString("N2")
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 card-resumen  border-start border-4 border-info">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Facturas del periodo</small>
+                    <small class="text-muted">
+                        @textoPeriodo
+                    </small>
+                    <h3 class="fw-bold">@Model.FacturasMes</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 card-resumen  border-start border-4 border-primary">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Movimientos contables</small>
+                    <small class="text-muted">
+                        @textoPeriodo
+                    </small>
+                    <h3 class="fw-bold">@Model.MovimientosContablesMes</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 card-resumen  border-start border-4 border-info">
+                <div class="card-body">
+                    <small class="fw-bold mb-1">Auditorías hoy</small>
+                    <small class="text-muted">
+                       Hoy 
+                    </small>
+                    <h3 class="fw-bold">@Model.AuditoriasHoy</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row mt-4">
+
+        <!-- Gráfico Ingresos vs Gastos -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Ingresos vs Gastos
+                </div>
+
+                <div class="card-body">
+                    <div style="height:280px;">
+                        <canvas id="graficoIngresosGastos"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado Financiero -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Estado de cobro de cuentas por cobrar
+                </div>
+
+                <div style="height:280px;">
+                    <canvas id="graficoEstado"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-header text-white fw-bold"
+                     style="background-color:#0F5C64;">
+                    <i class="fas fa-chart-line me-2"></i>
+                    @tituloPresupuesto
+                </div>
+
+                <div class="card-body">
+
+                    <!-- EJECUCIÓN DE INGRESOS -->
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                Cumplimiento de ingresos
+                            </span>
+
+                            <span class="fw-bold text-success">
+                                @porcentajeIngresos.ToString("N1")%
+                            </span>
+                        </div>
+
+                        <div class="progress"
+                             style="height:22px;">
+
+                            <div class="progress-bar bg-success fw-bold"
+                                 role="progressbar"
+                                 style="width:@anchoIngresos.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@porcentajeIngresos"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+
+                                @porcentajeIngresos.ToString("N1")%
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-2">
+
+                            <small class="text-muted">
+                                Planificado:
+                                <strong>
+                                    ₡@Model.PresupuestoIngresosPlanificado.ToString("N2")
+                                </strong>
+                            </small>
+
+                            <small class="text-success">
+                                Real:
+                                <strong>
+                                    ₡@Model.PresupuestoIngresosReal.ToString("N2")
+                                </strong>
+                            </small>
+
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- EJECUCIÓN DE GASTOS -->
+                    <div class="mt-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                Cumplimiento de gastos
+                            </span>
+
+                            <span class="fw-bold
+                             @(porcentajeGastos > 100
+                                 ? "text-danger"
+                                 : "text-warning")">
+
+                                @porcentajeGastos.ToString("N1")%
+                            </span>
+                        </div>
+
+                        <div class="progress"
+                             style="height:22px;">
+
+                            <div class="progress-bar fw-bold
+                            @(porcentajeGastos > 100
+                                ? "bg-danger"
+                                : "bg-warning text-dark")"
+                                 role="progressbar"
+                                 style="width:@anchoGastos.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@porcentajeGastos"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+
+                                @porcentajeGastos.ToString("N1")%
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-2">
+
+                            <small class="text-muted">
+                                Planificado:
+                                <strong>
+                                    ₡@Model.PresupuestoGastosPlanificado.ToString("N2")
+                                </strong>
+                            </small>
+
+                            <small class="text-danger">
+                                Real:
+                                <strong>
+                                    ₡@Model.PresupuestoGastosReal.ToString("N2")
+                                </strong>
+                            </small>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Alertas actuales del sistema
+                </div>
+                <div class="card-body">
+
+                    @if (Model.CuentasPorCobrarVencidas > 0)
+                    {
+                        <div class="alert alert-danger py-2">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            Hay @Model.CuentasPorCobrarVencidas CxC vencidas.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success py-2">
+                            <i class="fas fa-check-circle"></i>
+                            No hay CxC vencidas.
+                        </div>
+                    }
+
+                    @if (Model.CuentasPorPagarVencidas > 0)
+                    {
+                        <div class="alert alert-warning py-2">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            Hay @Model.CuentasPorPagarVencidas CxP vencidas.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success py-2">
+                            <i class="fas fa-check-circle"></i>
+                            No hay CxP vencidas.
+                        </div>
+                    }
+
+                    @if (porcentajeGastos > 100)
+                    {
+                        <div class="alert alert-danger py-2">
+                            <i class="fas fa-circle-exclamation"></i>
+                            El presupuesto de gastos fue excedido.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-chart-line"></i>
+                            El presupuesto se mantiene controlado.
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Últimos movimientos contables de hoy 
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle dashboard-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Módulo</th>
+                                <th>Debe</th>
+                                <th>Haber</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.UltimosMovimientos)
+                            {
+                                <tr>
+                                    <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.Modulo</td>
+                                    <td>₡@item.Debe.ToString("N2")</td>
+                                    <td>₡@item.Haber.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Últimas auditorías de hoy 
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle dashboard-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Módulo</th>
+                                <th>Acción</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.UltimasAuditorias)
+                            {
+                                <tr>
+                                    <td>@item.Fecha.ToString("dd/MM/yyyy hh:mm tt")</td>
+                                    <td>@item.Modulo</td>
+                                    <td><span class="badge bg-primary">@item.Accion</span></td>
+                                    <td>@item.Usuario</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+@section Scripts {
+    <script>
+        const meses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Meses));
+        const ingresos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IngresosMensuales));
+        const gastos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GastosMensuales));
+
+        new Chart(document.getElementById('graficoIngresosGastos'), {
+            type: 'bar',
+            data: {
+                labels: meses,
+                datasets: [
+                    {
+                        label: 'Ingresos',
+                        data: ingresos
+                    },
+                    {
+                        label: 'Gastos',
+                        data: gastos
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        new Chart(document.getElementById('graficoEstado'), {
+            type: 'pie',
+            data: {
+                labels: ['Pendientes', 'Pagadas', 'Vencidas'],
+                datasets: [{
+                    data: [
+        @Model.CuentasPorCobrarPendientesCantidad,
+        @Model.CuentasPorCobrarPagadasCantidad,
+        @Model.CuentasPorCobrarVencidasCantidad
+                            ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+}

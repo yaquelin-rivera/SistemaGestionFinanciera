@@ -1,0 +1,702 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Auditorium>
+
+@{
+    ViewData["Title"] = "Auditoría";
+
+    var totalRegistros = Model.Count();
+    var registrosHoy = Model.Count(a => a.Fecha.Date == DateTime.Today);
+    var usuariosDistintos = Model.Select(a => a.UsuarioId).Distinct().Count();
+    var modulosAuditados = Model.Select(a => a.Tabla).Distinct().Count();
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Auditoría del Sistema</h2>
+        <small class="text-muted">
+            Consulta del historial de acciones realizadas en el sistema financiero
+        </small>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen border-0 border-start border-primary border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">Total de eventos</small>
+                        <h3 class="fw-bold mb-0">@totalRegistros</h3>
+                    </div>
+                    <i class="fas fa-history fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen border-0 border-start border-success border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">Eventos de hoy</small>
+                        <h3 class="fw-bold mb-0">@registrosHoy</h3>
+                    </div>
+                    <i class="fas fa-calendar-day fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen border-0 border-start border-warning border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">Usuarios responsables</small>
+                        <h3 class="fw-bold mb-0">@usuariosDistintos</h3>
+                    </div>
+                    <i class="fas fa-users fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 card-resumen border-0 border-start border-info border-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">Módulos auditados</small>
+                        <h3 class="fw-bold mb-0">@modulosAuditados</h3>
+                    </div>
+                    <i class="fas fa-layer-group fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-dark text-white fw-bold">
+
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get"
+                  id="formFiltrosAuditoria"
+                  class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Buscar
+
+                    </label>
+
+                    <input type="text"
+                           id="filtroBuscar"
+                           name="buscar"
+                           value="@ViewBag.Buscar"
+                           class="form-control"
+                           placeholder="Usuario, módulo, acción..." />
+
+                </div>
+
+                <!-- MÓDULO -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Módulo
+
+                    </label>
+
+                    <select id="filtroModulo"
+                            name="modulo"
+                            class="form-select">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        @foreach (var item in (IEnumerable<string>)ViewBag.Modulos)
+                        {
+                            <option value="@item"
+                                    selected="@(ViewBag.Modulo == item)">
+                                @item
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- ACCIÓN -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Acción
+
+                    </label>
+
+                    <select id="filtroAccion"
+                            name="accion"
+                            class="form-select">
+
+                        <option value="">
+                            Todas
+                        </option>
+
+                        @foreach (var item in (IEnumerable<string>)ViewBag.Acciones)
+                        {
+                            <option value="@item"
+                                    selected="@(ViewBag.Accion == item)">
+                                @item
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- DESDE -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Desde
+
+                    </label>
+
+                    <input type="date"
+                           id="filtroDesde"
+                           name="desde"
+                           value="@ViewBag.Desde"
+                           class="form-control" />
+
+                </div>
+
+                <!-- HASTA -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Hasta
+
+                    </label>
+
+                    <input type="date"
+                           id="filtroHasta"
+                           name="hasta"
+                           value="@ViewBag.Hasta"
+                           class="form-control" />
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="col-md-12">
+
+                    <div class="d-flex align-items-end gap-2 w-100">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-5 ">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-secondary px-5 ">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+
+                            </a>
+
+                        </div>
+
+                        <div class="d-flex gap-2 ms-auto">
+
+                            <button type="button"
+                                    id="btnReporteAuditoria"
+                                    class="btn btn-info">
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnExcelAuditoria"
+                                    class="btn btn-success">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Auditorías registradas
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="tablaAuditoria"  class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Responsable</th>
+                            <th>Módulo</th>
+                            <th>Acción</th>
+                            <th>Registro</th>
+                            <th>Descripción</th>
+                            <th class="col-acciones text-center">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            string claseBadge = "bg-secondary bg-opacity-85";
+
+                            if (item.Accion.Contains("Desactivar", StringComparison.OrdinalIgnoreCase) ||
+                            item.Accion.Contains("Anular", StringComparison.OrdinalIgnoreCase) ||
+                            item.Accion.Contains("Eliminar", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-danger bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Rechazar", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-danger bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Activar", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-info bg-opacity-85 text-dark";
+                            }
+                            else if (item.Accion.Contains("Aprobar", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-success bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Crear", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-warning bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Modificar", StringComparison.OrdinalIgnoreCase) ||
+                            item.Accion.Contains("Editar", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-primary bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Inicio", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-success bg-opacity-85";
+                            }
+                            else if (item.Accion.Contains("Cierre", StringComparison.OrdinalIgnoreCase))
+                            {
+                                claseBadge = "bg-dark bg-opacity-85";
+                            }
+
+                            <tr>
+                                <td class="text-nowrap" data-fecha="@item.Fecha.ToString("yyyy-MM-dd")">
+                                    @item.Fecha.ToString("dd/MM/yyyy hh:mm tt")
+                                </td>
+
+                                <td class="text-nowrap">
+                                    @item.Usuario.Nombre - @item.Usuario.Rol.Nombre
+                                </td>
+
+                                <td>@item.Tabla</td>
+
+                                <td>
+                                    <span class="badge @claseBadge">
+                                        @item.Accion
+                                    </span>
+                                </td>
+
+                                <td>@item.RegistroId</td>
+
+                                <td>@item.Descripcion</td>
+
+                                <td class="col-acciones text-center">
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.IdAuditoria"
+                                       class="btn btn-primary btn-sm btn-detalle-auditoria">
+                                        <i class="fas fa-eye"></i> Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+         
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function () {
+
+            // =====================================================
+            // DATATABLE
+            // =====================================================
+            if ($.fn.DataTable.isDataTable("#tablaAuditoria")) {
+                $("#tablaAuditoria").DataTable().destroy();
+            }
+
+            $("#tablaAuditoria").DataTable({
+
+                pageLength: 25,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                searching: true,
+                ordering: false,
+                info: true,
+                paging: true,
+                autoWidth: false,
+                responsive: false,
+
+                columnDefs: [
+                    {
+                        targets: [6],
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+
+                language: {
+
+                    emptyTable:
+                        "No hay registros disponibles",
+
+                    info:
+                        "Mostrando _START_ a _END_ de _TOTAL_ registros",
+
+                    infoEmpty:
+                        "Mostrando 0 a 0 de 0 registros",
+
+                    infoFiltered:
+                        "(filtrado de _MAX_ registros totales)",
+
+                    lengthMenu:
+                        "Mostrar _MENU_ registros",
+
+                    loadingRecords:
+                        "Cargando...",
+
+                    processing:
+                        "Procesando...",
+
+                    search:
+                        "Buscar:",
+
+                    searchPlaceholder:
+                        "Buscar en la tabla...",
+
+                    zeroRecords:
+                        "No se encontraron resultados",
+
+                    paginate: {
+
+                        first:
+                            "Primero",
+
+                        last:
+                            "Último",
+
+                        next:
+                            "Siguiente",
+
+                        previous:
+                            "Anterior"
+                    }
+                }
+            });
+
+            // =====================================================
+            // ELEMENTOS DE LOS FILTROS
+            // =====================================================
+            const formFiltros =
+                document.getElementById("formFiltrosAuditoria");
+
+            const filtroBuscar =
+                document.getElementById("filtroBuscar");
+
+            const filtroModulo =
+                document.getElementById("filtroModulo");
+
+            const filtroAccion =
+                document.getElementById("filtroAccion");
+
+            const filtroDesde =
+                document.getElementById("filtroDesde");
+
+            const filtroHasta =
+                document.getElementById("filtroHasta");
+
+            // =====================================================
+            // VALIDAR RANGO DE FECHAS
+            // =====================================================
+            function validarFechas() {
+
+                if (!filtroDesde || !filtroHasta) {
+                    return true;
+                }
+
+                const desde =
+                    filtroDesde.value;
+
+                const hasta =
+                    filtroHasta.value;
+
+                if (desde && hasta && desde > hasta) {
+
+                    Swal.fire({
+
+                        icon:
+                            "warning",
+
+                        title:
+                            "Rango de fechas inválido",
+
+                        text:
+                            "La fecha Desde no puede ser mayor que la fecha Hasta.",
+
+                        confirmButtonText:
+                            "Aceptar",
+
+                        confirmButtonColor:
+                            "#0F7C90"
+                    });
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // =====================================================
+            // ENVÍO DEL FORMULARIO DE FILTROS
+            // =====================================================
+            if (formFiltros) {
+
+                formFiltros.addEventListener(
+                    "submit",
+                    function (evento) {
+
+                        if (!validarFechas()) {
+                            evento.preventDefault();
+                        }
+                    });
+            }
+
+            // =====================================================
+            // CAMBIO AUTOMÁTICO DE SELECTS
+            // =====================================================
+            if (filtroModulo && formFiltros) {
+
+                filtroModulo.addEventListener(
+                    "change",
+                    function () {
+
+                        if (validarFechas()) {
+                            formFiltros.submit();
+                        }
+                    });
+            }
+
+            if (filtroAccion && formFiltros) {
+
+                filtroAccion.addEventListener(
+                    "change",
+                    function () {
+
+                        if (validarFechas()) {
+                            formFiltros.submit();
+                        }
+                    });
+            }
+
+            // =====================================================
+            // CAMBIO AUTOMÁTICO DE FECHAS
+            // =====================================================
+            if (filtroDesde && formFiltros) {
+
+                filtroDesde.addEventListener(
+                    "change",
+                    function () {
+
+                        if (validarFechas()) {
+                            formFiltros.submit();
+                        }
+                    });
+            }
+
+            if (filtroHasta && formFiltros) {
+
+                filtroHasta.addEventListener(
+                    "change",
+                    function () {
+
+                        if (validarFechas()) {
+                            formFiltros.submit();
+                        }
+                    });
+            }
+
+            // =====================================================
+            // BÚSQUEDA AUTOMÁTICA
+            // =====================================================
+            if (filtroBuscar && formFiltros) {
+
+                let temporizador;
+
+                filtroBuscar.addEventListener(
+                    "input",
+                    function () {
+
+                        clearTimeout(temporizador);
+
+                        temporizador = setTimeout(
+                            function () {
+
+                                if (validarFechas()) {
+                                    formFiltros.submit();
+                                }
+                            },
+                            600
+                        );
+                    });
+            }
+
+            // =====================================================
+            // OBTENER PARÁMETROS PARA PDF Y EXCEL
+            // =====================================================
+            function obtenerParametrosAuditoria() {
+
+                return new URLSearchParams({
+
+                    buscar:
+                        filtroBuscar
+                            ? filtroBuscar.value.trim()
+                            : "",
+
+                    modulo:
+                        filtroModulo
+                            ? filtroModulo.value
+                            : "",
+
+                    accion:
+                        filtroAccion
+                            ? filtroAccion.value
+                            : "",
+
+                    desde:
+                        filtroDesde
+                            ? filtroDesde.value
+                            : "",
+
+                    hasta:
+                        filtroHasta
+                            ? filtroHasta.value
+                            : ""
+                });
+            }
+
+            // =====================================================
+            // VISTA PREVIA PDF
+            // =====================================================
+            const btnReporteAuditoria =
+                document.getElementById(
+                    "btnReporteAuditoria"
+                );
+
+            if (btnReporteAuditoria) {
+
+                btnReporteAuditoria.addEventListener(
+                    "click",
+                    function () {
+
+                        if (!validarFechas()) {
+                            return;
+                        }
+
+                        const parametros =
+                            obtenerParametrosAuditoria();
+
+                        const url =
+                            '@Url.Action(
+            "Reporte",
+                "Auditoriums"
+                )'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+            }
+
+            // =====================================================
+            // EXPORTAR EXCEL
+            // =====================================================
+            const btnExcelAuditoria =
+                document.getElementById(
+                    "btnExcelAuditoria"
+                );
+
+            if (btnExcelAuditoria) {
+
+                btnExcelAuditoria.addEventListener(
+                    "click",
+                    function () {
+
+                        if (!validarFechas()) {
+                            return;
+                        }
+
+                        const parametros =
+                            obtenerParametrosAuditoria();
+
+                        const url =
+                            '@Url.Action(
+            "ExportarExcel",
+                "Auditoriums"
+                )'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+            }
+
+        });
+
+    </script>
+}

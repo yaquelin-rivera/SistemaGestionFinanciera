@@ -1,0 +1,583 @@
+﻿@model SistemaGestionFinanciera.Models.Factura
+
+@{
+    ViewData["Title"] = "Modificar Factura";
+}
+
+<div class="card shadow">
+
+    <div class="card-header text-white"
+         style="background-color:#0F7C90;">
+        <h4 class="mb-0">Modificar Factura</h4>
+        <small>Actualice únicamente los datos administrativos permitidos.</small>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Edit">
+            <input type="hidden" name="retorno" value="@ViewBag.Retorno" />
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3"></div>
+
+            <input type="hidden" asp-for="IdFactura" />
+            <div class="alert alert-info mb-3">
+                <strong>Nota:</strong> En esta pantalla solo se pueden modificar datos administrativos de la factura,
+                como condición de pago, días de crédito, observación, proyecto, centro de costo y clasificación financiera.
+                <br />
+                Los datos económicos, cliente/proveedor, número de factura y líneas del detalle no se modifican desde esta opción.
+            </div>
+            <div class="row">
+
+                <!-- INFORMACIÓN DE LA FACTURA -->
+                <div class="col-md-3">
+
+                    <h5 class="text-primary mb-3">Información de la Factura</h5>
+                    <hr />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de factura</label>
+                        <input asp-for="TipoFactura" class="form-control bg-light" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Número de factura</label>
+                        <input asp-for="NumeroFactura" class="form-control bg-light" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de emisión</label>
+                        <input id="FechaEmisionTexto"
+                               class="form-control bg-light"
+                               value="@Model.FechaEmision.ToString("dd/MM/yyyy")"
+                               readonly />
+
+                        <input type="hidden"
+                               asp-for="FechaEmision"
+                               id="FechaEmision"
+                               value="@Model.FechaEmision.ToString("yyyy-MM-dd")" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de vencimiento</label>
+                        <input id="FechaVencimientoTexto"
+                               class="form-control bg-light"
+                               value="@(Model.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "")"
+                               readonly />
+
+                        <input type="hidden"
+                               asp-for="FechaVencimiento"
+                               id="FechaVencimiento"
+                               value="@(Model.FechaVencimiento?.ToString("yyyy-MM-dd") ?? "")" />
+
+                        <span asp-validation-for="FechaVencimiento" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <!-- RELACIÓN COMERCIAL -->
+
+                <div class="col-md-4">
+
+                    <h5 class="text-primary mb-3">Relación Comercial</h5>
+                    <hr />
+
+                    @if (Model.TipoFactura == "Venta")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Cliente</label>
+                            <input value="@Model.ClienteBeneficiario?.Nombre"
+                                   class="form-control bg-light"
+                                   readonly />
+                        </div>
+                    }
+
+                    @if (Model.TipoFactura == "Compra")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Proveedor</label>
+                            <input value="@Model.Proveedor?.Nombre"
+                                   class="form-control bg-light"
+                                   readonly />
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label">Condición de pago</label>
+
+                        <input type="text"
+                               class="form-control bg-light"
+                               value="@Model.CondicionPago"
+                               readonly />
+
+                        <input type="hidden" asp-for="CondicionPago" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Días de crédito</label>
+                        <select asp-for="DiasCredito" id="DiasCredito" class="form-control">
+                            <option value="">No aplica</option>
+                            <option value="8">8 días</option>
+                            <option value="15">15 días</option>
+                            <option value="30">30 días</option>
+                            <option value="60">60 días</option>
+                            <option value="90">90 días</option>
+                        </select>
+
+                        <span asp-validation-for="DiasCredito"
+                              id="errorDiasCredito"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observación</label>
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="5"></textarea>
+
+                        <span asp-validation-for="Observacion" class="text-danger"></span>
+                    </div>
+                </div>
+
+                    <!-- CLASIFICACIÓN FINANCIERA -->
+                    <div class="col-md-4">
+
+                        <h5 class="text-primary mb-3">Clasificación financiera</h5>
+                        <hr />
+
+                        @if (Model.TipoFactura == "Venta")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Categoría de ingreso</label>
+                                <select asp-for="CategoriaIngresoId"
+                                        class="form-control"
+                                        asp-items="ViewBag.CategoriaIngresoId">
+                                    <option value="">-- Seleccione categoría --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de ingreso</label>
+                                <select asp-for="TipoIngreso" class="form-control">
+                                    <option value="">-- Seleccione tipo --</option>
+                                    <option value="Operativo">Operativo</option>
+                                    <option value="Extraordinario">Extraordinario</option>
+                                    <option value="Donación">Donación</option>
+                                    <option value="Aporte">Aporte</option>
+                                    <option value="Convenio">Convenio</option>
+                                    <option value="Facturación">Facturación</option>
+                                </select>
+                            </div>
+                        }
+
+                        @if (Model.TipoFactura == "Compra")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Categoría de gasto</label>
+                                <select asp-for="CategoriaGastoId"
+                                        class="form-control"
+                                        asp-items="ViewBag.CategoriaGastoId">
+                                    <option value="">-- Seleccione categoría --</option>
+                                </select>
+                            </div>
+                        }
+                    @if (Model.TipoFactura == "Venta")
+                    {
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Proyecto / período presupuestario
+                            </label>
+
+                            <select id="SeleccionProyectoPeriodoVenta"
+                                    name="SeleccionProyectoPeriodoVenta"
+                                    class="form-control"
+                                    asp-items="ViewBag.OpcionesProyectoPeriodoVenta">
+
+                                <option value="">
+                                    -- Seleccione un proyecto y período --
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="ProyectoId"
+                                  class="text-danger"></span>
+
+                            <small class="text-muted d-block mt-1">
+                                Puede seleccionar un período aprobado,
+                                en borrador o un proyecto sin período presupuestario.
+                            </small>
+
+                        </div>
+                    }
+                    @if (Model.TipoFactura == "Compra")
+                    {
+                        <div class=" mb-3">
+                            <label asp-for="PresupuestoMensualId"
+                                   class="form-label">
+                                Proyecto / período presupuestario
+                            </label>
+
+                            <select asp-for="PresupuestoMensualId"
+                                    class="form-control"
+                                    asp-items="ViewBag.PresupuestosMensualId">
+
+                                <option value="">
+                                    -- Seleccione un proyecto y período --
+                                </option>
+                            </select>
+
+                            <span asp-validation-for="PresupuestoMensualId"
+                                  class="text-danger"></span>
+                        </div>
+                    }
+
+                        <div class="mb-3">
+                            <label class="form-label">Centro de costo</label>
+                            <select asp-for="CentroCostoId"
+                                    class="form-control"
+                                    asp-items="ViewBag.CentroCostoId">
+                                <option value="">-- Seleccione centro de costo --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                <h5 class="text-primary mb-3">Detalle de factura</h5>
+
+                <div class="tabla-detalle-edit">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Detalle</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Precio</th>
+                        <th class="text-end">Descuento</th>
+                        <th class="text-end">Impuesto</th>
+                        <th class="text-end">Total línea</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.FacturaDetalles != null && Model.FacturaDetalles.Any(d => d.Activo))
+                    {
+                        foreach (var item in Model.FacturaDetalles.Where(d => d.Activo))
+                        {
+                            <tr>
+                                <td>@item.Descripcion</td>
+                                <td class="text-center">@item.Cantidad.ToString("N2")</td>
+                                <td class="text-end">₡@item.PrecioUnitario.ToString("N2")</td>
+                                <td class="text-end">₡@item.Descuento.ToString("N2")</td>
+                                <td class="text-end">₡@item.Impuesto.ToString("N2")</td>
+                                <td class="text-end fw-bold">₡@item.TotalLinea.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No hay líneas registradas para esta factura.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+
+            <div class="row gx-5">
+                <!-- MONTOS -->
+                <div class="col-md-4 px-4">
+
+                    <h5 class="text-primary mb-3">
+                        Valores
+                    </h5>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Subtotal
+                        </label>
+
+                        <input asp-for="SubTotal"
+                               class="form-control bg-light"
+                               readonly />
+
+                        <span asp-validation-for="SubTotal"
+                              class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Tipo de impuesto
+                        </label>
+                        <input asp-for="TipoImpuesto"
+                               class="form-control bg-light"
+                               readonly />
+                     
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Descuento
+                        </label>
+
+                        <input asp-for="DescuentoTotal"
+                               class="form-control bg-light"
+                               readonly />
+
+                        <span asp-validation-for="DescuentoTotal"
+                              class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <!-- CÁLCULOS -->
+                <div class="col-md-4 px-4">
+
+                    <h5 class="text-primary mb-3">
+                        Cálculos Automáticos
+                    </h5>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Impuesto
+                        </label>
+
+                        <input asp-for="ImpuestoTotal"
+                               class="form-control bg-light"
+                               readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Total
+                        </label>
+
+                        <input asp-for="Total"
+                               class="form-control bg-light fw-bold"
+                               readonly />
+                    </div>
+                    <label class="form-label">Saldo pendiente</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">₡</span>
+
+                        <input asp-for="SaldoPendiente"
+                               class="form-control bg-light fw-bold"
+                               readonly />
+                    </div>
+
+                </div>
+
+                <!-- ESTADO -->
+                <div class="col-md-3 px-4">
+
+                    <h5 class="text-primary mb-3">Estado de la Factura</h5>
+                    <hr />
+                    <div class="mb-3">
+                        <label class="form-label">Estado actual</label>
+
+                        <div>
+                            <span id="badgeEstado"
+                                  class="badge fs-6 @(Model.Estado == "Pagada" ? "bg-success" : Model.Estado == "Vencida" ? "bg-danger" : "bg-warning text-dark")">
+                                @Model.Estado
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+                </div>
+            <hr />
+                <div class="d-flex align-items-center mt-4 gap-3 ">
+
+                    @if (ViewBag.Retorno == "Ingresos")
+                    {
+                        <a asp-controller="Ingresos"
+                           asp-action="Index"
+                           asp-route-pendientePresupuesto="true"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver a ingresos pendientes
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver al listado
+                        </a>
+                    }
+
+                    <a asp-action="Details"
+                       asp-route-id="@Model.IdFactura"
+                       class="btn btn-info text-white">
+                        <i class="fas fa-eye me-1"></i>
+                        Ver detalle
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary ms-auto px-4">
+                        <i class="fas fa-save me-1"></i>
+                        Guardar
+                    </button>
+
+                </div>
+
+          </form>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .tabla-detalle-edit {
+        width: 90%;
+    }
+
+        .tabla-detalle-edit table {
+            font-size: 0.9rem;
+        }
+
+        .tabla-detalle-edit th,
+        .tabla-detalle-edit td {
+            padding: 0.45rem 0.6rem;
+        }
+
+    input.form-control[readonly],
+    textarea.form-control[readonly] {
+        background-color: #e9ecef !important;
+        border-color: #c4c9ce !important;
+        color: #495057 !important;
+        cursor: not-allowed;
+    }
+
+    .alert-info {
+        border-left: 5px solid #0F7C90;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const condicionPago = document.getElementById("CondicionPago");
+        const diasCredito = document.getElementById("DiasCredito");
+        const errorDiasCredito = document.getElementById("errorDiasCredito");
+
+        const fechaEmision = document.getElementById("FechaEmision");
+        const fechaVencimiento = document.getElementById("FechaVencimiento");
+        const fechaVencimientoTexto = document.getElementById("FechaVencimientoTexto");
+
+        const total = document.getElementById("Total");
+        const saldo = document.getElementById("SaldoPendiente");
+        const badge = document.getElementById("badgeEstado");
+
+        function convertirNumero(valor) {
+            return parseFloat((valor || "0").replace(",", ".")) || 0;
+        }
+
+        function formatearFecha(fechaISO) {
+            if (!fechaISO) return "";
+
+            let partes = fechaISO.split("-");
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function sumarDias(fechaISO, dias) {
+            let partes = fechaISO.split("-");
+            let fecha = new Date(
+                parseInt(partes[0]),
+                parseInt(partes[1]) - 1,
+                parseInt(partes[2])
+            );
+
+            fecha.setDate(fecha.getDate() + parseInt(dias));
+
+            let anio = fecha.getFullYear();
+            let mes = String(fecha.getMonth() + 1).padStart(2, "0");
+            let dia = String(fecha.getDate()).padStart(2, "0");
+
+            return `${anio}-${mes}-${dia}`;
+        }
+
+        function actualizarBadge(estado) {
+            if (estado === "Pagada") {
+                badge.className = "badge bg-success fs-6";
+                badge.innerText = "Pagada";
+                saldo.className = "form-control bg-light text-success fw-bold";
+            }
+            else if (estado === "Vencida") {
+                badge.className = "badge bg-danger fs-6";
+                badge.innerText = "Vencida";
+                saldo.className = "form-control bg-light text-danger fw-bold";
+            }
+            else {
+                badge.className = "badge bg-warning text-dark fs-6";
+                badge.innerText = "Pendiente";
+                saldo.className = "form-control bg-light text-danger fw-bold";
+            }
+        }
+
+        function controlarFactura() {
+
+            let totalFactura = convertirNumero(total.value);
+
+            if (condicionPago.value === "Contado") {
+                diasCredito.value = "";
+                diasCredito.disabled = true;
+                errorDiasCredito.innerText = "";
+
+                fechaVencimiento.value = fechaEmision.value;
+                fechaVencimientoTexto.value = formatearFecha(fechaEmision.value);
+
+                saldo.value = "0.00";
+                actualizarBadge("Pagada");
+            }
+            else {
+                diasCredito.disabled = false;
+
+                if (!diasCredito.value) {
+                    errorDiasCredito.innerText = "Debe seleccionar los días de crédito.";
+
+                    fechaVencimiento.value = "";
+                    fechaVencimientoTexto.value = "";
+
+                    saldo.value = totalFactura.toFixed(2);
+                    actualizarBadge("Pendiente");
+                    return;
+                }
+
+                errorDiasCredito.innerText = "";
+
+                let nuevaFecha = sumarDias(fechaEmision.value, diasCredito.value);
+
+                fechaVencimiento.value = nuevaFecha;
+                fechaVencimientoTexto.value = formatearFecha(nuevaFecha);
+
+                saldo.value = totalFactura.toFixed(2);
+
+                let hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+
+                let partes = nuevaFecha.split("-");
+                let vencimiento = new Date(
+                    parseInt(partes[0]),
+                    parseInt(partes[1]) - 1,
+                    parseInt(partes[2])
+                );
+
+                if (vencimiento < hoy) {
+                    actualizarBadge("Vencida");
+                } else {
+                    actualizarBadge("Pendiente");
+                }
+            }
+        }
+
+        condicionPago.addEventListener("change", controlarFactura);
+        diasCredito.addEventListener("change", controlarFactura);
+
+        controlarFactura();
+    });
+</script>

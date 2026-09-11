@@ -1,0 +1,153 @@
+﻿@model SistemaGestionFinanciera.Models.PresupuestoDetalle
+
+@{
+    ViewData["Title"] = "Registrar Detalle de Presupuesto";
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold">Registrar Detalle de Presupuesto</h2>
+    <p class="text-muted">
+        Registro de montos planificados por categoría para un presupuesto mensual.
+    </p>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Complete la información del detalle
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary">
+                El sistema calculará automáticamente el monto ejecutado y la diferencia según los ingresos o gastos registrados.
+            </div>
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mb-2">Información del presupuesto</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="PresupuestoMensualId" class="form-label">Presupuesto mensual</label>
+                        <select asp-for="PresupuestoMensualId"
+                                class="form-select"
+                                asp-items="ViewBag.PresupuestoMensualId">
+                            <option value="">-- Seleccione un presupuesto mensual --</option>
+                        </select>
+                        <span asp-validation-for="PresupuestoMensualId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Tipo" class="form-label">Tipo</label>
+                        <select asp-for="Tipo" id="Tipo" class="form-select">
+                            <option value="">-- Seleccione el tipo --</option>
+                            <option value="Ingreso">Ingreso</option>
+                            <option value="Gasto">Gasto</option>
+                        </select>
+                        <span asp-validation-for="Tipo" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">Categoría y monto</p>
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6" id="grupoCategoriaIngreso">
+                        <label asp-for="CategoriaIngresoId" class="form-label">Categoría de ingreso</label>
+                        <select asp-for="CategoriaIngresoId"
+                                class="form-select"
+                                asp-items="ViewBag.CategoriaIngresoId">
+                            <option value="">-- Seleccione una categoría de ingreso --</option>
+                        </select>
+                        <span asp-validation-for="CategoriaIngresoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6" id="grupoCategoriaGasto">
+                        <label asp-for="CategoriaGastoId" class="form-label">Categoría de gasto</label>
+                        <select asp-for="CategoriaGastoId"
+                                class="form-select"
+                                asp-items="ViewBag.CategoriaGastoId">
+                            <option value="">-- Seleccione una categoría de gasto --</option>
+                        </select>
+                        <span asp-validation-for="CategoriaGastoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="MontoPlanificado" class="control-label">Monto planificado</label>
+                        <input asp-for="MontoPlanificado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="Ej: 500000.00" />
+                        <span asp-validation-for="MontoPlanificado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Si el tipo es Ingreso, este monto se sumará al ingreso planificado.
+                            Si el tipo es Gasto, este monto se sumará al gasto planificado.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    El monto ejecutado se obtendrá automáticamente de los ingresos o gastos reales registrados para el presupuesto seleccionado.
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        Guardar detalle
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const tipo = document.getElementById("Tipo");
+        const grupoIngreso = document.getElementById("grupoCategoriaIngreso");
+        const grupoGasto = document.getElementById("grupoCategoriaGasto");
+        const categoriaIngreso = document.getElementById("CategoriaIngresoId");
+        const categoriaGasto = document.getElementById("CategoriaGastoId");
+
+        function mostrarCategoria() {
+            if (tipo.value === "Ingreso") {
+                grupoIngreso.style.display = "block";
+                grupoGasto.style.display = "none";
+                categoriaGasto.value = "";
+            }
+            else if (tipo.value === "Gasto") {
+                grupoIngreso.style.display = "none";
+                grupoGasto.style.display = "block";
+                categoriaIngreso.value = "";
+            }
+            else {
+                grupoIngreso.style.display = "none";
+                grupoGasto.style.display = "none";
+                categoriaIngreso.value = "";
+                categoriaGasto.value = "";
+            }
+        }
+
+        tipo.addEventListener("change", mostrarCategoria);
+        mostrarCategoria();
+    </script>
+}

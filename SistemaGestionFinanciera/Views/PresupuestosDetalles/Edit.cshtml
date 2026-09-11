@@ -1,0 +1,178 @@
+﻿@model SistemaGestionFinanciera.Models.PresupuestoDetalle
+
+@{
+    ViewData["Title"] = "Modificar Detalle de Presupuesto";
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold">Modificar Detalle de Presupuesto</h2>
+    <p class="text-muted">
+        Actualización de montos planificados por categoría.
+    </p>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            Complete la información del detalle
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary">
+                Al guardar los cambios el sistema recalculará automáticamente
+                el monto ejecutado y la diferencia del detalle presupuestario.
+            </div>
+
+            <form asp-action="Edit" method="post">
+
+                <input type="hidden" asp-for="IdPresupuestoDetalle" />
+                <input type="hidden" asp-for="PresupuestoMensualId" />
+                <input type="hidden" asp-for="Tipo" />
+                <input type="hidden" asp-for="CategoriaIngresoId" />
+                <input type="hidden" asp-for="CategoriaGastoId" />
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mb-2">
+                    Información del presupuesto
+                </p>
+
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="PresupuestoMensualId" class="form-label">
+                            Presupuesto mensual
+                        </label>
+
+                        <select asp-for="PresupuestoMensualId"
+                                class="form-select"
+                                asp-items="ViewBag.PresupuestoMensualId"
+                                disabled>
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Tipo" class="form-label">
+                            Tipo
+                        </label>
+
+                        <select asp-for="Tipo"
+                                id="Tipo"
+                                class="form-select"
+                                disabled>
+
+                            <option value="Ingreso">Ingreso</option>
+                            <option value="Gasto">Gasto</option>
+
+                        </select>
+
+
+                    </div>
+
+                </div>
+
+                <p class="text-primary fw-bold mt-4 mb-2">
+                    Categoría y monto
+                </p>
+
+                <hr />
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6"
+                         id="grupoCategoriaIngreso">
+
+                        <label asp-for="CategoriaIngresoId"
+                               class="form-label">
+                            Categoría de ingreso
+                        </label>
+
+                        <select asp-for="CategoriaIngresoId"
+                                class="form-select"
+                                asp-items="ViewBag.CategoriaIngresoId"
+                        disabled>
+                            <option value="">-- Seleccione una categoría de ingreso --</option>
+                        </select>
+
+
+                    </div>
+
+                    <div class="col-md-6"
+                         id="grupoCategoriaGasto">
+
+                        <label asp-for="CategoriaGastoId"
+                               class="form-label">
+                            Categoría de gasto
+                        </label>
+
+                        <select asp-for="CategoriaGastoId"
+                                class="form-select"
+                                asp-items="ViewBag.CategoriaGastoId"
+                        disabled>
+                            <option value="">-- Seleccione una categoría de gasto --</option>
+                        </select>
+
+
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="MontoPlanificado" class="control-label">
+                            Monto planificado
+                        </label>
+                        <input asp-for="MontoPlanificado"
+                               class="form-control"
+                               readonly="@(Model.MontoEjecutado > 0)" />
+
+                        @if ((Model.MontoEjecutado ?? 0) > 0)
+                        {
+                            <div class="alert alert-info mt-3">
+                                Este detalle ya tiene movimientos reales registrados.
+                                El monto planificado no puede modificarse.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mt-4">
+                                El monto ejecutado y la diferencia serán recalculados automáticamente al guardar los cambios.
+                            </div>
+                        }
+                        <span asp-validation-for="MontoPlanificado" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Volver al listado
+                    </a>
+
+                    @if ((Model.MontoEjecutado ?? 0) == 0)
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            Guardar cambios
+                        </button>
+                    }
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

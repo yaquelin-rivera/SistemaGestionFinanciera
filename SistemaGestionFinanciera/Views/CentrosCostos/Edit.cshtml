@@ -1,0 +1,166 @@
+﻿@model SistemaGestionFinanciera.Models.CentrosCosto
+
+@{
+    ViewData["Title"] = "Modificar centro de costo";
+
+    bool tieneRegistrosAsociados =
+        ViewBag.TieneMovimientosAsociados != null
+        && (bool)ViewBag.TieneMovimientosAsociados;
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Modificar centro de costo</h2>
+        <small class="text-muted">
+            Actualice la información del centro de costo manteniendo la trazabilidad contable.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos del centro de costo
+        </div>
+
+        <div class="card-body">
+
+            @if (tieneRegistrosAsociados)
+            {
+                <div class="alert alert-warning">
+                  
+                    este centro de costo ya tiene movimientos contables asociados, por lo tanto el código no puede modificarse.
+                </div>
+            }
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <input type="hidden" asp-for="IdCentroCosto" />
+                <input type="hidden" asp-for="Activo" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Codigo" class="form-label fw-semibold">
+                            Código <span class="text-danger">*</span>
+                        </label>
+
+                        @if (tieneRegistrosAsociados)
+                        {
+                            <input asp-for="Codigo"
+                                   class="form-control"
+                                   maxlength="50"
+                                   autocomplete="off"
+                                   disabled />
+
+                            <input type="hidden" asp-for="Codigo" />
+
+                            <small class="text-muted">
+                                El código está bloqueado porque existen movimientos contables asociados.
+                            </small>
+                        }
+                        else
+                        {
+                            <input asp-for="Codigo"
+                                   class="form-control"
+                                   maxlength="50"
+                                   autocomplete="off" />
+
+                            <small class="text-muted">
+                                Solo letras, números y guiones. Se guardará en mayúscula.
+                            </small>
+                        }
+
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-semibold">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="150"
+                               autocomplete="off" />
+
+                        <small class="text-muted">
+                            Solo letras, números y espacios. Mínimo 3 caracteres.
+                        </small>
+
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">
+                            Descripción
+                        </label>
+
+                        <textarea asp-for="Descripcion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="300"
+                                  autocomplete="off"></textarea>
+
+                        <small class="text-muted">
+                            Campo opcional. Permite letras, números, espacios y signos básicos: . , ; : ( ) / -
+                        </small>
+
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-dark">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+
+                   
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const codigo = document.getElementById("Codigo");
+            const nombre = document.getElementById("Nombre");
+            const descripcion = document.getElementById("Descripcion");
+
+            if (codigo) {
+                codigo.addEventListener("input", function () {
+                    this.value = this.value
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9-]/g, "");
+                });
+            }
+
+            if (nombre) {
+                nombre.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]/g, "");
+                });
+            }
+
+            if (descripcion) {
+                descripcion.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.,;:()\/-]/g, "");
+                });
+            }
+        });
+    </script>
+}

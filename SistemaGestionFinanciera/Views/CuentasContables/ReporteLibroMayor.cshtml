@@ -1,0 +1,1172 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.MovimientosContable>
+
+@{
+    Layout = null;
+
+    ViewData["Title"] = "Reporte de Libro Mayor";
+
+    var cuenta =
+        ViewBag.Cuenta as
+        SistemaGestionFinanciera.Models.CuentasContable;
+
+    decimal saldoAnterior =
+        ViewBag.SaldoAnterior != null
+            ? Convert.ToDecimal(ViewBag.SaldoAnterior)
+            : 0m;
+
+    decimal totalDebe =
+        ViewBag.TotalDebe != null
+            ? Convert.ToDecimal(ViewBag.TotalDebe)
+            : 0m;
+
+    decimal totalHaber =
+        ViewBag.TotalHaber != null
+            ? Convert.ToDecimal(ViewBag.TotalHaber)
+            : 0m;
+
+    decimal saldoFinal =
+        ViewBag.SaldoFinal != null
+            ? Convert.ToDecimal(ViewBag.SaldoFinal)
+            : saldoAnterior;
+
+    int cantidadMovimientos =
+        ViewBag.CantidadMovimientos != null
+            ? Convert.ToInt32(ViewBag.CantidadMovimientos)
+            : 0;
+
+    int cantidadVigentes =
+        ViewBag.CantidadVigentes != null
+            ? Convert.ToInt32(ViewBag.CantidadVigentes)
+            : 0;
+
+    int cantidadAnulados =
+        ViewBag.CantidadAnulados != null
+            ? Convert.ToInt32(ViewBag.CantidadAnulados)
+            : 0;
+
+    int cantidadReversados =
+        ViewBag.CantidadReversados != null
+            ? Convert.ToInt32(ViewBag.CantidadReversados)
+            : 0;
+
+    string fechaInicio =
+        ViewBag.FechaInicio as string ?? "";
+
+    string fechaFin =
+        ViewBag.FechaFin as string ?? "";
+
+    string origen =
+        ViewBag.Origen as string ?? "";
+
+    string estado =
+        ViewBag.Estado as string ?? "";
+
+    int? proyectoId =
+        ViewBag.ProyectoId != null
+            ? Convert.ToInt32(ViewBag.ProyectoId)
+            : null;
+
+    int? centroCostoId =
+        ViewBag.CentroCostoId != null
+            ? Convert.ToInt32(ViewBag.CentroCostoId)
+            : null;
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion != null
+            ? Convert.ToDateTime(ViewBag.FechaGeneracion)
+            : DateTime.Now;
+
+    DateOnly fechaInicioConvertida;
+    DateOnly fechaFinConvertida;
+
+    bool fechaInicioValida =
+        DateOnly.TryParse(
+            fechaInicio,
+            out fechaInicioConvertida);
+
+    bool fechaFinValida =
+        DateOnly.TryParse(
+            fechaFin,
+            out fechaFinConvertida);
+
+    bool hayFiltros =
+        !string.IsNullOrWhiteSpace(fechaInicio) ||
+        !string.IsNullOrWhiteSpace(fechaFin) ||
+        !string.IsNullOrWhiteSpace(origen) ||
+        proyectoId.HasValue ||
+        centroCostoId.HasValue ||
+        !string.IsNullOrWhiteSpace(estado);
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+
+        html,
+        body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #212529;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+        }
+
+        /* El reporte ocupa todo el ancho disponible */
+        .reporte-contenedor {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        /* Botones superiores */
+        .botones-reporte {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Encabezado  */
+        .encabezado-reporte {
+            width: 100%;
+            text-align: center;
+            border-bottom: 2px solid #0F7C90;
+            padding: 0 10px 10px 10px;
+            margin-bottom: 10px;
+        }
+
+            .encabezado-reporte h2 {
+                color: #0F5C64;
+                font-size: 24px;
+                font-weight: 700;
+                margin: 0 0 3px 0;
+            }
+
+            .encabezado-reporte h4 {
+                color: #212529;
+                font-size: 18px;
+                font-weight: 700;
+                margin: 0 0 3px 0;
+            }
+
+            .encabezado-reporte h2 i {
+                color: #0F5C64;
+                margin-right: 7px;
+            }
+
+            .encabezado-reporte h4 i {
+                color: #495057;
+                margin-right: 5px;
+            }
+
+        .fecha-generacion {
+            color: #6c757d;
+            font-size: 15px;
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+            .fecha-generacion i {
+                margin-right: 4px;
+            }
+
+        .seccion-titulo {
+            background-color: #0F5C64;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 9px 12px;
+            margin-bottom: 0;
+        }
+
+        .seccion-contenido {
+            border: 1px solid #dee2e6;
+            border-top: 0;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .dato-label {
+            display: block;
+            color: #6c757d;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .dato-valor {
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .filtros-aplicados {
+            border-left: 4px solid #0F7C90;
+            background-color: #F2F7F8;
+            padding: 11px 14px;
+            margin-bottom: 18px;
+        }
+
+        .filtro-item {
+            display: inline-block;
+            margin-right: 18px;
+            margin-bottom: 4px;
+        }
+
+        .resumen-card {
+            border: 1px solid #dee2e6;
+            border-left-width: 4px;
+            border-radius: 4px;
+            padding: 12px;
+            height: 100%;
+            background-color: #ffffff;
+        }
+
+        .borde-debe {
+            border-left-color: #0d6efd;
+        }
+
+        .borde-haber {
+            border-left-color: #198754;
+        }
+
+        .borde-movimientos {
+            border-left-color: #ffc107;
+        }
+
+        .borde-saldo {
+            border-left-color: #0dcaf0;
+        }
+
+        .icono-resumen {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .resumen-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: 2px;
+        }
+
+        .resumen-valor {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+
+            .tabla-reporte thead th {
+                background-color: #0F5C64;
+                color: #ffffff;
+                padding: 8px 6px;
+                border: 1px solid #0B4B52;
+                font-size: 19px;
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            .tabla-reporte tbody td {
+                padding: 7px 6px;
+                border: 1px solid #dee2e6;
+                vertical-align: middle;
+                font-size: 19px;
+            }
+
+            .tabla-reporte tbody tr:nth-child(even) {
+                background-color: #F8F9FA;
+            }
+
+            .tabla-reporte tfoot td {
+                padding: 8px 6px;
+                border: 1px solid #ced4da;
+                border-top: 2px solid #0F5C64;
+                background-color: #F2F7F8;
+                font-weight: 700;
+                font-size: 19px;
+            }
+
+        .columna-fecha {
+            width: 78px;
+            white-space: nowrap;
+        }
+
+        .columna-referencia {
+            min-width: 110px;
+        }
+
+        .columna-origen {
+            min-width: 90px;
+        }
+
+        .columna-proyecto {
+            min-width: 110px;
+        }
+
+        .columna-centro {
+            min-width: 110px;
+        }
+
+        .columna-monto {
+            width: 105px;
+            white-space: nowrap;
+        }
+
+        .columna-estado {
+            width: 86px;
+            white-space: nowrap;
+        }
+
+        .monto-debe {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .monto-haber {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .saldo-acumulado {
+            font-weight: 700;
+        }
+
+        .badge-reporte {
+            display: inline-block;
+            padding: 4px 7px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-registrado {
+            background-color: #198754;
+        }
+
+        .estado-anulado {
+            background-color: #6c757d;
+        }
+
+        .estado-reversion {
+            background-color: #0d6efd;
+        }
+
+        .fila-anulada {
+            color: #6c757d;
+            background-color: #F1F3F5 !important;
+        }
+
+        .sin-registros {
+            padding: 28px !important;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .pie-reporte {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 7px;
+            color: #6c757d;
+            font-size: 0.82rem;
+            border-top: 1px solid #adb5bd;
+        }
+        @@media print {
+
+            @@page {
+                size: landscape;
+                margin: 7mm;
+            }
+
+            html,
+            body {
+                width: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: #ffffff !important;
+            }
+
+            body {
+                font-size: 9px;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-imprimir {
+                display: none !important;
+            }
+
+            .icono-resumen {
+                font-size: 10px !important;
+                margin-bottom: 2px !important;
+            }
+            .reporte-contenedor {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .encabezado-reporte {
+                width: 98% !important;
+                margin: 0 0 8px 0 !important;
+                padding: 0 0 7px 0 !important;
+            }
+
+                .encabezado-reporte h2 {
+                    font-size: 17px !important;
+                    margin-bottom: 2px !important;
+                }
+
+                .encabezado-reporte h4 {
+                    font-size: 12px !important;
+                    margin-bottom: 2px !important;
+                }
+
+            .fecha-generacion {
+                font-size: 9px !important;
+            }
+
+            .seccion-titulo {
+                padding: 5px 7px !important;
+                font-size:10px !important;
+            }
+
+            .seccion-contenido {
+                margin-bottom: 7px !important;
+                padding: 6px !important;
+            }
+
+            .filtros-aplicados {
+                margin-bottom: 7px !important;
+                padding: 6px 8px !important;
+            }
+
+            .resumen-card {
+                padding: 6px !important;
+            }
+
+            .resumen-label {
+                font-size: 10px !important;
+            }
+
+            .resumen-valor {
+                font-size: 11px !important;
+            }
+
+            .tabla-reporte {
+                width: 98% !important;
+                table-layout: fixed;
+            }
+
+                .tabla-reporte thead {
+                    display: table-header-group;
+                }
+
+                .tabla-reporte tfoot {
+                    display: table-footer-group;
+                }
+
+                .tabla-reporte tr {
+                    page-break-inside: avoid;
+                }
+
+                .tabla-reporte thead th,
+                .tabla-reporte tbody td,
+                .tabla-reporte tfoot td {
+                    font-size: 10px !important;
+                    padding: 3px !important;
+                    overflow-wrap: break-word;
+                }
+
+            .badge-reporte {
+                font-size: 10px !important;
+                padding: 2px 4px !important;
+            }
+
+            .pie-reporte {
+                font-size: 8px !important;
+                margin-top: 8px !important;
+                padding-top: 5px !important;
+            }
+
+            .seccion-titulo,
+            .tabla-reporte thead th,
+            .filtros-aplicados,
+            .resumen-card,
+            .tabla-reporte tfoot td,
+            .badge-reporte {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container-fluid reporte-contenedor">
+
+        <!-- =====================================================
+             BOTONES
+        ====================================================== -->
+        <div class="botones-reporte no-imprimir">
+
+            <button type="button"
+                    class="btn btn-info"
+                    onclick="window.print();">
+                <i class="fas fa-print me-1"></i>
+                Imprimir / Guardar PDF
+            </button>
+
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick="history.back();">
+                <i class="fas fa-arrow-left me-1"></i>
+                Volver
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             ENCABEZADO
+        ====================================================== -->
+        <div class="encabezado-reporte">
+
+            <h2>
+                <i class="fas fa-chart-pie me-2"></i>
+                Unión Cantonal de Asociaciones de Desarrollo de Santa Ana
+            </h2>
+
+            <h4>
+                <i class="fas fa-book"></i>
+                Reporte de Libro Mayor
+            </h4>
+
+            <div class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt"></i>
+
+                Fecha de generación:
+
+                <strong>
+                    @fechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             INFORMACIÓN DE LA CUENTA
+        ====================================================== -->
+        <div class="seccion-titulo">
+
+            <i class="fas fa-file-invoice-dollar me-1"></i>
+            Información de la cuenta contable
+
+        </div>
+
+        <div class="seccion-contenido">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <span class="dato-label">
+                        Cuenta contable
+                    </span>
+
+                    <span class="dato-valor">
+                        @cuenta?.Codigo - @cuenta?.Nombre
+                    </span>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <span class="dato-label">
+                        Tipo de cuenta
+                    </span>
+
+                    <span class="dato-valor">
+                        @cuenta?.TipoCuenta
+                    </span>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <span class="dato-label">
+                        Naturaleza
+                    </span>
+
+                    <span class="dato-valor">
+                        @cuenta?.Naturaleza
+                    </span>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <span class="dato-label">
+                        Saldo inicial
+                    </span>
+
+                    <span class="dato-valor">
+                        ₡@String.Format("{0:N2}", cuenta?.SaldoInicial ?? 0m)
+                    </span>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <span class="dato-label">
+
+                        @(fechaInicioValida
+                            ? "Saldo anterior"
+                            : "Saldo inicial del libro")
+
+                    </span>
+
+                    <span class="dato-valor">
+                        ₡@saldoAnterior.ToString("N2")
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             FILTROS APLICADOS
+        ====================================================== -->
+        <div class="filtros-aplicados">
+
+            <strong>
+                <i class="fas fa-filter me-1"></i>
+                Filtros aplicados
+            </strong>
+
+            <div class="mt-1">
+
+                @if (!hayFiltros)
+                {
+                    <span>
+                        Sin filtros. Se muestran todos los movimientos
+                        asociados a la cuenta.
+                    </span>
+                }
+                else
+                {
+                    @if (fechaInicioValida)
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Desde:</strong>
+
+                            @fechaInicioConvertida.ToString("dd/MM/yyyy")
+
+                        </span>
+                    }
+
+                    @if (fechaFinValida)
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Hasta:</strong>
+
+                            @fechaFinConvertida.ToString("dd/MM/yyyy")
+
+                        </span>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(origen))
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Origen:</strong>
+
+                            @origen
+
+                        </span>
+                    }
+
+                    @if (proyectoId.HasValue)
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Proyecto seleccionado:</strong>
+
+                            @proyectoId
+
+                        </span>
+                    }
+
+                    @if (centroCostoId.HasValue)
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Centro de costo seleccionado:</strong>
+
+                            @centroCostoId
+
+                        </span>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(estado))
+                    {
+                        <span class="filtro-item">
+
+                            <strong>Estado:</strong>
+
+                            @estado
+
+                        </span>
+                    }
+                }
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             RESUMEN
+        ====================================================== -->
+        <div class="row g-2 mb-3">
+
+            <!-- TOTAL DEBE -->
+            <div class="col-md-3">
+
+                <div class="resumen-card borde-debe text-center">
+
+                    <i class="fas fa-arrow-down icono-resumen text-primary"></i>
+
+                    <span class="resumen-label">
+                        TOTAL DEBE
+                    </span>
+
+                    <p class="resumen-valor text-primary">
+                        ₡@totalDebe.ToString("N2")
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOTAL HABER -->
+            <div class="col-md-3">
+
+                <div class="resumen-card borde-haber text-center">
+
+                    <i class="fas fa-arrow-up icono-resumen text-success"></i>
+
+                    <span class="resumen-label">
+                        TOTAL HABER
+                    </span>
+
+                    <p class="resumen-valor text-success">
+                        ₡@totalHaber.ToString("N2")
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- MOVIMIENTOS MOSTRADOS -->
+            <div class="col-md-3">
+
+                <div class="resumen-card borde-movimientos text-center">
+
+                    <i class="fas fa-exchange-alt icono-resumen text-warning"></i>
+
+                    <span class="resumen-label">
+                        MOVIMIENTOS MOSTRADOS
+                    </span>
+
+                    <p class="resumen-valor text-dark">
+                        @cantidadMovimientos
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- SALDO FINAL -->
+            <div class="col-md-3">
+
+                <div class="resumen-card borde-saldo text-center">
+
+                    <i class="fas fa-wallet icono-resumen text-info"></i>
+
+                    <span class="resumen-label">
+                        SALDO FINAL
+                    </span>
+
+                    <p class="resumen-valor
+               @(saldoFinal < 0
+                   ? "text-danger"
+                   : "text-dark")">
+
+                        ₡@saldoFinal.ToString("N2")
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             RESUMEN DE ESTADOS
+        ====================================================== -->
+        <div class="row g-2 mb-3">
+
+            <!-- MOVIMIENTOS VIGENTES -->
+            <div class="col-md-4">
+
+                <div class="border rounded p-2 text-center h-100">
+
+                    <i class="fas fa-check-circle text-success icono-resumen"></i>
+
+                    <span class="dato-label">
+                        Movimientos vigentes
+                    </span>
+
+                    <strong class="text-success fs-5">
+                        @cantidadVigentes
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- MOVIMIENTOS ANULADOS -->
+            <div class="col-md-4">
+
+                <div class="border rounded p-2 text-center h-100">
+
+                    <i class="fas fa-times-circle text-secondary icono-resumen"></i>
+
+                    <span class="dato-label">
+                        Movimientos anulados
+                    </span>
+
+                    <strong class="text-secondary fs-5">
+                        @cantidadAnulados
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- MOVIMIENTOS DE REVERSIÓN -->
+            <div class="col-md-4">
+
+                <div class="border rounded p-2 text-center h-100">
+
+                    <i class="fas fa-undo-alt text-primary icono-resumen"></i>
+
+                    <span class="dato-label">
+                        Movimientos de reversión
+                    </span>
+
+                    <strong class="text-primary fs-5">
+                        @cantidadReversados
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+        <!-- =====================================================
+             TABLA DEL LIBRO MAYOR
+        ====================================================== -->
+        <div class="seccion-titulo">
+
+            <i class="fas fa-list-alt me-1"></i>
+            Movimientos del libro mayor
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="tabla-reporte">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="columna-fecha">
+                            Fecha
+                        </th>
+
+                        <th class="columna-referencia">
+                            Referencia
+                        </th>
+
+                        <th class="columna-origen">
+                            Origen
+                        </th>
+
+                        <th class="columna-proyecto">
+                            Proyecto
+                        </th>
+
+                        <th class="columna-centro">
+                            Centro de costo
+                        </th>
+
+                        <th class="columna-monto">
+                            Debe
+                        </th>
+
+                        <th class="columna-monto">
+                            Haber
+                        </th>
+
+                        <th class="columna-monto">
+                            Saldo acumulado
+                        </th>
+
+                        <th class="columna-estado">
+                            Estado
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            bool movimientoAnulado =
+                            item.Anulado == true ||
+                            item.Estado == "Anulado";
+
+                            bool movimientoReversion =
+                            item.TipoMovimiento == "Reversión" ||
+                            item.Estado == "Reversado";
+
+                            <tr class="@(movimientoAnulado
+                                           ? "fila-anulada"
+                                           : "")">
+
+                                <td class="text-center columna-fecha">
+
+                                    @item.Fecha.ToString("dd/MM/yyyy")
+
+                                </td>
+
+                                <td>
+
+                                    @(item.Referencia ??
+                                        "Sin referencia")
+
+                                </td>
+
+                                <td>
+
+                                    @(item.OrigenModulo ??
+                                        "Sin origen")
+
+                                </td>
+
+                                <td>
+
+                                    @(item.Proyecto?.Nombre ??
+                                        "Sin proyecto")
+
+                                </td>
+
+                                <td>
+
+                                    @(item.CentroCosto?.Nombre ??
+                                        "Sin centro")
+
+                                </td>
+
+                                <td class="text-end monto-debe">
+
+                                    ₡@item.Debe.ToString("N2")
+
+                                </td>
+
+                                <td class="text-end monto-haber">
+
+                                    ₡@item.Haber.ToString("N2")
+
+                                </td>
+
+                                <td class="text-end saldo-acumulado">
+
+                                    ₡@item.Monto.ToString("N2")
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (movimientoAnulado)
+                                    {
+                                        <span class="badge-reporte estado-anulado">
+                                            Anulado
+                                        </span>
+                                    }
+                                    else if (movimientoReversion)
+                                    {
+                                        <span class="badge-reporte estado-reversion">
+                                            Reversión
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-reporte estado-registrado">
+                                            Registrado
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="9"
+                                class="sin-registros">
+
+                                No existen movimientos que coincidan con
+                                los filtros aplicados.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+                @if (Model != null && Model.Any())
+                {
+                    <tfoot>
+
+                        <tr>
+
+                            <td colspan="5"
+                                class="text-end">
+
+                                Totales:
+
+                            </td>
+
+                            <td class="text-end text-primary">
+
+                                ₡@totalDebe.ToString("N2")
+
+                            </td>
+
+                            <td class="text-end text-success">
+
+                                ₡@totalHaber.ToString("N2")
+
+                            </td>
+
+                            <td class="text-end">
+
+                                ₡@saldoFinal.ToString("N2")
+
+                            </td>
+
+                            <td></td>
+
+                        </tr>
+
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+
+        <!-- =====================================================
+             PIE DEL REPORTE
+        ====================================================== -->
+
+        <div class="pie-reporte">
+
+            <div>
+                Sistema Web de Gestión Financiera
+            </div>
+
+            <div>
+                UCAD Santa Ana
+            </div>
+
+            <div>
+                Generado:
+                @(((DateTime)ViewBag.FechaGeneracion)
+                    .ToString("dd/MM/yyyy HH:mm"))
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+</body>
+
+</html>

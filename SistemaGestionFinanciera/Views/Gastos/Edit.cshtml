@@ -1,0 +1,573 @@
+﻿@model SistemaGestionFinanciera.Models.Gasto
+
+@{
+    ViewData["Title"] = "Modificar gasto";
+}
+
+<div class="container-fluid mt-3 px-3">
+
+    <!-- TÍTULO DE LA PÁGINA -->
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">
+           
+            Modificar Gasto
+        </h2>
+
+        <small class="text-muted">
+            Actualización de la información del gasto registrado
+        </small>
+    </div>
+    @{
+        string? rolUsuario = Context.Session.GetString("Rol");
+        bool mostrarRechazo =
+        Model.Estado == "Rechazado" &&
+        !string.IsNullOrWhiteSpace(Model.MotivoRechazo) &&
+        (rolUsuario == "Auxiliar Contable" ||
+        rolUsuario == "Contador");
+    }
+
+    @if (mostrarRechazo)
+    {
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-1">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                Este gasto fue rechazado.
+            </div>
+
+            <div>
+                <strong>Motivo del rechazo:</strong>
+                @Model.MotivoRechazo
+            </div>
+
+            @if (Model.FechaRechazo.HasValue)
+            {
+                <div class="mt-1">
+                    <strong>Fecha del rechazo:</strong>
+                    @Model.FechaRechazo.Value.ToString("dd/MM/yyyy HH:mm")
+                </div>
+            }
+
+            <div class="mt-2">
+                Corrija la información indicada y guarde nuevamente.
+                El gasto volverá automáticamente al estado
+                <strong>Pendiente de autorización</strong>.
+            </div>
+        </div>
+    }
+    <div class="card shadow-sm border-0">
+
+        <!-- ENCABEZADO INSTITUCIONAL -->
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+
+          
+            DATOS DEL GASTO
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="IdGasto" />
+
+                <!-- =================================================== -->
+                <!-- PRIMERA FILA -->
+                <!-- =================================================== -->
+                <div class="row g-4">
+
+                    <!-- INFORMACIÓN GENERAL -->
+                    <div class="col-lg-6">
+
+                        <h5 class="text-primary border-bottom pb-2">
+                           
+                            Información General
+                        </h5>
+
+                        <div class="mb-3">
+                            <label asp-for="Fecha"
+                                   class="form-label fw-semibold">
+                             
+                                Fecha
+                            </label>
+
+                            <input asp-for="Fecha"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Fecha"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Concepto"
+                                   class="form-label fw-semibold">
+                               
+                                Concepto
+                            </label>
+
+                            <input asp-for="Concepto"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Concepto"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Observacion"
+                                   class="form-label fw-semibold">
+                               
+                                Observación
+                            </label>
+
+                            <textarea asp-for="Observacion"
+                                      class="form-control"
+                                      rows="4"></textarea>
+
+                            <span asp-validation-for="Observacion"
+                                  class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- CLASIFICACIÓN -->
+                    <div class="col-lg-6">
+
+                        <h5 class="text-primary border-bottom pb-2">
+                           
+                            Clasificación
+                        </h5>
+
+                        <div class="mb-3">
+                            <label asp-for="CategoriaGastoId"
+                                   class="form-label fw-semibold">
+                               
+                                Categoría de gasto
+                            </label>
+
+                            <select asp-for="CategoriaGastoId"
+                                    class="form-select"
+                                    asp-items="ViewBag.CategoriaGastoId">
+
+                                <option value="">
+                                    Seleccione una categoría de gasto
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="CategoriaGastoId"
+                                  class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PresupuestoMensualId"
+                                   class="form-label">
+                                Proyecto / período presupuestario
+                            </label>
+
+                            <select asp-for="PresupuestoMensualId"
+                                    class="form-select"
+                                    asp-items="ViewBag.PresupuestoMensualId">
+
+                                <option value="">
+                                    Seleccione un proyecto y período
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="PresupuestoMensualId"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProveedorId"
+                                   class="form-label fw-semibold">
+                              
+                                Proveedor
+                            </label>
+
+                            <select asp-for="ProveedorId"
+                                    class="form-select"
+                                    asp-items="ViewBag.ProveedorId">
+
+                                <option value="">
+                                    Seleccione un proveedor
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="ProveedorId"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CentroCostoId"
+                                   class="form-label fw-semibold">
+                                
+                                Centro de costo
+                            </label>
+
+                            <select asp-for="CentroCostoId"
+                                    class="form-select"
+                                    asp-items="ViewBag.CentroCostoId">
+
+                                <option value="">
+                                    Seleccione un centro de costo
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="CentroCostoId"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NumeroFactura"
+                                   class="form-label fw-semibold">
+                               
+                                Número de factura
+                            </label>
+
+                            <input asp-for="NumeroFactura"
+                                   class="form-control" />
+
+                            <span asp-validation-for="NumeroFactura"
+                                  class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- =================================================== -->
+                <!-- SEGUNDA FILA -->
+                <!-- =================================================== -->
+                <div class="row g-4">
+
+                    <!-- INFORMACIÓN FINANCIERA -->
+                    <div class="col-lg-4">
+
+                        <h5 class="text-primary border-bottom pb-2">
+                            
+                            Información Financiera
+                        </h5>
+
+                        <div class="mb-3">
+                            <label asp-for="MontoTotal"
+                                   class="form-label fw-semibold">
+                                
+                                Monto total
+                            </label>
+
+                            <input asp-for="MontoTotal"
+                                   id="MontoTotal"
+                                   type="number"
+                                   step="0.01"
+                                   min="0.01"
+                                   class="form-control" />
+
+                            <span asp-validation-for="MontoTotal"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TipoImpuesto"
+                                   class="form-label fw-semibold">
+                              
+                                Tipo de impuesto
+                            </label>
+
+                            <select asp-for="TipoImpuesto"
+                                    id="TipoImpuesto"
+                                    class="form-select">
+
+                                <option value="Sin impuesto"
+                                        data-porcentaje="0">
+                                    Sin impuesto
+                                </option>
+
+                                <option value="IVA 13%"
+                                        data-porcentaje="13">
+                                    IVA 13%
+                                </option>
+
+                                <option value="IVA 4%"
+                                        data-porcentaje="4">
+                                    IVA 4%
+                                </option>
+
+                                <option value="IVA 2%"
+                                        data-porcentaje="2">
+                                    IVA 2%
+                                </option>
+
+                                <option value="IVA 1%"
+                                        data-porcentaje="1">
+                                    IVA 1%
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="TipoImpuesto"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descuento"
+                                   class="form-label fw-semibold">
+                                
+                                Descuento
+                            </label>
+
+                            <input asp-for="Descuento"
+                                   id="Descuento"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Descuento"
+                                  class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- CÁLCULOS AUTOMÁTICOS -->
+                    <div class="col-lg-4">
+
+                        <h5 class="text-primary border-bottom pb-2">
+                      
+                            Cálculos Automáticos
+                        </h5>
+
+                        <div class="mb-3">
+                            <label asp-for="Subtotal"
+                                   class="form-label fw-semibold">
+                          
+                                Subtotal
+                            </label>
+
+                            <input asp-for="Subtotal"
+                                   id="Subtotal"
+                                   class="form-control bg-light"
+                                   readonly />
+
+                            <small class="text-muted">
+                                Calculado automáticamente.
+                            </small>
+
+                            <span asp-validation-for="Subtotal"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Impuesto"
+                                   class="form-label fw-semibold">
+                               
+                                Impuesto
+                            </label>
+
+                            <input asp-for="Impuesto"
+                                   id="Impuesto"
+                                   class="form-control bg-light"
+                                   readonly />
+
+                            <small class="text-muted">
+                                Calculado automáticamente.
+                            </small>
+
+                            <span asp-validation-for="Impuesto"
+                                  class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- ESTADO DEL REGISTRO -->
+                    <div class="col-lg-4">
+
+                        <h5 class="text-primary border-bottom pb-2">
+                           
+                            Estado del Registro
+                        </h5>
+
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+
+                                <div class="mb-3">
+                                    <strong>
+                                      
+                                        Estado actual:
+                                    </strong>
+
+                                    <div class="mt-2">
+                                        @if (Model.Estado == "Pendiente de autorización")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Pendiente de autorización
+                                            </span>
+                                        }
+                                        else if (Model.Estado == "Aprobado")
+                                        {
+                                            <span class="badge bg-success">
+                                                Aprobado
+                                            </span>
+                                        }
+                                        else if (Model.Estado == "Rechazado")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Rechazado
+                                            </span>
+                                        }
+                                        else if (Model.Estado == "Anulado")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Anulado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-dark">
+                                                @Model.Estado
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                     
+                                        Control presupuestario:
+                                    </strong>
+
+                                    <div class="mt-2">
+                                        @if (Model.SuperaPresupuesto)
+                                        {
+                                            <span class="badge bg-danger">
+                                               
+                                                Límite excedido
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                              
+                                                Dentro del límite
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="border-top mt-4 pt-3 d-flex gap-2">
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary px-4">
+
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Volver al listado
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary px-4">
+
+                        <i class="fas fa-save me-1"></i>
+                        Guardar cambios
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const montoTotalInput =
+                document.getElementById("MontoTotal");
+
+            const tipoImpuestoSelect =
+                document.getElementById("TipoImpuesto");
+
+            const subtotalInput =
+                document.getElementById("Subtotal");
+
+            const impuestoInput =
+                document.getElementById("Impuesto");
+
+            function calcularGasto() {
+
+                const montoTotal =
+                    parseFloat(montoTotalInput.value) || 0;
+
+                const opcionSeleccionada =
+                    tipoImpuestoSelect.options[
+                    tipoImpuestoSelect.selectedIndex
+                    ];
+
+                const porcentaje =
+                    parseFloat(
+                        opcionSeleccionada.dataset.porcentaje
+                    ) || 0;
+
+                let subtotal;
+                let impuesto;
+
+                if (porcentaje > 0) {
+
+                    subtotal =
+                        montoTotal /
+                        (1 + porcentaje / 100);
+
+                    impuesto =
+                        montoTotal - subtotal;
+                }
+                else {
+
+                    subtotal = montoTotal;
+                    impuesto = 0;
+                }
+
+                subtotalInput.value =
+                    subtotal.toFixed(2);
+
+                impuestoInput.value =
+                    impuesto.toFixed(2);
+            }
+
+            montoTotalInput.addEventListener(
+                "input",
+                calcularGasto);
+
+            tipoImpuestoSelect.addEventListener(
+                "change",
+                calcularGasto);
+
+            calcularGasto();
+        });
+    </script>
+}

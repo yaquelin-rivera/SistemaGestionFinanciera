@@ -1,0 +1,91 @@
+﻿@model SistemaGestionFinanciera.Models.Usuario
+
+@{
+    ViewData["Title"] = "Consultar usuario";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Consultar usuario</h2>
+        <small class="text-muted">Detalle del usuario registrado en el sistema financiero</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos del usuario
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <small class="text-muted">Nombre completo</small>
+                    <div class="fw-semibold fs-5">@Model.Nombre</div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted">Correo electrónico</small>
+                    <div class="fw-semibold">@Model.Email</div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted">Rol</small>
+                    <div class="fw-semibold text-secondary">
+                        @(Model.Rol?.Nombre ?? "Sin rol")
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted">Estado</small>
+                    <div>
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted">Último acceso</small>
+                    <div class="fw-semibold">
+                        @(Model.UltimoAcceso.HasValue
+                            ? Model.UltimoAcceso.Value.ToString("dd/MM/yyyy HH:mm")
+                            : "Sin acceso registrado")
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted">Fecha de creación</small>
+                    <div class="fw-semibold">
+                        @(Model.FechaCreacion.HasValue
+                            ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm")
+                            : "Sin fecha registrada")
+                    </div>
+                </div>
+
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="d-flex  gap-2">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                </a>
+
+                @if (Model.Activo)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.IdUsuario" class="btn btn-warning">
+                        <i class="fas fa-pen-to-square me-1"></i> Modificar
+                    </a>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>

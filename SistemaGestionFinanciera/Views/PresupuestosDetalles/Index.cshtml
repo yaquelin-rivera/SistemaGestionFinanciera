@@ -1,0 +1,608 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.PresupuestosMensuale>
+
+@{
+    ViewData["Title"] = "Detalle de Presupuesto";
+
+    bool filtroAplicado =
+    ViewBag.FiltroAplicado != null &&
+    (bool)ViewBag.FiltroAplicado;
+
+    string textoPeriodo =
+        filtroAplicado ? "Filtro aplicado" : "Mes actual";
+
+    var fechaActual = DateTime.Now;
+
+    /*
+     * Cuando hay filtros:
+     * las cards resumen exactamente los registros filtrados.
+     *
+     * Cuando no hay filtros:
+     * las cards resumen solamente el mes y año actuales.
+     *
+     * La tabla puede continuar mostrando todos los registros.
+     */
+    var registrosResumen = filtroAplicado
+        ? Model
+        : Model.Where(p =>
+            p.Anio == fechaActual.Year &&
+            p.Mes == fechaActual.Month);
+
+    var totalPresupuestos = registrosResumen.Count();
+
+    var totalIngresos = registrosResumen.Sum(
+        p => p.TotalIngresoReal ?? 0
+    );
+
+    var totalGastos = registrosResumen.Sum(
+        p => p.TotalGastoReal ?? 0
+    );
+
+    var balance = totalIngresos - totalGastos;
+}
+
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["MensajeError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["MensajeError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Gestión de detalle de presupuesto</h2>
+        <small class="text-muted">
+            Consulta de presupuestos mensuales y movimientos ejecutados por período.
+        </small>
+    </div>
+    <div class="row g-3 mb-3">
+
+        <!-- PRESUPUESTOS -->
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0
+                    border-start border-primary border-4 h-100">
+
+                <div class="card-body
+                        d-flex
+                        justify-content-between
+                        align-items-center">
+
+                    <div>
+                        <small class="fw-bold  d-block">
+                            Presupuestos
+                        </small>
+
+                        <div class="small text-muted">
+                            @textoPeriodo
+                        </div>
+
+                        <h5 class="fw-bold text-primary mb-0">
+                            @totalPresupuestos
+                        </h5>
+                    </div>
+
+                    <div class="text-muted opacity-50">
+                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- INGRESOS EJECUTADOS -->
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0
+                    border-start border-success border-4 h-100">
+
+                <div class="card-body
+                        d-flex
+                        justify-content-between
+                        align-items-center">
+
+                    <div>
+                        <small class="fw-bold  d-block">
+                            Ingresos ejecutados
+                        </small>
+
+                        <div class="small text-muted">
+                            @textoPeriodo
+                        </div>
+
+                        <h5 class="fw-bold text-success mb-0">
+                            ₡@totalIngresos.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <div class="text-muted opacity-50">
+                        <i class="fas fa-hand-holding-usd fa-2x"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- GASTOS EJECUTADOS -->
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0
+                    border-start border-danger border-4 h-100">
+
+                <div class="card-body
+                        d-flex
+                        justify-content-between
+                        align-items-center">
+
+                    <div>
+                        <small class="fw-bold  d-block">
+                            Gastos ejecutados
+                        </small>
+
+                        <div class="small text-muted">
+                            @textoPeriodo
+                        </div>
+
+                        <h5 class="fw-bold text-danger mb-0">
+                            ₡@totalGastos.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <div class="text-muted opacity-50">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- BALANCE -->
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0
+                    border-start border-warning border-4 h-100">
+
+                <div class="card-body
+                        d-flex
+                        justify-content-between
+                        align-items-center">
+
+                    <div>
+                        <small class="fw-bold  d-block">
+                            Balance
+                        </small>
+
+                        <div class="small text-muted">
+                            @textoPeriodo
+                        </div>
+
+                        <h5 class="fw-bold text-warning mb-0">
+                            ₡@balance.ToString("N2")
+                        </h5>
+                    </div>
+
+                    <div class="text-muted opacity-50">
+                        <i class="fas fa-balance-scale fa-2x"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+  
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-filter me-1"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3" id="formFiltros">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-project-diagram text-muted me-1"></i>
+                        Proyecto
+                    </label>
+                    <select name="proyectoId" class="form-select auto-filtro" asp-items="ViewBag.Proyectos">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                        Año
+                    </label>
+                    <select name="anio" class="form-select auto-filtro">
+
+                        <option value="">Todos</option>
+
+                        @foreach (var anio in ViewBag.Anios)
+                        {
+                            <option value="@anio" selected="@(ViewBag.Anio == anio)">
+                                @anio
+                            </option>
+                        }
+
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar text-muted me-1"></i>
+                        Mes
+                    </label>
+                    <select name="mes" class="form-select auto-filtro">
+
+                        <option value="">Todos</option>
+
+                        <option value="1" selected="@(ViewBag.Mes == 1)">Enero</option>
+                        <option value="2" selected="@(ViewBag.Mes == 2)">Febrero</option>
+                        <option value="3" selected="@(ViewBag.Mes == 3)">Marzo</option>
+                        <option value="4" selected="@(ViewBag.Mes == 4)">Abril</option>
+                        <option value="5" selected="@(ViewBag.Mes == 5)">Mayo</option>
+                        <option value="6" selected="@(ViewBag.Mes == 6)">Junio</option>
+                        <option value="7" selected="@(ViewBag.Mes == 7)">Julio</option>
+                        <option value="8" selected="@(ViewBag.Mes == 8)">Agosto</option>
+                        <option value="9" selected="@(ViewBag.Mes == 9)">Septiembre</option>
+                        <option value="10" selected="@(ViewBag.Mes == 10)">Octubre</option>
+                        <option value="11" selected="@(ViewBag.Mes == 11)">Noviembre</option>
+                        <option value="12" selected="@(ViewBag.Mes == 12)">Diciembre</option>
+
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-day text-muted me-1"></i>
+                        Desde
+                    </label>
+                    <input type="date"
+                           name="desde"
+                           value="@ViewBag.Desde"
+                           class="form-control auto-filtro" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-check text-muted me-1"></i>
+                        Hasta
+                    </label>
+                    <input type="date"
+                           name="hasta"
+                           value="@ViewBag.Hasta"
+                           class="form-control auto-filtro" />
+                </div>
+
+              
+                <div class="col-md-12">
+
+                    <div class="d-flex justify-content-between align-items-end">
+
+                        <!-- Buscar / Limpiar -->
+                     
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-5 btn-filtro">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-secondary px-5 btn-filtro">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+
+                            </a>
+
+                        </div>
+
+                        <!-- Reportes -->
+
+                        <div class="d-flex gap-2">
+
+                            <a asp-action="Reporte"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-desde="@ViewBag.Desde"
+                               asp-route-hasta="@ViewBag.Hasta"
+                               class="btn btn-info px-5 btn-filtro"
+                               >
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+
+                            </a>
+
+                            <a asp-action="ExportarExcel"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-anio="@ViewBag.Anio"
+                               asp-route-mes="@ViewBag.Mes"
+                               asp-route-desde="@ViewBag.Desde"
+                               asp-route-hasta="@ViewBag.Hasta"
+                               class="btn btn-success px-5 btn-filtro">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-list me-1"></i>
+            Detalles de presupuesto registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="tablaPresupuestosDetalles" class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead class="table-light ">
+                        <tr>
+                            <th>
+                                <i class="fas fa-project-diagram me-1"></i>
+                                Proyecto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Año
+                            </th>
+
+                            <th>
+                                <i class="fas fa-calendar me-1"></i>
+                                Mes
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hand-holding-usd me-1"></i>
+                                Ingresos ejecutados
+                            </th>
+
+                            <th>
+                                <i class="fas fa-money-bill-wave me-1"></i>
+                                Gastos ejecutados
+                            </th>
+
+                            <th>
+                                <i class="fas fa-balance-scale me-1"></i>
+                                Balance
+                            </th>
+
+                            <th>
+                                <i class="fas fa-chart-pie me-1"></i>
+                                Estado de ejecución
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                var ingresos = item.TotalIngresoReal ?? 0;
+                                var gastos = item.TotalGastoReal ?? 0;
+                                var saldo = ingresos - gastos;
+
+                                <tr>
+                                    <td class="fw-semibold">
+                                        @(item.Proyecto?.Nombre ?? "Sin proyecto")
+                                    </td>
+
+                                    <td data-order="@item.Anio">
+                                        @item.Anio
+                                    </td>
+
+                                    <td data-order="@item.Mes">
+                                        @{
+                                            string nombreMes = item.Mes switch
+                                            {
+                                                1 => "Enero",
+                                                2 => "Febrero",
+                                                3 => "Marzo",
+                                                4 => "Abril",
+                                                5 => "Mayo",
+                                                6 => "Junio",
+                                                7 => "Julio",
+                                                8 => "Agosto",
+                                                9 => "Septiembre",
+                                                10 => "Octubre",
+                                                11 => "Noviembre",
+                                                12 => "Diciembre",
+                                                _ => "Sin definir"
+                                            };
+                                        }
+
+                                        @nombreMes
+                                    </td>
+
+                                    <td class="text-success fw-semibold">
+                                        ₡@ingresos.ToString("N2")
+                                    </td>
+
+                                    <td class="text-danger fw-semibold">
+                                        ₡@gastos.ToString("N2")
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        ₡@saldo.ToString("N2")
+                                    </td>
+
+                                    <td>
+                                        @if (item.Estado == "Gasto excedido")
+                                        {
+                                            <span class="badge bg-danger">@item.Estado</span>
+                                        }
+                                        else if (item.Estado == "Ingresos bajos")
+                                        {
+                                            <span class="badge bg-warning text-dark">@item.Estado</span>
+                                        }
+                                        else if (item.Estado == "Sin movimientos")
+                                        {
+                                            <span class="badge bg-secondary">@item.Estado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@item.Estado</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+                                        <a asp-action="Movimientos"
+                                           asp-route-id="@item.IdPresupuestoMensual"
+                                           asp-route-origen="PresupuestoDetalle"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                            Ver movimientos
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </>
+
+        </div>
+    </div>
+
+</div>
+
+    @section Scripts {
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                // =====================================================
+                // DATATABLES
+                // =====================================================
+
+                const tabla = $('#tablaPresupuestosDetalles');
+
+                if ($.fn.DataTable.isDataTable(
+                    '#tablaPresupuestosDetalles')) {
+
+                    tabla.DataTable().destroy();
+                }
+
+                tabla.DataTable({
+
+                    pageLength: 10,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+
+                    order: [
+                        [1, 'desc'],
+                        [2, 'desc']
+                    ],
+
+                    columnDefs: [
+                        {
+                            targets: [7],
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+                        decimal: ",",
+                        thousands: ".",
+
+                        lengthMenu:
+                            "Mostrar _MENU_ registros",
+
+                        zeroRecords:
+                            "No se encontraron registros",
+
+                        emptyTable:
+                            "No hay presupuestos mensuales registrados",
+
+                        info:
+                            "Mostrando _START_ a _END_ de _TOTAL_ registros",
+
+                        infoEmpty:
+                            "Mostrando 0 a 0 de 0 registros",
+
+                        infoFiltered:
+                            "(filtrado de _MAX_ registros totales)",
+
+                        search:
+                            "Buscar en la tabla:",
+
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        }
+                    },
+
+                    autoWidth: false,
+
+                    responsive: false
+                });
+
+                // =====================================================
+                // FILTROS DEL FORMULARIO
+                // =====================================================
+
+                const form =
+                    document.getElementById("formFiltros");
+
+                const controles =
+                    document.querySelectorAll(".auto-filtro");
+
+                controles.forEach(function (control) {
+
+                    control.addEventListener(
+                        "change",
+                        function () {
+
+                            form.submit();
+                        });
+                });
+            });
+        </script>
+    }

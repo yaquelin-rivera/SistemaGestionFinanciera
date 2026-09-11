@@ -1,0 +1,1032 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Proveedore>
+
+@{
+    ViewData["Title"] = "Proveedores";
+
+    int total = Model.Count();
+    int activos = Model.Count(p => p.Activo);
+    int inactivos = Model.Count(p => !p.Activo);
+
+    int proveedoresConSaldo =
+        ViewBag.ProveedoresConSaldo ?? 0;
+
+    int proveedoresConVencidas =
+        ViewBag.ProveedoresConCuentasVencidas ?? 0;
+
+    decimal saldoTotalPendiente =
+        ViewBag.SaldoTotalPendiente ?? 0m;
+
+    decimal saldoTotalVencido =
+        ViewBag.SaldoTotalVencido ?? 0m;
+}
+<style>
+    .card-enlace {
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+        .card-enlace:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0.65rem 1.25rem rgba(0, 0, 0, 0.16) !important;
+        }
+
+            .card-enlace:hover .icono-enlace {
+                transform: scale(1.12);
+                opacity: 0.9 !important;
+            }
+
+    .icono-enlace {
+        transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .texto-enlace-card {
+        font-size: 0.76rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Proveedores</h2>
+            <small class="text-muted">
+                Administración de proveedores vinculados a compras, gastos y cuentas por pagar.
+            </small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus-circle me-1"></i> Registrar 
+        </a>
+    </div>
+    @if (proveedoresConVencidas > 0)
+    {
+        <div class="alert alert-danger d-flex flex-wrap
+                justify-content-between align-items-center
+                shadow-sm mb-3"
+             role="alert">
+
+            <div>
+                <i class="fas fa-exclamation-triangle me-2"></i>
+
+                Se encontraron
+
+                <strong>
+                    @proveedoresConVencidas
+                    @(proveedoresConVencidas == 1
+                        ? "proveedor con pagos vencidos"
+                        : "proveedores con pagos vencidos")
+                </strong>,
+
+                por un saldo vencido total de
+
+                <strong>
+                    @saldoTotalVencido.ToString(
+                             "C2",
+                             new System.Globalization.CultureInfo("es-CR"))
+                </strong>.
+            </div>
+
+            <a asp-controller="CuentasPorPagar"
+               asp-action="Index"
+               asp-route-estado="Vencida"
+               class="btn btn-danger btn-sm ms-2">
+
+                <i class="fas fa-eye me-1"></i>
+                Ver vencidos en CxP
+            </a>
+
+        </div>
+    }
+   @*CARDS*@
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL -->
+        <div class="col">
+
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-primary border-4">
+
+                <div class="card-body d-flex
+                        justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">
+                            Total
+                        </small>
+
+                        <h3 class="fw-bold text-primary mb-0">
+                            @total
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-truck fa-2x
+                          text-muted opacity-50"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ACTIVOS -->
+        <div class="col">
+
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-info border-4">
+
+                <div class="card-body d-flex
+                        justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">
+                            Activos
+                        </small>
+
+                        <h3 class="fw-bold text-info mb-0">
+                            @activos
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-check-circle fa-2x
+                          text-muted opacity-50"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- INACTIVOS -->
+        <div class="col">
+
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-warning border-4">
+
+                <div class="card-body d-flex
+                        justify-content-between align-items-center">
+
+                    <div>
+                        <small class="fw-bold">
+                            Inactivos
+                        </small>
+
+                        <h3 class="fw-bold text-warning mb-0">
+                            @inactivos
+                        </h3>
+                    </div>
+
+                    <i class="fas fa-ban fa-2x
+                          text-muted opacity-50"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PROVEEDORES CON SALDO -->
+        <div class="col">
+
+            <a asp-controller="CuentasPorPagar"
+               asp-action="Index"
+               asp-route-conSaldo="true"
+               class="text-decoration-none"
+               title="Ver proveedores con saldo en Cuentas por Pagar">
+
+                <div class="card shadow-sm h-100
+                        card-resumen card-enlace
+                        border-0 border-start
+                        border-warning border-4">
+
+                    <div class="card-body d-flex
+                            justify-content-between align-items-center">
+
+                        <div>
+                            <small class="fw-bold text-dark">
+                                Proveedores con saldo
+                            </small>
+
+                            <h3 class="fw-bold text-warning mb-0">
+                                @proveedoresConSaldo
+                            </h3>
+
+                            <small class="text-muted d-block">
+                                @saldoTotalPendiente.ToString(
+                                         "C2",
+                                         new System.Globalization.CultureInfo("es-CR"))
+                            </small>
+
+                            <small class="texto-enlace-card text-warning">
+                                Ver cuentas por pagar
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </small>
+                        </div>
+
+                        <i class="fas fa-hand-pointer fa-2x
+                              text-muted opacity-50 icono-enlace"></i>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header bg-light fw-bold">
+            <i class="fas fa-filter me-1"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-search text-muted me-1"></i>
+                        Buscar
+                    </label>
+
+                    <input type="text"
+                           id="buscarProveedor"
+                           class="form-control"
+                           placeholder="Nombre, identificación, correo, teléfono o dirección" />
+
+                </div>
+
+                <!-- ESTADO -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-toggle-on text-muted me-1"></i>
+                        Estado
+                    </label>
+
+                    <select id="filtroEstadoProveedor"
+                            class="form-select">
+
+                        <option value="">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+
+                    </select>
+
+                </div>
+
+                <!-- SITUACIÓN FINANCIERA -->
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-chart-line text-muted me-1"></i>
+                        Situación financiera
+                    </label>
+
+                    <select id="filtroSituacionFinancieraProveedor"
+                            class="form-select">
+
+                        <option value="">Todas</option>
+                        <option value="Sin movimientos">
+                            Sin movimientos
+                        </option>
+                        <option value="Al día">
+                            Al día
+                        </option>
+                        <option value="Pago pendiente">
+                            Pago pendiente
+                        </option>
+                        <option value="Pago vencido">
+                            Pago vencido
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="col-md-5">
+
+                    <div class="d-flex flex-wrap
+                            justify-content-between
+                            align-items-end gap-2">
+
+                        <!-- Buscar y limpiar -->
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    id="btnFiltrarProveedor"
+                                    class="btn btn-primary
+                                       btn-filtro px-5">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+                            </button>
+
+                            <button type="button"
+                                    id="btnLimpiarProveedor"
+                                    class="btn btn-secondary
+                                       btn-filtro px-5">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+                            </button>
+
+                        </div>
+
+                        <!-- PDF y Excel -->
+                        <div class="d-flex gap-2 ms-auto">
+
+                            <button type="button"
+                                    id="btnReporteProveedores"
+                                    class="btn btn-info
+                                       btn-filtro px-4">
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+                            </button>
+
+                            <button type="button"
+                                    id="btnExcelProveedores"
+                                    class="btn btn-success
+                                       btn-filtro px-4">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-truck me-1"></i> Lista de proveedores registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                   <table id="tablaProveedores" class="table table-hover align-middle w-100 tabla-sistema">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-building me-1"></i>Nombre</th>
+                                <th><i class="fas fa-id-card me-1"></i>Identificación</th>
+                                <th><i class="fas fa-phone me-1"></i>Teléfonos</th>
+                                <th><i class="fas fa-envelope me-1"></i>Correos</th>
+                                <th><i class="fas fa-map-marker-alt me-1"></i>Direccion</th>
+                                <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                            <th>
+                                <i class="fas fa-chart-line me-1"></i>
+                                Situación financiera
+                            </th>
+                                <th class="text-center"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                            </tr>
+                        </thead>
+
+                    <tbody>
+
+    @if (!Model.Any())
+    {
+        <tr>
+
+            <td colspan="8"
+                class="text-center text-muted py-4">
+
+                No se encontraron proveedores registrados.
+
+            </td>
+
+        </tr>
+    }
+    else
+    {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@item.Nombre</td>
+
+                                    <td>@item.Identificacion</td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.Telefono)
+                                            ? "No registrado"
+                                            : item.Telefono)
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.Email)
+                                            ? "No registrado"
+                                            : item.Email)
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.Direccion)
+                                            ? "No registrada"
+                                            : item.Direccion)
+                                    </td>
+
+                                    <td>
+                                        @if (item.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                <td data-search="@item.SituacionFinanciera"
+                                    data-order="@item.SituacionFinanciera">
+
+                                    @switch (item.SituacionFinanciera)
+                                    {
+                                        case "Pago vencido":
+
+                                            <a asp-controller="CuentasPorPagar"
+                                               asp-action="Index"
+                                               asp-route-proveedorId="@item.IdProveedor"
+                                               asp-route-estado="Vencida"
+                                               class="text-decoration-none"
+                                               title="Ver pagos vencidos de este proveedor">
+
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                                    Pago vencido
+                                                </span>
+
+                                            </a>
+
+                                            <div class="small text-danger
+                        fw-semibold mt-1">
+
+                                                @item.SaldoTotalVencido.ToString(
+                                                         "C2",
+                                                         new System.Globalization.CultureInfo("es-CR"))
+
+                                            </div>
+
+                                            break;
+
+                                        case "Pago pendiente":
+
+                                            <a asp-controller="CuentasPorPagar"
+                                               asp-action="Index"
+                                               asp-route-proveedorId="@item.IdProveedor"
+                                               asp-route-conSaldo="true"
+                                               class="text-decoration-none"
+                                               title="Ver pagos pendientes de este proveedor">
+
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    Pago pendiente
+                                                </span>
+
+                                            </a>
+
+                                            <div class="small text-warning-emphasis
+                        fw-semibold mt-1">
+
+                                                @item.SaldoTotalPendiente.ToString(
+                                                         "C2",
+                                                         new System.Globalization.CultureInfo("es-CR"))
+
+                                            </div>
+
+                                            break;
+
+                                        case "Al día":
+
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Al día
+                                            </span>
+
+                                            break;
+
+                                        default:
+
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-minus-circle me-1"></i>
+                                                Sin movimientos
+                                            </span>
+
+                                            break;
+                                    }
+
+                                </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1 flex-wrap">
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.IdProveedor"
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-eye"></i> Detalles
+                                            </a>
+
+                                            @if (item.Activo)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@item.IdProveedor"
+                                                   class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-edit"></i> Modificar
+                                                </a>
+
+                                                <form asp-action="Delete"
+                                                      asp-route-id="@item.IdProveedor"
+                                                      method="post"
+                                                      class="d-inline form-desactivar-proveedor"
+                                                      data-nombre="@item.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-danger btn-sm">
+
+                                                        <i class="fas fa-ban"></i> Desactivar
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Reactivar"
+                                                      asp-route-id="@item.IdProveedor"
+                                                      method="post"
+                                                      class="d-inline form-reactivar-proveedor"
+                                                      data-nombre="@item.Nombre">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm">
+
+                                                        <i class="fas fa-check"></i> Reactivar
+                                                    </button>
+                                                </form>
+                                            }
+
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    @section Scripts {
+
+        <script>
+            $(document).ready(function () {
+
+                // DATATABLE PROVEEDORES
+                // =====================================================
+                let tablaProveedores = null;
+
+                if ($.fn.DataTable &&
+                    document.getElementById("tablaProveedores")) {
+
+                    tablaProveedores =
+                        $("#tablaProveedores").DataTable({
+
+                            pageLength: 10,
+
+                            lengthMenu: [
+                                [10, 25, 50, 100],
+                                [10, 25, 50, 100]
+                            ],
+
+                            ordering: true,
+                            order: [],
+
+                            searching: true,
+                            paging: true,
+                            info: true,
+                            autoWidth: false,
+                            scrollX: false,
+
+                            columnDefs: [
+                                {
+                                    targets: -1,
+                                    orderable: false,
+                                    searchable: false
+                                }
+                            ],
+
+                            language: {
+                                lengthMenu: "Mostrar _MENU_ registros",
+                                search: "Buscar en la tabla:",
+                                zeroRecords: "No se encontraron proveedores.",
+                                emptyTable: "No hay proveedores registrados.",
+                                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                                infoEmpty: "Mostrando 0 registros",
+                                infoFiltered: "(filtrado de _MAX_ registros)",
+                                paginate: {
+                                    first: "Primero",
+                                    last: "Último",
+                                    next: "Siguiente",
+                                    previous: "Anterior"
+                                }
+                            }
+                        });
+                }
+
+             
+                // FILTROS AUTOMÁTICOS
+                // =====================================================
+                const buscarProveedor =
+                    document.getElementById("buscarProveedor");
+
+                const filtroEstadoProveedor =
+                    document.getElementById("filtroEstadoProveedor");
+            const filtroSituacionFinancieraProveedor =
+                document.getElementById(
+                    "filtroSituacionFinancieraProveedor");
+            // =====================================================
+            // GUARDAR FILTROS DE PROVEEDORES
+            // =====================================================
+            function guardarFiltrosProveedores() {
+
+                sessionStorage.setItem(
+                    "proveedoresBuscar",
+                    buscarProveedor.value
+                );
+
+                sessionStorage.setItem(
+                    "proveedoresEstado",
+                    filtroEstadoProveedor.value
+                );
+
+                sessionStorage.setItem(
+                    "proveedoresSituacionFinanciera",
+                    filtroSituacionFinancieraProveedor.value
+                );
+            }
+                function aplicarFiltrosProveedores() {
+
+                    if (!tablaProveedores) {
+                        return;
+                    }
+                guardarFiltrosProveedores();
+                    const texto =
+                        buscarProveedor.value.trim();
+
+                    const estado =
+                        filtroEstadoProveedor.value;
+                const situacion =
+                    filtroSituacionFinancieraProveedor.value;
+
+                    tablaProveedores.search(texto);
+
+                    // Estado: columna 5
+                    tablaProveedores
+                        .column(5)
+                        .search(
+                            estado
+                                ? "^" +
+                                $.fn.dataTable.util
+                                    .escapeRegex(estado) +
+                                "$"
+                                : "",
+                            true,
+                            false
+                        );
+                // Situación financiera: columna 6
+                tablaProveedores
+                    .column(6)
+                    .search(
+                        situacion
+                            ? "^" +
+                            $.fn.dataTable.util
+                                .escapeRegex(situacion) +
+                            "$"
+                            : "",
+                        true,
+                        false
+                    );
+                    tablaProveedores.draw();
+                }
+
+                // Automático mientras escribe
+                buscarProveedor.addEventListener(
+                    "input",
+                    aplicarFiltrosProveedores
+                );
+
+                // Automático al cambiar estado
+                filtroEstadoProveedor.addEventListener(
+                    "change",
+                    aplicarFiltrosProveedores
+                );
+
+                // Botón Filtrar
+                document
+                    .getElementById("btnFiltrarProveedor")
+                    .addEventListener(
+                        "click",
+                        aplicarFiltrosProveedores
+                    );
+            filtroSituacionFinancieraProveedor
+                .addEventListener(
+                    "change",
+                    aplicarFiltrosProveedores
+                );
+                // Botón Limpiar
+            document
+                .getElementById("btnLimpiarProveedor")
+                .addEventListener("click", function () {
+
+                    buscarProveedor.value = "";
+
+                    filtroEstadoProveedor.selectedIndex = 0;
+
+                    filtroSituacionFinancieraProveedor
+                        .selectedIndex = 0;
+
+                    sessionStorage.removeItem(
+                        "proveedoresBuscar"
+                    );
+
+                    sessionStorage.removeItem(
+                        "proveedoresEstado"
+                    );
+
+                    sessionStorage.removeItem(
+                        "proveedoresSituacionFinanciera"
+                    );
+
+                    if (tablaProveedores) {
+                        tablaProveedores.search("");
+                        tablaProveedores.columns().search("");
+                        tablaProveedores.draw();
+                    }
+
+                    buscarProveedor.focus();
+                });
+                // =====================================================
+                // REPORTE PDF Y EXCEL
+                // =====================================================
+                function obtenerFiltrosReporteProveedores() {
+
+                    const buscar =
+                        document
+                            .getElementById("buscarProveedor")
+                            .value
+                            .trim();
+
+                    const estado =
+                        document
+                            .getElementById("filtroEstadoProveedor")
+                            .value;
+                const situacionFinanciera =
+                    document
+                        .getElementById(
+                            "filtroSituacionFinancieraProveedor")
+                        .value;
+                return new URLSearchParams({
+                    buscar: buscar,
+                    estado: estado,
+                    situacionFinanciera:
+                        situacionFinanciera
+                });
+                }
+
+                document
+                    .getElementById("btnReporteProveedores")
+                    .addEventListener("click", function () {
+                    guardarFiltrosProveedores();
+
+                    sessionStorage.setItem(
+                        "regresarReporteProveedores",
+                        "true"
+                    );
+                        const parametros =
+                            obtenerFiltrosReporteProveedores();
+
+                        const url =
+                            '@Url.Action("Reporte", "Proveedores")'
+                            + "?"
+                            + parametros.toString();
+                 
+                        window.location.href = url;
+                    });
+
+                document
+                    .getElementById("btnExcelProveedores")
+                    .addEventListener("click", function () {
+
+                        const parametros =
+                            obtenerFiltrosReporteProveedores();
+
+                        const url =
+                            '@Url.Action("ExportarExcel", "Proveedores")'
+                            + "?"
+                            + parametros.toString();
+
+                        window.location.href = url;
+                    });
+                
+                // CONFIRMACIÓN DESACTIVAR
+                // =====================================================
+                document
+                    .querySelectorAll(".form-desactivar-proveedor")
+                    .forEach(function (form) {
+
+                        form.addEventListener(
+                            "submit",
+                            function (e) {
+
+                                e.preventDefault();
+
+                                const nombre = form.dataset.nombre;
+
+                                Swal.fire({
+                                    title: "¿Desactivar proveedor?",
+                                    html:
+                                        `El proveedor <strong>${nombre}</strong> quedará inactivo.<br>
+                                                 No será eliminado del sistema.`,
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Sí, desactivar",
+                                    cancelButtonText: "Cancelar",
+                                    confirmButtonColor: "#dc3545",
+                                    cancelButtonColor: "#6c757d"
+                                }).then(function (result) {
+
+                                    if (result.isConfirmed) {
+                                        form.submit();
+                                    }
+                                });
+                            }
+                        );
+                    });
+
+              
+                // CONFIRMACIÓN REACTIVAR
+                // =====================================================
+                document
+                    .querySelectorAll(".form-reactivar-proveedor")
+                    .forEach(function (form) {
+
+                        form.addEventListener(
+                            "submit",
+                            function (e) {
+
+                                e.preventDefault();
+
+                                const nombre = form.dataset.nombre;
+
+                                Swal.fire({
+                                    title: "¿Reactivar proveedor?",
+                                    html:
+                                        `El proveedor <strong>${nombre}</strong> volverá a estar disponible en el sistema.`,
+                                    icon: "question",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Sí, reactivar",
+                                    cancelButtonText: "Cancelar",
+                                    confirmButtonColor: "#198754",
+                                    cancelButtonColor: "#6c757d"
+                                }).then(function (result) {
+
+                                    if (result.isConfirmed) {
+                                        form.submit();
+                                    }
+                                });
+                            }
+                        );
+                    });
+            function restaurarFiltrosProveedores() {
+
+                const debeRestaurar =
+                    sessionStorage.getItem(
+                        "regresarReporteProveedores"
+                    ) === "true";
+
+                if (!debeRestaurar) {
+
+                    sessionStorage.removeItem(
+                        "proveedoresBuscar"
+                    );
+
+                    sessionStorage.removeItem(
+                        "proveedoresEstado"
+                    );
+
+                    sessionStorage.removeItem(
+                        "proveedoresSituacionFinanciera"
+                    );
+                    sessionStorage.removeItem(
+                        "regresarReporteProveedores"
+                    ); 
+
+                    buscarProveedor.value = "";
+                    filtroEstadoProveedor.selectedIndex = 0;
+
+                    filtroSituacionFinancieraProveedor
+                        .selectedIndex = 0;
+
+                    return;
+                }
+
+                const buscarGuardado =
+                    sessionStorage.getItem(
+                        "proveedoresBuscar"
+                    ) || "";
+
+                const estadoGuardado =
+                    sessionStorage.getItem(
+                        "proveedoresEstado"
+                    ) || "";
+
+                const situacionGuardada =
+                    sessionStorage.getItem(
+                        "proveedoresSituacionFinanciera"
+                    ) || "";
+
+                buscarProveedor.value =
+                    buscarGuardado;
+
+                filtroEstadoProveedor.value =
+                    estadoGuardado;
+
+                filtroSituacionFinancieraProveedor.value =
+                    situacionGuardada;
+
+                if (tablaProveedores) {
+
+                    tablaProveedores.search(
+                        buscarGuardado.trim()
+                    );
+
+                    tablaProveedores
+                        .column(5)
+                        .search(
+                            estadoGuardado
+                                ? "^" +
+                                $.fn.dataTable.util
+                                    .escapeRegex(
+                                        estadoGuardado
+                                    ) +
+                                "$"
+                                : "",
+                            true,
+                            false
+                        );
+
+                    tablaProveedores
+                        .column(6)
+                        .search(
+                            situacionGuardada
+                                ? "^" +
+                                $.fn.dataTable.util
+                                    .escapeRegex(
+                                        situacionGuardada
+                                    ) +
+                                "$"
+                                : "",
+                            true,
+                            false
+                        );
+
+                    tablaProveedores.draw();
+                }
+
+                // Se consume la marca después de restaurar.
+                sessionStorage.removeItem(
+                    "regresarReporteProveedores"
+                );
+            }
+            // =====================================================
+            // RESTAURAR ÚNICAMENTE AL VOLVER DESDE EL PDF
+            // =====================================================
+            window.addEventListener(
+                "pageshow",
+                function () {
+
+                    setTimeout(
+                        restaurarFiltrosProveedores,
+                        50
+                    );
+                }
+            );
+        });
+        </script>
+    }

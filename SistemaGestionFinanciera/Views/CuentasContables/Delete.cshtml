@@ -1,0 +1,192 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasContable
+
+@{
+    ViewData["Title"] = "Desactivar cuenta contable";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">Desactivar cuenta contable</h2>
+            <small class="text-muted">Confirmación segura del catálogo contable</small>
+        </div>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver a cuentas contables
+        </a>
+    </div>
+
+    <div class="alert alert-warning shadow-sm">
+        <strong>Atención:</strong> Esta acción no elimina la cuenta de la base de datos.
+        La cuenta quedará inactiva para conservar la trazabilidad del catálogo contable.
+    </div>
+
+    <div class="card shadow-sm mb-3 border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Cuenta seleccionada
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="fw-bold">Código</label>
+                    <div class="form-control bg-light">@Model.Codigo</div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="fw-bold">Nombre</label>
+                    <div class="form-control bg-light">@Model.Nombre</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="fw-bold">Tipo</label>
+                    <div class="form-control bg-light">@Model.TipoCuenta</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="fw-bold">Naturaleza</label>
+                    <div class="form-control bg-light">@Model.Naturaleza</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="fw-bold">Estado actual</label>
+                    <div class="form-control bg-light">
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">Activa</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactiva</span>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row mb-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <small>Saldo inicial</small>
+                    <h5>₡@Model.SaldoInicial.ToString("N2")</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <small>Saldo actual</small>
+                    <h5 class="text-warning">₡@Model.SaldoActual.ToString("N2")</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <small>Fecha de creación</small>
+                    <h5>@Model.FechaCreacion?.ToString("dd/MM/yyyy")</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white fw-bold">
+            Confirmación de desactivación
+        </div>
+
+        <div class="card-body">
+
+            <p class="mb-2">
+                Antes de confirmar, el sistema validará automáticamente que la cuenta:
+            </p>
+
+            <ul class="mb-3">
+                <li>No tenga movimientos contables asociados.</li>
+                <li>No tenga saldo actual diferente de cero.</li>
+                <li>No sea requerida para mantener la trazabilidad contable.</li>
+            </ul>
+
+            <div class="alert alert-light border">
+                Si alguna de estas reglas no se cumple, la cuenta no será desactivada.
+            </div>
+
+            <form asp-action="Delete" method="post" class="d-flex gap-2">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="IdCuentaContable" />
+
+                <button type="button"
+                        class="btn btn-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalConfirmarDesactivacion">
+                    <i class="fas fa-ban"></i> Confirmar desactivación
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </form>
+
+        </div>
+    </div>
+    <div class="modal fade" id="modalConfirmarDesactivacion" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar desactivación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="mb-2">
+                        Está a punto de desactivar la siguiente cuenta contable:
+                    </p>
+
+                    <div class="border rounded p-3 bg-light">
+                        <strong>@Model.Codigo - @Model.Nombre</strong><br />
+                        <small>Tipo: @Model.TipoCuenta | Naturaleza: @Model.Naturaleza</small><br />
+                        <small>Saldo actual: ₡@Model.SaldoActual.ToString("N2")</small>
+                    </div>
+
+                    <div class="alert alert-warning mt-3 mb-0">
+                        La cuenta quedará marcada como <strong>Inactiva</strong>.
+                        No será eliminada del sistema.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <form asp-action="Delete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IdCuentaContable" />
+
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-ban"></i> Desactivar cuenta
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,853 @@
+﻿@using Microsoft.AspNetCore.Http
+@using System.Text.Json
+@using System.Collections.Generic
+@using System.Linq
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Unión Cantonal de Asociaciones de Desarrollo</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    @{
+        string? usuarioNombre = Context.Session.GetString("Usuario");
+        string? rol = Context.Session.GetString("Rol");
+        string? permisosJson = Context.Session.GetString("Permisos");
+
+        List<string> permisos = new();
+
+        if (!string.IsNullOrWhiteSpace(permisosJson))
+        {
+            try
+            {
+                permisos = JsonSerializer.Deserialize<List<string>>(permisosJson)
+                ?? new List<string>();
+            }
+            catch (JsonException)
+            {
+                permisos = new List<string>();
+            }
+        }
+
+        bool esAdministrador =
+        rol?.Equals("Administrador", StringComparison.OrdinalIgnoreCase) == true;
+
+        bool TienePermiso(string nombrePermiso)
+        {
+            if (esAdministrador)
+            {
+                return true;
+            }
+
+            return permisos.Any(p =>
+            p.Equals(nombrePermiso, StringComparison.OrdinalIgnoreCase));
+        }
+
+        bool mostrarOperaciones =
+        TienePermiso("Registrar Ingresos") ||
+        TienePermiso("Registrar Gastos") ||
+        TienePermiso("Gestionar Facturación");
+
+        bool mostrarCuentas =
+        TienePermiso("Gestionar Cuentas por Cobrar") ||
+        TienePermiso("Gestionar Cuentas por Pagar");
+
+        bool mostrarPresupuesto =
+        TienePermiso("Gestionar Presupuesto");
+
+        bool mostrarContabilidad =
+        TienePermiso("Gestionar Cuentas Contables") ||
+        TienePermiso("Consultar Movimientos Contables");
+
+        bool mostrarMantenimientos =
+        TienePermiso("Gestionar Proyectos") ||
+        TienePermiso("Gestionar Presupuesto") ||
+        TienePermiso("Gestionar Clientes") ||
+        TienePermiso("Gestionar Proveedores") ||
+        TienePermiso("Gestionar Categorías") ||
+        TienePermiso("Gestionar Centros de Costo");
+
+        string inicialUsuario =
+        !string.IsNullOrWhiteSpace(usuarioNombre)
+        ? usuarioNombre.Trim().Substring(0, 1).ToUpper()
+        : "U";
+    }
+
+    <div class="app-shell">
+
+        <aside id="appSidebar"
+               class="app-sidebar text-white"
+               aria-label="Menú principal">
+
+            <div class="sidebar-brand">
+                <div class="brand-mark">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+
+                <div class="brand-text">
+                    <span class="brand-title">SISTEMA WEB </span>
+                    <span class="brand-subtitle">FINANCIERO</span>
+                </div>
+
+                <button type="button"
+                        id="sidebarClose"
+                        class="sidebar-close d-lg-none"
+                        aria-label="Cerrar menú">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar">@inicialUsuario</div>
+
+                <div class="profile-info">
+                    <span class="profile-name">@usuarioNombre</span>
+                    <span class="profile-role">@rol</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-navigation">
+                <ul class="nav flex-column">
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white"
+                           asp-controller="Home"
+                           asp-action="Index">
+                            <span class="menu-icon">
+                                <i class="fa-solid fa-house"></i>
+                            </span>
+                            <span class="menu-text">Inicio</span>
+                        </a>
+                    </li>
+
+                    @if (mostrarOperaciones)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Operaciones</span>
+                        </li>
+
+                        @if (TienePermiso("Registrar Ingresos"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="Ingresos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-arrow-trend-up"></i>
+                                    </span>
+                                    <span class="menu-text">Ingresos</span>
+
+                                    @await Component.InvokeAsync("AlertaIngresos")
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Registrar Gastos"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="Gastos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-arrow-trend-down"></i>
+                                    </span>
+                                    <span class="menu-text">Gastos</span>
+                                    @await Component.InvokeAsync("AlertaGastos")
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Facturación"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="Facturas"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    </span>
+                                    <span class="menu-text">Facturas</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="FacturasDetalles"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-list-check"></i>
+                                    </span>
+                                    <span class="menu-text">Detalle Catálogo Facturas</span>
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (mostrarCuentas)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Cuentas</span>
+                        </li>
+
+                        @if (TienePermiso("Gestionar Cuentas por Cobrar"))
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="CuentasPorCobrar"
+                                   asp-action="Index"
+                                   class="nav-link">
+
+                                    <i class="fas fa-hand-holding-usd"></i>
+
+                                    <span>Cuentas por Cobrar</span>
+
+                                    @await Component.InvokeAsync(
+                                             "AlertaCuentasPorCobrar")
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="PagosCuentasPorCobrar"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </span>
+                                    <span class="menu-text">Historial Pagos CxC</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Cuentas por Pagar"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CuentasPorPagar"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-money-bill-transfer"></i>
+                                    </span>
+                                    <span class="menu-text">Cuentas por Pagar</span>
+                                    @await Component.InvokeAsync("AlertaCuentasPorPagar")
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="PagosCuentasPorPagar"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-receipt"></i>
+                                    </span>
+                                    <span class="menu-text">Historial Pagos CxP</span>
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (mostrarPresupuesto)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Presupuesto</span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="PresupuestosMensuales"
+                               asp-action="Index">
+
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </span>
+
+                                <span class="menu-text">
+                                    Presupuestos
+                                </span>
+
+                                @await Component.InvokeAsync(
+                                         "AlertaPresupuestos")
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="PresupuestosDetalles"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-chart-column"></i>
+                                </span>
+                                <span class="menu-text">Ejecución Presupuestaria</span>
+                            </a>
+                        </li>
+                    }
+
+                    @if (mostrarContabilidad)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Contabilidad</span>
+                        </li>
+
+                        @if (TienePermiso("Gestionar Cuentas Contables"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CuentasContables"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-book"></i>
+                                    </span>
+                                    <span class="menu-text">Cuentas Contables</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Consultar Movimientos Contables"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="MovimientosContables"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-right-left"></i>
+                                    </span>
+                                    <span class="menu-text">Movimientos Contables</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CierresContables"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </span>
+                                    <span class="menu-text">Cierre Contable</span>
+                                    @await Component.InvokeAsync("AlertaCierresContables")
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (mostrarMantenimientos)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Mantenimientos</span>
+                        </li>
+
+                        @if (TienePermiso("Gestionar Proyectos") ||
+                       TienePermiso("Gestionar Presupuesto"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="Proyectos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-diagram-project"></i>
+                                    </span>
+                                    <span class="menu-text">
+                                        Proyectos
+                                    </span>
+
+                                    @await Component.InvokeAsync(
+                                             "AlertaProyectos")
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Clientes"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="ClientesBeneficiarios"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-users"></i>
+                                    </span>
+                                    <span class="menu-text">Clientes</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Proveedores"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="Proveedores"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-truck-field"></i>
+                                    </span>
+                                    <span class="menu-text">Proveedores</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Categorías"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CategoriasIngresos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-tags"></i>
+                                    </span>
+                                    <span class="menu-text">Categorías de Ingresos</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CategoriasGastos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-tag"></i>
+                                    </span>
+                                    <span class="menu-text">Categorías de Gastos</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (TienePermiso("Gestionar Centros de Costo"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white"
+                                   asp-controller="CentrosCostos"
+                                   asp-action="Index">
+                                    <span class="menu-icon">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                    </span>
+                                    <span class="menu-text">Centros de Costo</span>
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (esAdministrador)
+                    {
+                        <li class="menu-section">
+                            <span class="menu-section-title">Auditoría</span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="Auditoriums"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                </span>
+                                <span class="menu-text">Auditoría</span>
+                            </a>
+                        </li>
+
+                        <li class="menu-section">
+                            <span class="menu-section-title">Seguridad</span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="Usuarios"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-user-gear"></i>
+                                </span>
+                                <span class="menu-text">Usuarios</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="Roles"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-id-badge"></i>
+                                </span>
+                                <span class="menu-text">Roles</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="Permisos"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-key"></i>
+                                </span>
+                                <span class="menu-text">Permisos</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               asp-controller="RolesPermisos"
+                               asp-action="Index">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </span>
+                                <span class="menu-text">Roles - Permisos</span>
+                            </a>
+                        </li>
+                    }
+
+                    <li class="nav-item logout-item">
+                        <a class="nav-link logout-link"
+                           asp-controller="Acceso"
+                           asp-action="Logout"
+                           onclick="return confirmarCerrarSesion(this.href);">
+                            <span class="menu-icon">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </span>
+                            <span class="menu-text">Cerrar sesión</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+        </aside>
+
+        <div id="sidebarBackdrop"
+             class="sidebar-backdrop"></div>
+
+        <main id="appMain"
+              class="app-main bg-light min-vh-100 d-flex flex-column">
+
+            <header class="app-header text-white shadow-sm">
+                <div class="header-content">
+
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button"
+                                id="sidebarToggle"
+                                class="sidebar-toggle"
+                                aria-label="Abrir o cerrar menú"
+                                aria-controls="appSidebar"
+                                aria-expanded="true">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+
+                        <div class="header-title-group">
+                            <span class="header-title">Unión Cantonal de Asociaciones de Desarrololo</span>
+                            <span class="header-subtitle d-none d-md-inline">
+                                UCAD Santa Ana
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(usuarioNombre))
+                    {
+                        <div class="header-user">
+                            <div class="header-user-avatar">@inicialUsuario</div>
+
+                            <div class="header-user-info">
+                                <span class="header-user-name">@usuarioNombre</span>
+                                <span class="header-user-role">@rol</span>
+                            </div>
+
+                            <a asp-controller="Acceso"
+                               asp-action="Logout"
+                               class="btn btn-outline-light header-logout"
+                               onclick="return confirmarCerrarSesion(this.href);"
+                               title="Cerrar sesión">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span class="d-none d-xl-inline">Cerrar sesión</span>
+                            </a>
+                        </div>
+                    }
+
+                </div>
+            </header>
+
+            <div class="container-fluid px-4 flex-grow-1">
+                @RenderBody()
+            </div>
+
+            <footer class="app-footer mt-auto">
+                Sistema Web de Gestión Financiera —
+                Unión Cantonal de Asociaciones de Desarrollo de
+                Santa Ana, Costa Rica © 2026
+            </footer>
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/sweetalert-config.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const mensajeExito = @Html.Raw(
+                JsonSerializer.Serialize(
+                TempData["MensajeExito"]?.ToString()
+                ?? TempData["Exito"]?.ToString()
+                ?? TempData["Success"]?.ToString()
+                ?? ""
+                )
+                );
+
+            const mensajeError = @Html.Raw(
+                JsonSerializer.Serialize(
+                TempData["MensajeError"]?.ToString()
+                ?? TempData["Error"]?.ToString()
+                ?? TempData["Danger"]?.ToString()
+                ?? ""
+                )
+                );
+
+            const mensajeAdvertencia = @Html.Raw(
+                JsonSerializer.Serialize(
+                TempData["MensajeAdvertencia"]?.ToString()
+                ?? TempData["Warning"]?.ToString()
+                ?? ""
+                )
+                );
+
+            const mensajeInformacion = @Html.Raw(
+                JsonSerializer.Serialize(
+                TempData["MensajeInfo"]?.ToString()
+                ?? TempData["Info"]?.ToString()
+                ?? ""
+                )
+                );
+
+            if (mensajeExito) {
+                mostrarExito(mensajeExito);
+            }
+            else if (mensajeError) {
+                mostrarError(mensajeError);
+            }
+            else if (mensajeAdvertencia) {
+                mostrarAdvertencia(mensajeAdvertencia);
+            }
+            else if (mensajeInformacion) {
+                mostrarInformacion(mensajeInformacion);
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const currentPath = window.location.pathname.toLowerCase();
+            let activeLink = null;
+            let longestMatch = 0;
+
+            document.querySelectorAll(".app-sidebar .nav-link").forEach(function (link) {
+
+                const linkPath = link.getAttribute("href")?.toLowerCase();
+
+                if (!linkPath) {
+                    return;
+                }
+
+                if (
+                    linkPath === "/" ||
+                    linkPath === "/home" ||
+                    linkPath === "/home/index"
+                ) {
+                    if (
+                        currentPath === "/" ||
+                        currentPath === "/home" ||
+                        currentPath === "/home/index"
+                    ) {
+                        activeLink = link;
+                    }
+
+                    return;
+                }
+
+                if (
+                    currentPath === linkPath ||
+                    currentPath.startsWith(linkPath + "/")
+                ) {
+                    if (linkPath.length > longestMatch) {
+                        longestMatch = linkPath.length;
+                        activeLink = link;
+                    }
+                }
+            });
+
+            if (activeLink) {
+                activeLink.classList.add("active");
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const body = document.body;
+            const sidebar = document.getElementById("appSidebar");
+            const toggleButton = document.getElementById("sidebarToggle");
+            const closeButton = document.getElementById("sidebarClose");
+            const backdrop = document.getElementById("sidebarBackdrop");
+            const mobileBreakpoint = 992;
+
+            if (!sidebar || !toggleButton) {
+                return;
+            }
+
+            function isMobile() {
+                return window.innerWidth < mobileBreakpoint;
+            }
+
+            function updateExpandedState() {
+                const expanded = isMobile()
+                    ? body.classList.contains("sidebar-open")
+                    : !body.classList.contains("sidebar-collapsed");
+
+                toggleButton.setAttribute("aria-expanded", expanded.toString());
+            }
+
+            function openMobileSidebar() {
+                body.classList.add("sidebar-open");
+                body.classList.remove("sidebar-collapsed");
+                updateExpandedState();
+            }
+
+            function closeMobileSidebar() {
+                body.classList.remove("sidebar-open");
+                updateExpandedState();
+            }
+
+            function toggleSidebar() {
+                if (isMobile()) {
+                    body.classList.contains("sidebar-open")
+                        ? closeMobileSidebar()
+                        : openMobileSidebar();
+
+                    return;
+                }
+
+                body.classList.toggle("sidebar-collapsed");
+
+                localStorage.setItem(
+                    "sidebarCollapsed",
+                    body.classList.contains("sidebar-collapsed")
+                        ? "true"
+                        : "false"
+                );
+
+                updateExpandedState();
+            }
+
+            toggleButton.addEventListener("click", toggleSidebar);
+            closeButton?.addEventListener("click", closeMobileSidebar);
+            backdrop?.addEventListener("click", closeMobileSidebar);
+
+            sidebar.querySelectorAll(".nav-link").forEach(function (link) {
+                link.addEventListener("click", function () {
+                    if (isMobile()) {
+                        closeMobileSidebar();
+                    }
+                });
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (
+                    event.key === "Escape" &&
+                    body.classList.contains("sidebar-open")
+                ) {
+                    closeMobileSidebar();
+                }
+            });
+
+            window.addEventListener("resize", function () {
+                if (!isMobile()) {
+                    body.classList.remove("sidebar-open");
+                }
+
+                updateExpandedState();
+            });
+
+            if (!isMobile()) {
+                const sidebarCollapsed =
+                    localStorage.getItem("sidebarCollapsed");
+
+                if (sidebarCollapsed === "true") {
+                    body.classList.add("sidebar-collapsed");
+                }
+            }
+
+
+            // =====================================================
+            // CONSERVAR POSICIÓN DEL SCROLL DEL MENÚ LATERAL
+            // =====================================================
+
+            const posicionSidebarGuardada =
+                sessionStorage.getItem("sidebarScrollTop");
+
+            if (posicionSidebarGuardada !== null) {
+                sidebar.scrollTop =
+                    parseInt(posicionSidebarGuardada);
+            }
+
+            sidebar.addEventListener("scroll", function () {
+
+                sessionStorage.setItem(
+                    "sidebarScrollTop",
+                    sidebar.scrollTop.toString()
+                );
+
+            });
+
+            sidebar.querySelectorAll(".nav-link").forEach(function (link) {
+
+                link.addEventListener("click", function () {
+
+                    sessionStorage.setItem(
+                        "sidebarScrollTop",
+                        sidebar.scrollTop.toString()
+                    );
+
+                });
+
+            });
+
+
+            updateExpandedState();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Tooltips normales
+            const elementosTooltip =
+                document.querySelectorAll(
+                    '[data-bs-toggle="tooltip"]'
+                );
+
+            elementosTooltip.forEach(function (elemento) {
+                bootstrap.Tooltip
+                    .getOrCreateInstance(elemento);
+            });
+
+            // Tarjetas informativas de alertas
+            const elementosPopover =
+                document.querySelectorAll(
+                    '[data-bs-toggle="popover"]'
+                );
+
+            elementosPopover.forEach(function (elemento) {
+                bootstrap.Popover
+                    .getOrCreateInstance(elemento);
+            });
+
+        });
+    </script>
+
+</body>
+</html>

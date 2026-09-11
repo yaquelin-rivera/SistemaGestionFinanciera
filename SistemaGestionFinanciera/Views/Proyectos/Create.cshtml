@@ -1,0 +1,158 @@
+﻿@model SistemaGestionFinanciera.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Crear proyecto";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Crear proyecto</h2>
+        <small class="text-muted">Registro de proyectos financieros de la asociación</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold" style="background-color:#0F5C64;">
+            Datos del nuevo proyecto
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-bold"></label>
+                        <input asp-for="Nombre"
+                               class="form-control"
+                               maxlength="150"
+                               placeholder="Ejemplo: Festival Cultural de Santa Ana" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Estado inicial</label>
+
+                        <div class="mt-1">
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                <i class="fas fa-check-circle"></i> Activo
+                            </span>
+                        </div>
+
+                        <small class="text-muted d-block mt-2">
+                            Todo proyecto nuevo se registra inicialmente como Activo.
+                        </small>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-bold"></label>
+                        <textarea asp-for="Descripcion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Describa brevemente el objetivo del proyecto"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        <small class="text-muted">
+                            Máximo 500 caracteres. Use una descripción clara y sin símbolos innecesarios.
+                        </small>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="FechaInicio" class="form-label fw-bold"></label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" />
+                        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="FechaFin" class="form-label fw-bold"></label>
+                        <input asp-for="FechaFin" type="date" class="form-control" />
+                        <span asp-validation-for="FechaFin" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="PresupuestoAsignado" class="form-label fw-bold"></label>
+                        <input asp-for="PresupuestoAsignado"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               placeholder="Ejemplo: 300000" />
+                        <span asp-validation-for="PresupuestoAsignado" class="text-danger"></span>
+                        <small class="text-muted">
+                            Ingrese el monto total aprobado para el proyecto.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    El presupuesto asignado corresponde al monto global del proyecto. La distribución mensual se gestiona desde el módulo de Presupuestos.
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar proyecto
+                    </button>
+
+                   
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function validarFechasProyecto() {
+            const fechaInicioValor = $("#FechaInicio").val();
+            const fechaFinValor = $("#FechaFin").val();
+
+            if (fechaInicioValor && fechaFinValor) {
+                const fechaInicio = new Date(fechaInicioValor);
+                const fechaFin = new Date(fechaFinValor);
+
+                fechaInicio.setHours(0, 0, 0, 0);
+                fechaFin.setHours(0, 0, 0, 0);
+
+                if (fechaFin < fechaInicio) {
+                    $("[data-valmsg-for='FechaFin']")
+                        .text("La fecha final no puede ser menor que la fecha de inicio.");
+                } else {
+                    $("[data-valmsg-for='FechaFin']").text("");
+                }
+            }
+        }
+
+        function limpiarTextoBasico(selector) {
+            $(selector).on("input", function () {
+                let valor = $(this).val();
+
+                valor = valor.replace(/\s{2,}/g, " ");
+                valor = valor.replace(/(.)\1{8,}/g, "$1$1$1");
+
+                $(this).val(valor);
+            });
+        }
+
+        $("#FechaInicio, #FechaFin").on("change input", function () {
+            validarFechasProyecto();
+        });
+
+        limpiarTextoBasico("#Nombre");
+        limpiarTextoBasico("#Descripcion");
+    </script>
+}

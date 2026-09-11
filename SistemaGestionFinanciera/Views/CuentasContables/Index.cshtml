@@ -1,0 +1,725 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.CuentasContable>
+
+@{
+    ViewData["Title"] = "Cuentas contables";
+    decimal resultadoPeriodo =
+    Convert.ToDecimal(ViewBag.ResultadoPeriodo ?? 0m);
+
+    string colorResultado =
+        resultadoPeriodo >= 0 ? "success" : "danger";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">Gestión de cuentas contables</h2>
+            <small class="text-muted">Catálogo contable y resumen financiero</small>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL ACTIVOS -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-primary border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Total activos</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-primary mb-0">
+                            @String.Format("₡{0:N2}", ViewBag.TotalActivos)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-coins fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL PASIVOS -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-warning border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Total pasivos</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-warning mb-0">
+                            @String.Format("₡{0:N2}", ViewBag.TotalPasivos)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-file-invoice-dollar fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL PATRIMONIO -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-info border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Total patrimonio</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-info mb-0">
+                            @String.Format("₡{0:N2}", ViewBag.TotalPatrimonio)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-balance-scale fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL INGRESOS -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-success border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Total ingresos</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-success mb-0">
+                            @String.Format("₡{0:N2}", ViewBag.TotalIngresos)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-arrow-circle-up fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL GASTOS -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-danger border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Total gastos</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-danger mb-0">
+                            @String.Format("₡{0:N2}", ViewBag.TotalGastos)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-arrow-circle-down fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADO DEL PERIODO -->
+        <div class="col-md-2">
+            <div class="card shadow-sm h-100 card-resumen
+                    border-0 border-start border-@colorResultado border-4">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">Resultado</small>
+                        <div class="text-muted small">
+                            Acumulado general
+                        </div>
+                        <h6 class="fw-bold text-@colorResultado mb-0">
+                            @String.Format("₡{0:N2}", resultadoPeriodo)
+                        </h6>
+                    </div>
+
+                    <i class="fas fa-chart-line fa-2x text-muted opacity-50"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="row g-2">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-hashtag text-muted me-1"></i> Código
+                        </label>
+
+                        <input type="text"
+                               id="filtroCodigoCuenta"
+                               class="form-control"
+                               placeholder="Buscar por código" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-signature text-muted me-1"></i> Nombre
+                        </label>
+
+                        <input type="text"
+                               id="filtroNombreCuenta"
+                               class="form-control"
+                               placeholder="Buscar por nombre" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-tags text-muted me-1"></i> Tipo
+                        </label>
+
+                        <select id="filtroTipoCuenta" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Pasivo">Pasivo</option>
+                            <option value="Patrimonio">Patrimonio</option>
+                            <option value="Ingreso">Ingreso</option>
+                            <option value="Gasto">Gasto</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-info-circle text-muted me-1"></i> Estado
+                        </label>
+
+                        <select id="filtroEstadoCuenta" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Activa">Activa</option>
+                            <option value="Inactiva">Inactiva</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+
+                            <div class="d-flex flex-grow-1 gap-2">
+
+                                <button type="button"
+                                        id="btnBuscarCuenta"
+                                        class="btn btn-primary px-5 btn-filtro">
+
+                                    <i class="fas fa-search me-1"></i>
+                                    Buscar
+
+                                </button>
+
+                                <button type="button"
+                                        id="btnLimpiarCuenta"
+                                        class="btn btn-secondary px-5 btn-filtro ">
+
+                                    <i class="fas fa-eraser me-1"></i>
+                                    Limpiar
+
+                                </button>
+
+                            </div>
+                            <div class="ms-auto d-flex align-items-end gap-2">
+
+                                <button type="button"
+                                        id="btnReporteCuentas"
+                                        class="btn btn-info px-5 btn-filtro">
+
+                                    <i class="fas fa-file-pdf me-1"></i>
+                                    Vista previa PDF
+
+                                </button>
+
+                                <button type="button"
+                                        id="btnExportarCuentas"
+                                        class="btn btn-success px-5 btn-filtro">
+
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    Exportar Excel
+
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-book me-2"></i>
+            Lista de cuentas contables registradas
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+
+                <table id="tablaCuentasContables" class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-1"></i>Código</th>
+                            <th><i class="fas fa-book me-1"></i>Nombre</th>
+                            <th><i class="fas fa-folder me-1"></i>Tipo de cuenta</th>
+                            <th><i class="fas fa-balance-scale me-1"></i>Naturaleza</th>
+                            <th><i class="fas fa-wallet me-1"></i>Saldo inicial</th>
+                            <th><i class="fas fa-coins me-1"></i>Saldo actual</th>
+                            <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                            <th><i class="fas fa-calendar-alt me-1"></i>Fecha creación</th>
+                            <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Codigo</td>
+                                <td>@item.Nombre</td>
+                                <td>@item.TipoCuenta</td>
+                                <td>@item.Naturaleza</td>
+                                <td class="text-center">₡@item.SaldoInicial.ToString("N2")</td>
+                                <td class="text-center">₡@item.SaldoActual.ToString("N2")</td>
+                                <td class="text-center">
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactiva</span>
+                                    }
+                                </td>
+                                <td class="text-center">@(item.FechaCreacion?.ToString("dd/MM/yyyy") ?? "")</td>
+                                <td class="col-acciones">
+                                    <div class="acciones-botones">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.IdCuentaContable"
+                                           class="btn btn-primary btn-sm btn-accion">
+                                            <i class="fas fa-eye"></i> Detalles
+                                        </a>
+
+                                        <a asp-action="LibroMayor"
+                                           asp-route-id="@item.IdCuentaContable"
+                                           class="btn btn-info btn-sm btn-accion">
+                                            <i class="fas fa-book"></i> Libro Mayor
+                                        </a>
+
+                                        @if (item.Activo)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.IdCuentaContable"
+                                               class="btn btn-warning btn-sm btn-accion">
+                                                <i class="fas fa-edit"></i> Modificar
+                                            </a>
+
+                                            <!-- Formulario Desactivar -->
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-warning btn-sm btn-accion"
+                                                    disabled
+                                                    title="No se pueden modificar cuentas inactivas.">
+                                                <i class="fas fa-edit"></i> Modificar
+                                            </button>
+
+                                            <!-- Formulario Reactivar -->
+                                        }
+
+                                        @if (item.Activo)
+                                        {
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@item.IdCuentaContable"
+                                                  method="post"
+                                                  class="d-inline form-desactivar-cuenta"
+                                                  data-codigo="@item.Codigo"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-danger btn-sm btn-accion">
+                                                    <i class="fas fa-ban"></i> Desactivar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="Reactivar"
+                                                  asp-route-id="@item.IdCuentaContable"
+                                                  method="post"
+                                                  class="d-inline form-reactivar-cuenta"
+                                                  data-codigo="@item.Codigo"
+                                                  data-nombre="@item.Nombre">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-success btn-sm btn-accion">
+                                                    <i class="fas fa-check-circle"></i> Reactivar
+                                                </button>
+                                            </form>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // =====================================================
+            // DATATABLE CUENTAS CONTABLES
+            // =====================================================
+            let tablaCuentas = null;
+
+            if ($.fn.DataTable &&
+                document.getElementById("tablaCuentasContables")) {
+
+                tablaCuentas =
+                    $("#tablaCuentasContables").DataTable({
+
+                        pageLength: 10,
+
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+
+                        ordering: true,
+
+                        // Código contable ascendente
+                        order: [[0, "asc"]],
+
+                        searching: true,
+                        paging: true,
+                        info: true,
+                        autoWidth: false,
+                        scrollX: false,
+
+                        columnDefs: [
+                            {
+                                // Acciones
+                                targets: -1,
+                                orderable: false,
+                                searchable: false
+                            }
+                        ],
+
+                        language: {
+                            lengthMenu: "Mostrar _MENU_ registros",
+                            search: "Buscar en la tabla:",
+                            zeroRecords: "No se encontraron cuentas contables.",
+                            emptyTable: "No hay cuentas contables registradas.",
+                            info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                            infoEmpty: "Mostrando 0 registros",
+                            infoFiltered: "(filtrado de _MAX_ registros)",
+                            paginate: {
+                                first: "Primero",
+                                last: "Último",
+                                next: "Siguiente",
+                                previous: "Anterior"
+                            }
+                        }
+                    });
+            }
+
+            // =====================================================
+            // FILTROS AUTOMÁTICOS
+            // =====================================================
+            const filtroCodigo =
+                document.getElementById("filtroCodigoCuenta");
+
+            const filtroNombre =
+                document.getElementById("filtroNombreCuenta");
+
+            const filtroTipo =
+                document.getElementById("filtroTipoCuenta");
+
+            const filtroEstado =
+                document.getElementById("filtroEstadoCuenta");
+
+            function aplicarFiltrosCuentas() {
+
+
+                if (!tablaCuentas) {
+                    return;
+                }
+
+                // Código: columna 0
+                tablaCuentas
+                    .column(0)
+                    .search(filtroCodigo.value.trim());
+
+                // Nombre: columna 1
+                tablaCuentas
+                    .column(1)
+                    .search(filtroNombre.value.trim());
+
+                // Tipo de cuenta: columna 2
+                tablaCuentas
+                    .column(2)
+                    .search(
+                        filtroTipo.value
+                            ? "^" +
+                            $.fn.dataTable.util.escapeRegex(
+                                filtroTipo.value
+                            ) +
+                            "$"
+                            : "",
+                        true,
+                        false
+                    );
+
+                // Estado: columna 6
+                tablaCuentas
+                    .column(6)
+                    .search(
+                        filtroEstado.value
+                            ? "^" +
+                            $.fn.dataTable.util.escapeRegex(
+                                filtroEstado.value
+                            ) +
+                            "$"
+                            : "",
+                        true,
+                        false
+                    );
+
+                tablaCuentas.draw();
+            }
+
+            // Búsqueda automática
+            filtroCodigo.addEventListener(
+                "input",
+                aplicarFiltrosCuentas
+            );
+
+            filtroNombre.addEventListener(
+                "input",
+                aplicarFiltrosCuentas
+            );
+
+            filtroTipo.addEventListener(
+                "change",
+                aplicarFiltrosCuentas
+            );
+
+            filtroEstado.addEventListener(
+                "change",
+                aplicarFiltrosCuentas
+            );
+
+            // El botón Buscar también queda funcional
+            document
+                .getElementById("btnBuscarCuenta")
+                .addEventListener(
+                    "click",
+                    aplicarFiltrosCuentas
+                );
+            // =====================================================
+            // OBTENER LOS FILTROS ACTUALES
+            // =====================================================
+            function obtenerParametrosReporteCuentas() {
+
+                const parametros = new URLSearchParams();
+
+                const codigo =
+                    filtroCodigo.value.trim();
+
+                const nombre =
+                    filtroNombre.value.trim();
+
+                const tipoCuenta =
+                    filtroTipo.value;
+
+                const estadoSeleccionado =
+                    filtroEstado.value;
+
+                if (codigo) {
+                    parametros.append("codigo", codigo);
+                }
+
+                if (nombre) {
+                    parametros.append("nombre", nombre);
+                }
+
+                if (tipoCuenta) {
+                    parametros.append("tipoCuenta", tipoCuenta);
+                }
+
+                /*
+                   
+                */
+                if (estadoSeleccionado) {
+                    parametros.append("estado", estadoSeleccionado);
+                }
+
+                return parametros.toString();
+            }
+
+
+            // =====================================================
+            // VISTA PREVIA PDF
+            // =====================================================
+            document
+                .getElementById("btnReporteCuentas")
+                .addEventListener("click", function () {
+
+                    aplicarFiltrosCuentas();
+
+                    const parametros =
+                        obtenerParametrosReporteCuentas();
+
+                    let url =
+                        '@Url.Action("Reporte", "CuentasContables")';
+
+                    if (parametros) {
+                        url += "?" + parametros;
+                    }
+
+                    window.location.href = url;
+                });
+
+
+            // =====================================================
+            // EXPORTAR EXCEL
+            // =====================================================
+            document
+                .getElementById("btnExportarCuentas")
+                .addEventListener("click", function () {
+
+                    aplicarFiltrosCuentas();
+
+                    const parametros =
+                        obtenerParametrosReporteCuentas();
+
+                    let url =
+                        '@Url.Action("ExportarExcel", "CuentasContables")';
+
+                    if (parametros) {
+                        url += "?" + parametros;
+                    }
+
+                    window.location.href = url;
+                });
+            // Limpiar filtros
+            document
+                .getElementById("btnLimpiarCuenta")
+                .addEventListener("click", function () {
+
+                    filtroCodigo.value = "";
+                    filtroNombre.value = "";
+                    filtroTipo.selectedIndex = 0;
+                    filtroEstado.selectedIndex = 0;
+
+                    if (tablaCuentas) {
+                        tablaCuentas.search("");
+                        tablaCuentas.columns().search("");
+                        tablaCuentas.draw();
+                    }
+
+                    filtroCodigo.focus();
+                });
+            // CONFIRMACIÓN DESACTIVAR
+  
+        document.querySelectorAll(".form-desactivar-cuenta").forEach(form => {
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const codigo = form.dataset.codigo;
+                const nombre = form.dataset.nombre;
+
+                Swal.fire({
+                    title: "¿Desactivar cuenta contable?",
+                    html: `La cuenta <strong>${codigo} - ${nombre}</strong> quedará inactiva.<br>
+                                   El sistema validará que no tenga movimientos ni saldo actual.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, desactivar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+
+                });
+            });
+
+        });
+
+
+        document.querySelectorAll(".form-reactivar-cuenta").forEach(form => {
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const codigo = form.dataset.codigo;
+                const nombre = form.dataset.nombre;
+
+                Swal.fire({
+                    title: "¿Reactivar cuenta contable?",
+                    html: `La cuenta <strong>${codigo} - ${nombre}</strong> volverá a estar disponible en el sistema.`,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, reactivar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#198754",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+
+                });
+            });
+
+        });
+      });
+    </script>
+}

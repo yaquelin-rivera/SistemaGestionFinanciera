@@ -1,0 +1,224 @@
+﻿@model SistemaGestionFinanciera.Models.Ingreso
+
+@{
+    ViewData["Title"] = "Consultar Ingresos";
+}
+
+<h1>Consultar Ingreso</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DEL INGRESO
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <!-- Información General -->
+            <div class="col-md-6">
+                <h5 class="text-primary border-bottom pb-2">
+                    Información General
+                </h5>
+
+                <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
+
+                <p><strong>Fuente:</strong> @Model.Fuente</p>
+
+                <p>
+                    <strong>Descripción:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.Descripcion)
+                        ? "Sin descripción"
+                        : Model.Descripcion)
+                </p>
+
+                <p>
+                    <strong>Observaciones:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.Observaciones)
+                        ? "Sin observaciones"
+                        : Model.Observaciones)
+                </p>
+
+                <p>
+                    <strong>Estado:</strong>
+
+                    @if (Model.Estado == "Pagado")
+                    {
+                        <span class="badge bg-success">Pagado</span>
+                    }
+                    else if (Model.Estado == "Parcial")
+                    {
+                        <span class="badge bg-info text-dark">Parcial</span>
+                    }
+                    else if (Model.Estado == "Pendiente")
+                    {
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    }
+                    else if (Model.Estado == "Anulado")
+                    {
+                        <span class="badge bg-danger">Anulado</span>
+                    }
+                </p>
+            </div>
+
+            <!-- Clasificación -->
+            <div class="col-md-6">
+                <h5 class="text-primary border-bottom pb-2">
+                    Clasificación
+                </h5>
+
+                <p><strong>Tipo de ingreso:</strong> @Model.TipoIngreso</p>
+
+                <p>
+                    <strong>Categoría:</strong>
+                    @Model.CategoriaIngreso?.Nombre
+                </p>
+
+                <p>
+                    <strong>Proyecto:</strong>
+                    @(Model.Proyecto?.Nombre ?? "No asignado")
+                </p>
+                <p>
+                    <strong>Período presupuestario:</strong>
+
+                    @if (Model.PresupuestoMensualRegistro != null)
+                    {
+                        string nombreMes = new DateTime(
+                        Model.PresupuestoMensualRegistro.Anio,
+                        Model.PresupuestoMensualRegistro.Mes,
+                        1)
+                        .ToString(
+                        "MMMM",
+                        new System.Globalization.CultureInfo("es-CR"));
+
+                        nombreMes =
+                        char.ToUpper(nombreMes[0]) +
+                        nombreMes.Substring(1);
+
+                        <span>
+                            @nombreMes @Model.PresupuestoMensualRegistro.Anio
+                        </span>
+
+                        @if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Aprobado")
+                        {
+                            <span class="badge bg-success ms-1">Aprobado</span>
+                        }
+                        else if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Borrador")
+                        {
+                            <span class="badge bg-secondary ms-1">Borrador</span>
+                        }
+                        else if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Rechazado")
+                        {
+                            <span class="badge bg-danger ms-1">Rechazado</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">
+                            Sin período presupuestario
+                        </span>
+                    }
+                </p>
+                @if (!string.IsNullOrWhiteSpace(Model.MotivoPendientePresupuestario))
+                {
+                    <p>
+                        <strong>Situación presupuestaria:</strong>
+                        <span class="text-warning fw-bold">
+                            @Model.MotivoPendientePresupuestario
+                        </span>
+                    </p>
+                }
+                <p>
+                    <strong>Cliente / Beneficiario:</strong>
+                    @(Model.ClienteBeneficiario?.Nombre ?? "No asignado")
+                </p>
+
+                <p>
+                    <strong>Centro de costo:</strong>
+                    @(Model.CentroCosto?.Nombre ?? "Sin centro de costo")
+                </p>
+
+                <p>
+                    <strong>Comprobante:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.Comprobante)
+                        ? "Sin comprobante"
+                        : Model.Comprobante)
+                </p>
+            </div>
+
+        </div>
+
+        <hr />
+
+        <div class="row">
+
+            <!-- Información Financiera -->
+            <div class="col-md-6">
+                <h5 class="text-primary border-bottom pb-2">
+                    Información Financiera
+                </h5>
+
+                <p>
+                    <strong>Monto esperado:</strong>
+                    ₡@Model.MontoEsperado?.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>Monto real:</strong>
+                    ₡@Model.MontoReal?.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>Diferencia:</strong>
+                    ₡@Model.Diferencia?.ToString("N2")
+                </p>
+            </div>
+
+            <!-- Control de Recepción -->
+            <div class="col-md-6">
+                <h5 class="text-primary border-bottom pb-2">
+                    Control de Recepción
+                </h5>
+
+                <p>
+                    <strong>¿Es anticipo?</strong>
+                    @(Model.EsAnticipo ? "Sí" : "No")
+                </p>
+
+                <p>
+                    <strong>Porcentaje recibido:</strong>
+
+                    @{
+                        decimal porcentaje = 0;
+
+                        if ((Model.MontoEsperado ?? 0) > 0)
+                        {
+                            porcentaje = ((Model.MontoReal ?? 0) / (Model.MontoEsperado ?? 1)) * 100;
+                        }
+                    }
+
+                    @porcentaje.ToString("N2") %
+                </p>
+            </div>
+
+        </div>
+
+        <div class="mt-4">
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Volver al listado
+            </a>
+            @if (Model.Origen == "Manual" && Model.Estado != "Anulado")
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.IdIngreso"
+                   class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Modificar
+                </a>
+            }
+
+            
+        </div>
+
+    </div>
+</div>

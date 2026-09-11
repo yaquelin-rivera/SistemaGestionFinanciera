@@ -1,0 +1,805 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.MovimientosContable>
+
+@{
+    ViewData["Title"] = "Libro Mayor";
+
+    var cuenta = ViewBag.Cuenta as SistemaGestionFinanciera.Models.CuentasContable;
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- =========================================================
+         ENCABEZADO
+    ========================================================== -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">
+                Libro Mayor de Cuenta Contable
+            </h2>
+
+            <small class="text-muted">
+                Consulta de movimientos asociados a una cuenta contable específica
+            </small>
+        </div>
+
+        @if (ViewBag.OrigenVista == "DetalleCuenta")
+        {
+            <a asp-action="Details"
+               asp-route-id="@cuenta?.IdCuentaContable"
+               class="btn btn-secondary">
+
+                <i class="fas fa-arrow-left me-1"></i>
+                Volver a detalle de cuenta
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="fas fa-arrow-left me-1"></i>
+                Volver al listado
+            </a>
+        }
+    </div>
+
+
+    <!-- =========================================================
+         INFORMACIÓN DE LA CUENTA
+    ========================================================== -->
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+
+            <i class="fas fa-book me-2"></i>
+            Información de la cuenta
+        </div>
+
+        <div class="card-body">
+
+            <h5 class="fw-bold text-primary mb-4">
+                <i class="fas fa-file-invoice-dollar text-muted me-1"></i>
+                @cuenta?.Codigo - @cuenta?.Nombre
+            </h5>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-layer-group text-muted me-2"></i>
+
+                        <div>
+                            <small class="text-muted d-block">Tipo de cuenta</small>
+                            <strong>@cuenta?.TipoCuenta</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-balance-scale text-muted me-2"></i>
+
+                        <div>
+                            <small class="text-muted d-block">Naturaleza</small>
+                            <strong>@cuenta?.Naturaleza</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-coins text-muted me-2"></i>
+
+                        <div>
+                            <small class="text-muted d-block">Saldo inicial</small>
+                            <strong>
+                                ₡@String.Format("{0:N2}", cuenta?.SaldoInicial ?? 0)
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-wallet text-muted me-2"></i>
+
+                        <div>
+                            <small class="text-muted d-block">Saldo actual</small>
+
+                            <strong class="@((cuenta?.SaldoActual ?? 0) < 0
+                                                ? "text-danger"
+                                                : "text-success")">
+
+                                ₡@String.Format("{0:N2}", cuenta?.SaldoActual ?? 0)
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         CARDS DE RESUMEN
+    ========================================================== -->
+    <div class="row g-3 mb-3">
+
+        <!-- TOTAL DEBE -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 border-start border-4 border-primary h-100">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total Debe
+                        </small>
+
+                        <h5 class="fw-bold text-primary mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalDebe)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-arrow-down fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- TOTAL HABER -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 border-start border-4 border-success h-100">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Total Haber
+                        </small>
+
+                        <h5 class="fw-bold text-success mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalHaber)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-arrow-up fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANTIDAD DE MOVIMIENTOS -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning h-100">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Movimientos
+                        </small>
+
+                        <h5 class="fw-bold text-warning mb-0 mt-1">
+                            @ViewBag.CantidadMovimientos
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-exchange-alt fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- SALDO ACTUAL -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 border-start border-4 border-info h-100">
+
+                <div class="card-body d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <small class=" fw-bold  mb-1">
+                            Diferencia Debe/Haber
+                        </small>
+
+                        <h5 class="fw-bold mb-0 mt-1
+                            @((Convert.ToDecimal(ViewBag.SaldoActual)) < 0
+                                ? "text-danger"
+                                : "text-dark")">
+
+                            ₡@String.Format("{0:N2}", ViewBag.SaldoActual)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-wallet fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     
+
+    <!-- =========================================================
+         FILTROS
+    ========================================================== -->
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+
+            <i class="fas fa-filter me-2"></i>
+            Filtros del libro mayor
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="LibroMayor"
+                  method="get"
+                  id="formFiltrosLibroMayor">
+
+                <input type="hidden"
+                       name="id"
+                       value="@cuenta?.IdCuentaContable" />
+
+                @if (ViewBag.OrigenVista != null)
+                {
+                    <input type="hidden"
+                           name="origenVista"
+                           value="@ViewBag.OrigenVista" />
+                }
+
+                <div class="row g-3">
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt text-muted me-1"></i>
+                            Fecha inicio
+                        </label>
+
+                        <input type="date"
+                               name="fechaInicio"
+                               value="@ViewBag.FechaInicio"
+                               class="form-control filtro-automatico" />
+                    </div>
+
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-check text-muted me-1"></i>
+                            Fecha fin
+                        </label>
+
+                        <input type="date"
+                               name="fechaFin"
+                               value="@ViewBag.FechaFin"
+                               class="form-control filtro-automatico" />
+                    </div>
+
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-sitemap text-muted me-1"></i>
+                            Origen
+                        </label>
+
+                        <select name="origen"
+                                class="form-select filtro-automatico">
+
+                            <option value="">Todos</option>
+
+                            @foreach (var origen in ViewBag.Origenes)
+                            {
+                                if (ViewBag.Origen == origen)
+                                {
+                                    <option value="@origen" selected>
+                                        @origen
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@origen">
+                                        @origen
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-project-diagram text-muted me-1"></i>
+                            Proyecto
+                        </label>
+
+                        <select name="proyectoId"
+                                class="form-select filtro-automatico">
+
+                            <option value="">Todos</option>
+
+                            @foreach (var proyecto in ViewBag.Proyectos)
+                            {
+                                if (ViewBag.ProyectoId == proyecto.IdProyecto)
+                                {
+                                    <option value="@proyecto.IdProyecto" selected>
+                                        @proyecto.Nombre
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@proyecto.IdProyecto">
+                                        @proyecto.Nombre
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-building text-muted me-1"></i>
+                            Centro de costo
+                        </label>
+
+                        <select name="centroCostoId"
+                                class="form-select filtro-automatico">
+
+                            <option value="">Todos</option>
+
+                            @foreach (var centro in ViewBag.CentrosCosto)
+                            {
+                                if (ViewBag.CentroCostoId == centro.IdCentroCosto)
+                                {
+                                    <option value="@centro.IdCentroCosto" selected>
+                                        @centro.Nombre
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@centro.IdCentroCosto">
+                                        @centro.Nombre
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+
+                    <div class="col-xl-2 col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-info-circle text-muted me-1"></i>
+                            Estado
+                        </label>
+
+                        <select name="estado"
+                                class="form-select filtro-automatico">
+
+                            <option value="">Todos</option>
+
+                            @if (ViewBag.Estado == "Registrado")
+                            {
+                                <option value="Registrado" selected>Registrado</option>
+                            }
+                            else
+                            {
+                                <option value="Registrado">Registrado</option>
+                            }
+
+                            @if (ViewBag.Estado == "Anulado")
+                            {
+                                <option value="Anulado" selected>Anulado</option>
+                            }
+                            else
+                            {
+                                <option value="Anulado">Anulado</option>
+                            }
+
+                            @if (ViewBag.Estado == "Reversado")
+                            {
+                                <option value="Reversado" selected>Reversado</option>
+                            }
+                            else
+                            {
+                                <option value="Reversado">Reversado</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 d-flex flex-wrap justify-content-between gap-2 mt-3">
+
+                        <!-- BOTONES BUSCAR Y LIMPIAR -->
+                        <div class="d-flex flex-grow-1 gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-5 btn-filtro">
+
+                                <i class="fas fa-search me-1"></i>
+                                Buscar
+                            </button>
+
+                            <a asp-action="LibroMayor"
+                               asp-route-id="@cuenta?.IdCuentaContable"
+                               asp-route-origenVista="@ViewBag.OrigenVista"
+                               class="btn btn-secondary px-5 btn-filtro">
+
+                                <i class="fas fa-eraser me-1"></i>
+                                Limpiar
+                            </a>
+
+                        </div>
+
+
+                        <!-- BOTONES DE REPORTE -->
+                        <div class="ms-auto d-flex align-items-end gap-2">
+
+                            <a asp-action="ReporteLibroMayor"
+                               asp-route-id="@cuenta?.IdCuentaContable"
+                               asp-route-fechaInicio="@ViewBag.FechaInicio"
+                               asp-route-fechaFin="@ViewBag.FechaFin"
+                               asp-route-origen="@ViewBag.Origen"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-centroCostoId="@ViewBag.CentroCostoId"
+                               asp-route-estado="@ViewBag.Estado"
+                              
+                               class="btn btn-info px-5 btn-filtro">
+
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Vista previa PDF
+                            </a>
+
+                            <a asp-action="ExportarLibroMayorExcel"
+                               asp-route-id="@cuenta?.IdCuentaContable"
+                               asp-route-fechaInicio="@ViewBag.FechaInicio"
+                               asp-route-fechaFin="@ViewBag.FechaFin"
+                               asp-route-origen="@ViewBag.Origen"
+                               asp-route-proyectoId="@ViewBag.ProyectoId"
+                               asp-route-centroCostoId="@ViewBag.CentroCostoId"
+                               asp-route-estado="@ViewBag.Estado"
+                               class="btn btn-success px-5 btn-filtro">
+
+                                <i class="fas fa-file-excel me-1"></i>
+                                Exportar Excel
+                            </a>
+
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         TABLA DE MOVIMIENTOS
+    ========================================================== -->
+    <div class="card shadow-sm">
+
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+
+            <i class="fas fa-book-open me-2"></i>
+            Movimientos del libro mayor
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="tablaLibroMayor"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Fecha
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hashtag me-1"></i>
+                                Referencia
+                            </th>
+
+                            <th>
+                                <i class="fas fa-sitemap me-1"></i>
+                                Origen
+                            </th>
+
+                            <th>
+                                <i class="fas fa-project-diagram me-1"></i>
+                                Proyecto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-building me-1"></i>
+                                Centro de costo
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-arrow-down me-1"></i>
+                                Debe
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                Haber
+                            </th>
+
+                            <th class="text-end">
+                                <i class="fas fa-wallet me-1"></i>
+                                Saldo acumulado
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Estado
+                            </th>
+
+                            <th class="text-center">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td data-order="@item.Fecha.ToString("yyyy-MM-dd")">
+                                    @item.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    @(item.Referencia ?? "Sin referencia")
+                                </td>
+
+                                <td>
+                                    @(item.OrigenModulo ?? "Sin origen")
+                                </td>
+
+                                <td>
+                                    @(item.Proyecto?.Nombre ?? "Sin proyecto")
+                                </td>
+
+                                <td>
+                                    @(item.CentroCosto?.Nombre ?? "Sin centro")
+                                </td>
+
+                                <td class="text-end text-primary fw-semibold"
+                                    data-order="@item.Debe">
+
+                                    ₡@item.Debe.ToString("N2")
+                                </td>
+
+                                <td class="text-end text-success fw-semibold"
+                                    data-order="@item.Haber">
+
+                                    ₡@item.Haber.ToString("N2")
+                                </td>
+
+                                <td class="text-end fw-bold"
+                                    data-order="@item.Monto">
+
+                                    ₡@item.Monto.ToString("N2")
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (item.Anulado == true ||
+                                   item.Estado == "Anulado")
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-ban me-1"></i>
+                                            Anulado
+                                        </span>
+                                    }
+                                    else if (item.TipoMovimiento == "Reversión")
+                                    {
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-undo me-1"></i>
+                                            Reversión
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Registrado
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-center col-acciones">
+
+                                    <a asp-controller="MovimientosContables"
+                                       asp-action="Details"
+                                       asp-route-id="@item.IdMovimientoContable"
+                                       asp-route-cuentaContableId="@cuenta?.IdCuentaContable"
+                                       asp-route-volverLibroMayor="true"
+                                       class="btn btn-primary btn-sm btn-accion">
+
+                                        <i class="fas fa-eye me-1"></i>
+                                        Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                    @if (Model.Any())
+                    {
+                        <tfoot>
+                            <tr class="fw-bold">
+
+                                <td colspan="5"
+                                    class="text-end">
+                                    Totales:
+                                </td>
+
+                                <td class="text-end text-primary">
+                                    ₡@String.Format("{0:N2}", ViewBag.TotalDebe)
+                                </td>
+
+                                <td class="text-end text-success">
+                                    ₡@String.Format("{0:N2}", ViewBag.TotalHaber)
+                                </td>
+
+                                <td class="text-end">
+                                    ₡@String.Format("{0:N2}", ViewBag.SaldoActual)
+                                </td>
+
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    }
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<style>
+    /* Íconos de las cards al 50 %, según el patrón definido */
+    .icono-card {
+        color: rgba(108, 117, 125, 0.50);
+    }
+
+    /* Evita que la columna de acciones se comprima */
+    #tablaLibroMayor .col-acciones {
+        min-width: 115px;
+        white-space: nowrap;
+    }
+
+    /* Ancho mínimo para conservar la estructura en pantallas pequeñas */
+    #tablaLibroMayor {
+        min-width: 1250px;
+    }
+
+        /* Encabezado fijo solo durante desplazamiento horizontal */
+        #tablaLibroMayor thead th {
+            background-color: #d8f0f3;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #tablaLibroMayor tfoot td {
+            background-color: #ffffff;
+            border-top: 2px solid #0F5C64;
+            white-space: nowrap;
+        }
+
+    /* Mejor separación de los controles de DataTables */
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter {
+        margin-bottom: 12px;
+    }
+
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin-top: 12px;
+    }
+</style>
+
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            const tabla = $('#tablaLibroMayor');
+
+            // Evita inicializar DataTables dos veces.
+            if ($.fn.DataTable.isDataTable('#tablaLibroMayor')) {
+                tabla.DataTable().destroy();
+            }
+
+            tabla.DataTable({
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [[0, 'desc']],
+
+                autoWidth: false,
+                responsive: false,
+                scrollX: false,
+
+                columnDefs: [
+                    {
+                        targets: [9],
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        targets: [5, 6, 7, 8, 9],
+                        className: 'text-center'
+                    }
+                ],
+
+                language: {
+                    decimal: ',',
+                    thousands: '.',
+                    emptyTable: 'No existen movimientos asociados a esta cuenta contable.',
+                    info: 'Mostrando _START_ a _END_ de _TOTAL_ movimientos',
+                    infoEmpty: 'Mostrando 0 a 0 de 0 movimientos',
+                    infoFiltered: '(filtrado de _MAX_ movimientos totales)',
+                    lengthMenu: 'Mostrar _MENU_ movimientos',
+                    loadingRecords: 'Cargando...',
+                    processing: 'Procesando...',
+                    search: 'Buscar:',
+                    searchPlaceholder: 'Buscar movimiento...',
+                    zeroRecords: 'No se encontraron movimientos que coincidan con la búsqueda.',
+                    paginate: {
+                        first: 'Primero',
+                        last: 'Último',
+                        next: 'Siguiente',
+                        previous: 'Anterior'
+                    }
+                }
+            });
+
+
+            // =====================================================
+            // FILTROS AUTOMÁTICOS
+            // =====================================================
+            let enviandoFormulario = false;
+
+            $('.filtro-automatico').on('change', function () {
+
+                if (enviandoFormulario) {
+                    return;
+                }
+
+                const fechaInicio = $('input[name="fechaInicio"]').val();
+                const fechaFin = $('input[name="fechaFin"]').val();
+
+                // No envía una combinación de fechas inválida.
+                if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Rango de fechas inválido',
+                        text: 'La fecha de inicio no puede ser mayor que la fecha final.',
+                        confirmButtonText: 'Entendido'
+                    });
+
+                    return;
+                }
+
+                enviandoFormulario = true;
+
+                $('#formFiltrosLibroMayor').trigger('submit');
+            });
+
+        });
+    </script>
+}

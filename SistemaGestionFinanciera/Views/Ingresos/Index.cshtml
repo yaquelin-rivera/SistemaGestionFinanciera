@@ -1,0 +1,763 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Ingreso>
+
+@{
+    ViewData["Title"] = "Ingresos";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">Gestionar Ingresos</h2>
+            <small class="text-muted">Administración de ingresos del sistema financiero</small>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Registrar
+        </a>
+    </div>
+   
+   
+    @if ((ViewBag.PendientesAsignacionPresupuestaria ?? 0) > 0)
+    {
+        <div class="alert alert-warning d-flex justify-content-between align-items-center shadow-sm mb-3">
+
+            <div>
+                <i class="fas fa-exclamation-triangle me-2"></i>
+
+                <strong>
+                    @ViewBag.PendientesAsignacionPresupuestaria
+                    ingreso(s) pendiente(s) de asignación presupuestaria
+                </strong>
+
+                <div class="small mt-1">
+                    Existen ingresos cuyo proyecto no tiene un período
+                    presupuestario válido asignado.
+                </div>
+            </div>
+
+            <a asp-action="Index"
+               asp-route-pendientePresupuesto="true"
+               class="btn btn-warning btn-sm">
+                <i class="fas fa-search me-1"></i>
+                Revisar
+            </a>
+
+        </div>
+    }
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-primary h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold  mb-1">
+                            Total esperado
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-primary mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalEsperado)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-bullseye fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-success h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold  mb-1">
+                            Total recibido
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-success mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.TotalRecibido)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-hand-holding-dollar fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-warning h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold  mb-1">
+                            Diferencia total
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <h5 class="fw-bold text-warning mb-0 mt-1">
+                            ₡@String.Format("{0:N2}", ViewBag.DiferenciaTotal)
+                        </h5>
+                    </div>
+
+                    <i class="fas fa-balance-scale fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start card-resumen border-4 border-info h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="fw-bold  mb-1">
+                            Estados
+                        </small>
+
+                        <div class="text-muted small">
+                            @ViewBag.TipoResumen
+                        </div>
+
+                        <div class="estados-ingresos mt-1">
+                            <span class="text-warning fw-bold">
+                                Pendiente: @ViewBag.Pendientes
+                            </span>
+
+                            <span class="text-info fw-bold">
+                                | Parcial: @ViewBag.Parciales
+                            </span>
+
+                            <span class="text-success fw-bold">
+                                | Pagado: @ViewBag.Pagados
+                            </span>
+
+                            <span class="text-danger fw-bold">
+                                | Anulado: @ViewBag.Anulados
+                            </span>
+                        </div>
+                    </div>
+
+                    <i class="fas fa-chart-pie fa-2x icono-card"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <style>
+        .icono-card {
+            color: rgba(108, 117, 125, 0.50);
+        }
+
+        .estados-ingresos {
+            font-size: .82rem;
+            line-height: 1.4;
+        }
+
+        #tablaIngresos {
+            min-width: 1600px;
+        }
+
+            #tablaIngresos thead th {
+                background-color: #d8f0f3;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            #tablaIngresos .col-acciones {
+                min-width: 220px;
+                white-space: nowrap;
+                text-align: center;
+            }
+
+        div.dataTables_wrapper div.dataTables_length,
+        div.dataTables_wrapper div.dataTables_filter {
+            margin-bottom: 12px;
+        }
+
+        div.dataTables_wrapper div.dataTables_info,
+        div.dataTables_wrapper div.dataTables_paginate {
+            margin-top: 12px;
+        }
+    </style>
+    @*filtros basicos *@
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-filter me-2"></i>
+            Filtros de búsqueda
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index" method="get" class="row g-3" autocomplete="off">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-search text-muted me-1"></i>
+                        Buscar
+                    </label>
+                    <input type="text"
+                           name="buscar"
+                           value="@ViewBag.Buscar"
+                           class="form-control"
+                           placeholder="Fuente, cliente, proyecto, categoría..." />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-layer-group text-muted me-1"></i>
+                        Tipo
+                    </label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Operativo">Operativo</option>
+                        <option value="Extraordinario">Extraordinario</option>
+                        <option value="Donación">Donación</option>
+                        <option value="Aporte">Aporte</option>
+                        <option value="Convenio">Convenio</option>
+                    
+                        <option value="Cobro CxC">Cobro CxC</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-info-circle text-muted me-1"></i>
+                        Estado
+                    </label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Parcial">Parcial</option>
+                        <option value="Pagado">Pagado</option>
+                        <option value="Anulado">Anulado</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-project-diagram text-muted me-1"></i>
+                        Proyecto
+                    </label>
+                    <select name="proyectoId"
+                            class="form-select"
+                            asp-items="ViewBag.Proyectos">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-sitemap text-muted me-1"></i>
+                        Origen
+                    </label>
+                    <select name="origen" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Manual" selected="@(ViewBag.Origen == "Manual")">Manual</option>
+                        <option value="CxC" selected="@(ViewBag.Origen == "CxC")">CxC</option>
+                        <option value="Factura" selected="@(ViewBag.Origen == "Factura")">Factura</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                        Año
+                    </label>
+                    <select name="anio" class="form-select">
+                        <option value="">Todos</option>
+
+                        @foreach (var anioItem in ViewBag.Anios)
+                        {
+                            <option value="@anioItem"
+                                    selected="@(ViewBag.Anio?.ToString() == anioItem.ToString())">
+                                @anioItem
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar text-muted me-1"></i>
+                        Mes
+                    </label>
+                    <select name="mes" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="1" selected="@(ViewBag.Mes?.ToString() == "1")">Enero</option>
+                        <option value="2" selected="@(ViewBag.Mes?.ToString() == "2")">Febrero</option>
+                        <option value="3" selected="@(ViewBag.Mes?.ToString() == "3")">Marzo</option>
+                        <option value="4" selected="@(ViewBag.Mes?.ToString() == "4")">Abril</option>
+                        <option value="5" selected="@(ViewBag.Mes?.ToString() == "5")">Mayo</option>
+                        <option value="6" selected="@(ViewBag.Mes?.ToString() == "6")">Junio</option>
+                        <option value="7" selected="@(ViewBag.Mes?.ToString() == "7")">Julio</option>
+                        <option value="8" selected="@(ViewBag.Mes?.ToString() == "8")">Agosto</option>
+                        <option value="9" selected="@(ViewBag.Mes?.ToString() == "9")">Septiembre</option>
+                        <option value="10" selected="@(ViewBag.Mes?.ToString() == "10")">Octubre</option>
+                        <option value="11" selected="@(ViewBag.Mes?.ToString() == "11")">Noviembre</option>
+                        <option value="12" selected="@(ViewBag.Mes?.ToString() == "12")">Diciembre</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-day text-muted me-1"></i>
+                        Desde
+                    </label>
+                    <input type="date"
+                           name="fechaInicio"
+                           value="@ViewBag.FechaInicio"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-calendar-check text-muted me-1"></i>
+                        Hasta
+                    </label>
+                    <input type="date"
+                           name="fechaFin"
+                           value="@ViewBag.FechaFin"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary px-5">
+                            <i class="fas fa-search me-1"></i>
+                            Buscar
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-secondary px-5">
+                            <i class="fas fa-eraser me-1"></i>
+                            Limpiar
+                        </a>
+
+                    </div>
+
+                    <!-- ACCIONES DEL REPORTE -->
+                    <div class="ms-auto d-flex gap-2">
+
+                        <a asp-action="Reporte"
+                           asp-route-buscar="@ViewBag.Buscar"
+                           asp-route-pendientePresupuesto="@ViewBag.PendientePresupuesto"
+                           asp-route-tipo="@ViewBag.Tipo"
+                           asp-route-estado="@ViewBag.Estado"
+                           asp-route-origen="@ViewBag.Origen"
+                           asp-route-proyectoId="@ViewBag.ProyectoId"
+                           asp-route-anio="@ViewBag.Anio"
+                           asp-route-mes="@ViewBag.Mes"
+                           asp-route-fechaInicio="@ViewBag.FechaInicio"
+                           asp-route-fechaFin="@ViewBag.FechaFin"
+                           class="btn btn-info px-4">
+
+                            <i class="fas fa-file-pdf me-1"></i>
+                            Vista previa PDF
+
+                        </a>
+
+                        <a asp-action="ExportarExcel"
+                           asp-route-buscar="@ViewBag.Buscar"
+                           asp-route-pendientePresupuesto="@ViewBag.PendientePresupuesto"
+                           asp-route-tipo="@ViewBag.Tipo"
+                           asp-route-estado="@ViewBag.Estado"
+                           asp-route-origen="@ViewBag.Origen"
+                           asp-route-proyectoId="@ViewBag.ProyectoId"
+                           asp-route-anio="@ViewBag.Anio"
+                           asp-route-mes="@ViewBag.Mes"
+                           asp-route-fechaInicio="@ViewBag.FechaInicio"
+                           asp-route-fechaFin="@ViewBag.FechaFin"
+                           class="btn btn-success px-5">
+
+                            <i class="fas fa-file-excel me-1"></i>
+                            Exportar Excel
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold"
+             style="background-color:#0F5C64;">
+            <i class="fas fa-list me-2"></i>
+            Lista de ingresos registrados
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="tablaIngresos"
+                       class="table table-hover align-middle w-100 tabla-sistema">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Fecha
+                            </th>
+
+                            <th>
+                                <i class="fas fa-layer-group me-1"></i>
+                                Tipo
+                            </th>
+
+                            <th>
+                                <i class="fas fa-tags me-1"></i>
+                                Categoría
+                            </th>
+
+                            <th>
+                                <i class="fas fa-project-diagram me-1"></i>
+                                Proyecto
+                            </th>
+
+                            <th>
+                                <i class="fas fa-building me-1"></i>
+                                Centro de costo
+                            </th>
+
+                            <th>
+                                <i class="fas fa-user me-1"></i>
+                                Cliente / Beneficiario
+                            </th>
+
+                            <th>
+                                <i class="fas fa-hand-holding-dollar me-1"></i>
+                                Fuente
+                            </th>
+
+                            <th>
+                                <i class="fas fa-bullseye me-1"></i>
+                                Monto esperado
+                            </th>
+
+                            <th>
+                                <i class="fas fa-coins me-1"></i>
+                                Monto real
+                            </th>
+
+                            <th>
+                                <i class="fas fa-balance-scale me-1"></i>
+                                Diferencia
+                            </th>
+
+                            <th>
+                                <i class="fas fa-sitemap me-1"></i>
+                                Origen
+                            </th>
+
+                            <th>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Estado
+                            </th>
+
+                            <th class="col-acciones text-center">
+                                <i class="fas fa-cogs me-1"></i>
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    @if (!Model.Any())
+
+                    {
+                        <tr><td colspan="13" class="text-center text-muted py-4">No hay registros para mostrar en esta búsqueda.</td></tr>
+                    }
+                    else
+                    {
+
+                        @foreach (var item in Model)
+                        {
+                            {
+                                bool esIngresoDesdeCxC = item.TipoIngreso == "Cobro CxC" || (!string.IsNullOrWhiteSpace(item.Fuente) && item.Fuente.StartsWith("CUC-"));
+
+                                bool esIngresoDesdeFactura =
+                                item.FacturaId != null ||
+                                item.TipoIngreso == "Facturación" ||
+                                (!string.IsNullOrWhiteSpace(item.Fuente) && item.Fuente.StartsWith("FV-"));
+
+                                bool esIngresoManual =
+                                !esIngresoDesdeCxC &&
+                                !esIngresoDesdeFactura;
+
+                                <tr>
+                                        <td data-order="@item.Fecha.ToString("yyyy-MM-dd")">
+                                            @item.Fecha.ToString("dd/MM/yyyy")
+                                        </td>
+                                    <td>@(item.TipoIngreso ?? "Sin tipo")</td>
+
+                                    <td>@item.CategoriaIngreso.Nombre</td>
+                                        <td>
+                                            <div>
+                                                @(item.Proyecto?.Nombre ?? "Sin proyecto")
+                                            </div>
+
+                                            @if (item.Estado != "Anulado")
+                                            {
+                                                if (item.PresupuestoMensualRegistro != null)
+                                                {
+                                                    string nombreMes = new DateTime(
+                                                    item.PresupuestoMensualRegistro.Anio,
+                                                    item.PresupuestoMensualRegistro.Mes,
+                                                    1)
+                                                    .ToString(
+                                                    "MMMM yyyy",
+                                                    new System.Globalization.CultureInfo("es-CR"));
+
+                                                    nombreMes =
+                                                    char.ToUpper(nombreMes[0]) +
+                                                    nombreMes.Substring(1);
+
+                                                    <small class="text-muted d-block">  
+                                                        @nombreMes
+                                                    </small>
+
+                                                    if (item.PresupuestoMensualRegistro.EstadoAprobacion == "Borrador")
+                                                    {
+                                                        <span class="badge bg-secondary mt-1">
+                                                            Borrador
+                                                        </span>
+                                                    }
+                                                    else if (item.PresupuestoMensualRegistro.EstadoAprobacion == "Aprobado")
+                                                    {
+                                                        <span class="badge bg-success mt-1">
+                                                            Aprobado
+                                                        </span>
+                                                    }
+                                                    else if (item.PresupuestoMensualRegistro.EstadoAprobacion == "Rechazado")
+                                                    {
+                                                        <span class="badge bg-danger mt-1">
+                                                            Periodo presupuestario rechazado
+                                                        </span>
+                                                    }
+                                                }
+                                                else if (!string.IsNullOrWhiteSpace(item.MotivoPendientePresupuestario))
+                                                {
+                                                    <span class="badge bg-warning text-dark mt-1">
+                                                        Sin período presupuestario
+                                                    </span>
+                                                }
+                                            }
+                                        </td>
+                                    <td>@(item.CentroCosto?.Nombre ?? "Sin centro")</td>
+                                    <td>@item.ClienteBeneficiario?.Nombre</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Fuente)</td>
+                                    <td class="text-center"> ₡@string.Format("{0:N2}", item.MontoEsperado) </td>
+                                    <td class="text-center">₡@string.Format("{0:N2}", item.MontoReal)  </td>
+                                    <td class="text-center">
+                                        @if (item.Diferencia > 0)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                ₡@string.Format("{0:N2}", item.Diferencia)
+                                            </span>
+                                        }
+                                        else if (item.Diferencia < 0)
+                                        {
+                                            <span class="badge bg-success">
+                                                ₡@string.Format("{0:N2}", item.Diferencia)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">
+                                                ₡0,00
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (esIngresoDesdeCxC)
+                                        {
+                                            <span class="badge bg-warning text-dark">CxC</span>
+                                        }
+                                        else if (esIngresoDesdeFactura)
+                                        {
+                                            <span class="badge bg-info text-dark">Factura</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary ">Manual</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.Estado == "Pagado")
+                                        {
+                                            <span class="badge bg-success">Pagado</span>
+                                        }
+                                        else if (item.Estado == "Parcial")
+                                        {
+                                            <span class="badge bg-info text-dark">Parcial</span>
+                                        }
+                                        else if (item.Estado == "Pendiente")
+                                        {
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        }
+                                        else if (item.Estado == "Anulado")
+                                        {
+                                            <span class="badge bg-danger">Anulado</span>
+                                        }
+                                        else if (item.Estado == "Validado")
+                                        {
+                                            <span class="badge bg-success">Validado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.Estado</span>
+                                        }
+                                    </td>
+
+                                    <td class="col-acciones">
+                                        <div class="acciones-botones">
+                                            @{
+                                                bool puedeModificar =
+                                                item.Estado != "Anulado" &&
+                                                esIngresoManual;
+
+                                                bool puedeAnular =
+                                                item.Estado != "Anulado" &&
+                                                esIngresoManual;
+
+                                                    bool pendienteAsignacion =
+                                                    item.Estado != "Anulado" &&
+                                                    item.PresupuestoMensualId == null &&
+                                                    !string.IsNullOrWhiteSpace(item.MotivoPendientePresupuestario);
+                                            }
+
+                                            @if (puedeModificar)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@item.IdIngreso"
+                                                   class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-edit"></i> Modificar
+                                                </a>
+                                            }
+                                                @if (pendienteAsignacion)
+                                                {
+                                                    if (esIngresoDesdeFactura && item.FacturaId.HasValue)
+                                                    {
+                                                        <a asp-controller="Facturas"
+                                                           asp-action="Edit"
+                                                           asp-route-id="@item.FacturaId"
+                                                           asp-route-retorno="Ingresos"
+                                                           class="btn btn-warning btn-sm">
+                                                            <i class="fas fa-file-invoice"></i> Ir a factura
+                                                        </a>
+                                                    }
+                                                    else if (esIngresoDesdeCxC)
+                                                    {
+                                                        <a asp-controller="CuentasPorCobrar"
+                                                           asp-action="Index"
+                                                           asp-route-retorno="Ingresos"
+                                                           class="btn btn-warning btn-sm">
+                                                            <i class="fas fa-hand-holding-dollar"></i> Ir a CxC
+                                                        </a>
+                                                    }
+                                                }
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.IdIngreso"
+                                               class="btn btn-primary btn-sm btn-accion">
+                                                <i class="fas fa-eye"></i> Detalles
+                                            </a>
+
+                                            @if (puedeAnular)
+                                            {
+                                                <a asp-action="Delete"
+                                                   asp-route-id="@item.IdIngreso"
+                                                   class="btn btn-danger btn-sm btn-accion">
+                                                    <i class="fas fa-trash"></i> Anular
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+  </div>
+        @section Scripts {
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+
+                    const existenRegistros =
+                @Html.Raw(Model.Any().ToString().ToLower());
+
+                    if (existenRegistros &&
+                        typeof $ !== "undefined" &&
+                        $.fn.DataTable) {
+
+                        if ($.fn.DataTable.isDataTable('#tablaIngresos')) {
+                            $('#tablaIngresos').DataTable().destroy();
+                        }
+
+                        $('#tablaIngresos').DataTable({
+                            pageLength: 10,
+
+                            lengthMenu: [
+                                [10, 25, 50, 100],
+                                [10, 25, 50, 100]
+                            ],
+
+                            // Columna 0 = Fecha.
+                            // Descendente = registro más reciente primero.
+                            order: [[0, 'desc']],
+
+                            autoWidth: false,
+                            responsive: false,
+
+                            columnDefs: [
+                                {
+                                    targets: [12],
+                                    orderable: false,
+                                    searchable: false
+                                }
+                            ],
+
+                            language: {
+                                info: 'Mostrando _START_ a _END_ de _TOTAL_ ingresos',
+                                infoEmpty: 'Mostrando 0 a 0 de 0 ingresos',
+                                infoFiltered: '(filtrado de _MAX_ ingresos totales)',
+                                lengthMenu: 'Mostrar _MENU_ ingresos',
+                                loadingRecords: 'Cargando...',
+                                processing: 'Procesando...',
+                                search: 'Buscar:',
+                                searchPlaceholder: 'Buscar ingreso...',
+                                zeroRecords: 'No se encontraron ingresos.',
+                                paginate: {
+                                    first: 'Primero',
+                                    last: 'Último',
+                                    next: 'Siguiente',
+                                    previous: 'Anterior'
+                                }
+                            }
+                        });
+                    }
+
+                });
+            </script>
+        }

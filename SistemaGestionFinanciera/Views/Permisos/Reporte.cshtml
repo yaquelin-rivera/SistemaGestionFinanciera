@@ -1,0 +1,983 @@
+﻿@model IEnumerable<SistemaGestionFinanciera.Models.Permiso>
+
+@{
+    Layout = null;
+
+    ViewData["Title"] = "Reporte de Permisos";
+
+    int totalPermisos =
+        Convert.ToInt32(ViewBag.TotalPermisos ?? 0);
+
+    int permisosActivos =
+        Convert.ToInt32(ViewBag.PermisosActivos ?? 0);
+
+    int permisosInactivos =
+        Convert.ToInt32(ViewBag.PermisosInactivos ?? 0);
+
+    DateTime fechaGeneracion =
+        ViewBag.FechaGeneracion != null
+            ? Convert.ToDateTime(ViewBag.FechaGeneracion)
+            : DateTime.Now;
+
+    string buscar =
+        ViewBag.Buscar as string ?? "";
+
+    string estado =
+        ViewBag.Estado as string ?? "";
+
+    bool hayFiltros =
+        !string.IsNullOrWhiteSpace(buscar) ||
+        !string.IsNullOrWhiteSpace(estado);
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         BOTONES
+         ===================================================== -->
+
+    <div class="acciones-reporte no-imprimir">
+
+        <button type="button"
+                class="btn btn-info btn-sm"
+                onclick="window.print();">
+
+            <i class="fas fa-print me-1"></i>
+            Imprimir / Guardar PDF
+
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary btn-sm"
+                onclick="history.back();">
+
+            <i class="fas fa-arrow-left me-1"></i>
+            Volver
+
+        </button>
+
+    </div>
+
+    <div class="reporte-contenedor">
+
+        <!-- =====================================================
+             ENCABEZADO
+             ===================================================== -->
+
+        <div class="encabezado-reporte">
+
+            <h2>
+
+                <i class="fas fa-building me-2"></i>
+
+                Unión Cantonal de Asociaciones de Desarrollo
+                de Santa Ana
+
+            </h2>
+
+            <h4>
+
+                <i class="fas fa-key me-1"></i>
+                Reporte de Permisos del Sistema
+
+            </h4>
+
+            <div class="fecha-generacion">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+
+                Fecha de generación:
+
+                <strong>
+                    @fechaGeneracion.ToString("dd/MM/yyyy hh:mm tt")
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             FILTROS
+             ===================================================== -->
+
+        <div class="seccion-reporte">
+
+            <div class="titulo-seccion">
+
+                <i class="fas fa-filter me-1"></i>
+                Filtros aplicados
+
+            </div>
+
+            @if (hayFiltros)
+            {
+                <div class="row g-2 filtros-detalle">
+
+                    <div class="col-md-6">
+
+                        <strong>Buscar:</strong>
+
+                        @(string.IsNullOrWhiteSpace(buscar)
+                            ? "Todos"
+                            : buscar)
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <strong>Estado:</strong>
+
+                        @(string.IsNullOrWhiteSpace(estado)
+                            ? "Todos"
+                            : estado)
+
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <span class="text-muted">
+
+                    No se aplicaron filtros. El reporte muestra
+                    todos los permisos registrados.
+
+                </span>
+            }
+
+        </div>
+
+        <!-- =====================================================
+             TARJETAS
+             ===================================================== -->
+
+        <div class="row row-cols-1 row-cols-md-3
+                    g-2 mb-3 cards-reporte">
+
+            <div class="col">
+
+                <div class="resumen-reporte card-total">
+
+                    <div class="icono">
+
+                        <i class="fas fa-key"></i>
+
+                    </div>
+
+                    <small>
+                        Total de permisos
+                    </small>
+
+                    <div class="cantidad">
+
+                        @totalPermisos
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col">
+
+                <div class="resumen-reporte card-activos">
+
+                    <div class="icono">
+
+                        <i class="fas fa-lock-open"></i>
+
+                    </div>
+
+                    <small>
+                        Permisos activos
+                    </small>
+
+                    <div class="cantidad">
+
+                        @permisosActivos
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col">
+
+                <div class="resumen-reporte card-inactivos">
+
+                    <div class="icono">
+
+                        <i class="fas fa-lock"></i>
+
+                    </div>
+
+                    <small>
+                        Permisos inactivos
+                    </small>
+
+                    <div class="cantidad">
+
+                        @permisosInactivos
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             TABLA
+             ===================================================== -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-sm tabla-reporte">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Nombre</th>
+
+                        <th>Descripción</th>
+
+                        <th>Estado</th>
+
+                        <th>Fecha de creación</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td class="fw-semibold">
+
+                                    @item.Nombre
+
+                                </td>
+
+                                <td>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                   item.Descripcion))
+                                    {
+                                        @item.Descripcion
+                                    }
+                                    else
+                                    {
+                                        <span class="texto-secundario">
+
+                                            Sin descripción
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge-reporte badge-activo">
+
+                                            Activo
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-reporte badge-inactivo">
+
+                                            Inactivo
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (item.FechaCreacion.HasValue)
+                                    {
+                                        @item.FechaCreacion.Value.ToString(
+                                                 "dd/MM/yyyy hh:mm tt")
+                                    }
+                                    else
+                                    {
+                                        <span class="texto-secundario">
+
+                                            Sin fecha
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="4"
+                                class="text-center text-muted py-4">
+
+                                No existen permisos con los filtros
+                                seleccionados.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+                @if (Model.Any())
+                {
+                    <tfoot>
+
+                        <tr class="fila-totales">
+
+                            <td colspan="2"
+                                class="text-end fw-bold">
+
+                                TOTAL DE REGISTROS MOSTRADOS:
+
+                            </td>
+
+                            <td colspan="2"
+                                class="text-center fw-bold">
+
+                                @Model.Count() permisos
+
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+                }
+
+            </table>
+
+        </div>
+
+        <!-- =====================================================
+             RESUMEN INFERIOR
+             ===================================================== -->
+
+        <div class="estado-resumen">
+
+            <h5>
+
+                <i class="fas fa-chart-pie me-1"></i>
+                Resumen de permisos
+
+            </h5>
+
+            <div class="row g-0">
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad-resumen">
+
+                        @totalPermisos
+
+                    </span>
+
+                    <span class="nombre-resumen">
+
+                        Total
+
+                    </span>
+
+                </div>
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad-resumen">
+
+                        @permisosActivos
+
+                    </span>
+
+                    <span class="nombre-resumen">
+
+                        Activos
+
+                    </span>
+
+                </div>
+
+                <div class="col resumen-item">
+
+                    <span class="cantidad-resumen">
+
+                        @permisosInactivos
+
+                    </span>
+
+                    <span class="nombre-resumen">
+
+                        Inactivos
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             PIE
+             ===================================================== -->
+
+        <div class="pie-reporte">
+
+            <div>
+                Sistema Web de Gestión Financiera
+            </div>
+
+            <div>
+                UCAD Santa Ana
+            </div>
+
+            <div>
+
+                Generado:
+                @fechaGeneracion.ToString("dd/MM/yyyy hh:mm tt")
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f4f6f7;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .acciones-reporte {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 8px 15px 0;
+        }
+
+        .reporte-contenedor {
+            width: calc(100% - 14px);
+            margin: 8px auto 20px;
+            padding: 18px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* =====================================================
+                   ENCABEZADO
+                   ===================================================== */
+
+        .encabezado-reporte {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #0f7c90;
+        }
+
+            .encabezado-reporte h2 {
+                margin: 0;
+                color: #15454d;
+                font-size: 1.45rem;
+                font-weight: 800;
+            }
+
+            .encabezado-reporte h4 {
+                margin: 5px 0 0;
+                color: #394b4f;
+                font-size: 1.05rem;
+                font-weight: 700;
+            }
+
+        .fecha-generacion {
+            margin-top: 6px;
+            color: #5e676b;
+            font-size: 0.85rem;
+        }
+
+        /* =====================================================
+                   FILTROS
+                   ===================================================== */
+
+        .seccion-reporte {
+            margin-bottom: 12px;
+            padding: 10px;
+            border: 1px solid #cedadd;
+            border-left: 4px solid #0f7c90;
+            border-radius: 5px;
+            background: #f5f8f8;
+        }
+
+        .titulo-seccion {
+            margin-bottom: 5px;
+            color: #0f5c64;
+            font-weight: 800;
+        }
+
+        .filtros-detalle {
+            font-size: 0.88rem;
+        }
+
+        /* =====================================================
+                   TARJETAS
+                   ===================================================== */
+
+        .resumen-reporte {
+            height: 100%;
+            min-height: 88px;
+            padding: 10px 7px;
+            text-align: center;
+            background: #ffffff;
+            border: 1px solid #d5e2e4;
+            border-top: 4px solid #0f7c90;
+            border-radius: 6px;
+        }
+
+            .resumen-reporte .icono {
+                margin-bottom: 3px;
+                font-size: 1.05rem;
+            }
+
+            .resumen-reporte small {
+                display: block;
+                margin-bottom: 3px;
+                color: #59666a;
+                font-size: 0.80rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .resumen-reporte .cantidad {
+                font-size: 0.95rem;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+        .card-total {
+            border-top-color: #0d6efd;
+        }
+
+            .card-total .icono,
+            .card-total .cantidad {
+                color: #0d6efd;
+            }
+
+        .card-activos {
+            border-top-color: #198754;
+        }
+
+            .card-activos .icono,
+            .card-activos .cantidad {
+                color: #198754;
+            }
+
+        .card-inactivos {
+            border-top-color: #6c757d;
+        }
+
+            .card-inactivos .icono,
+            .card-inactivos .cantidad {
+                color: #6c757d;
+            }
+
+        /* =====================================================
+                   TABLA
+                   ===================================================== */
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            margin-bottom: 0;
+            font-size: 0.80rem;
+            vertical-align: middle;
+        }
+
+            .tabla-reporte thead th {
+                padding: 8px 5px;
+                color: #ffffff !important;
+                text-align: center;
+                vertical-align: middle;
+                background: #0f5c64 !important;
+            }
+
+            .tabla-reporte tbody td {
+                padding: 7px 5px;
+                vertical-align: middle;
+                overflow-wrap: anywhere;
+            }
+
+        .texto-secundario {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .badge-reporte {
+            display: inline-block;
+            min-width: 65px;
+            padding: 4px 7px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .badge-activo {
+            color: #ffffff;
+            background: #198754;
+        }
+
+        .badge-inactivo {
+            color: #ffffff;
+            background: #6c757d;
+        }
+
+        .fila-totales td {
+            color: #123f46;
+            background: #d9edef !important;
+            border-top: 2px solid #0f5c64;
+        }
+
+        /* =====================================================
+                   RESUMEN INFERIOR
+                   ===================================================== */
+
+        .estado-resumen {
+            margin-top: 12px;
+            padding: 10px;
+            background: #f5f8f8;
+            border: 1px solid #d8e2e3;
+            border-radius: 6px;
+        }
+
+            .estado-resumen h5 {
+                margin-bottom: 10px;
+                color: #0f5c64;
+                font-size: 0.95rem;
+                font-weight: 800;
+            }
+
+        .resumen-item {
+            padding: 8px;
+            text-align: center;
+            border-right: 1px solid #d4dfe1;
+        }
+
+            .resumen-item:last-child {
+                border-right: none;
+            }
+
+        .cantidad-resumen {
+            display: block;
+            color: #0f5c64;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .nombre-resumen {
+            display: block;
+            color: #5c696c;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* =====================================================
+                   PIE
+                   ===================================================== */
+
+        .pie-reporte {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 8px;
+            color: #697679;
+            font-size: 0.72rem;
+            border-top: 1px solid #ced9db;
+        }
+
+        /* =====================================================
+                   IMPRESIÓN
+                   ===================================================== */
+
+        @@media print {
+
+            @@page {
+                size: A4 landscape;
+                margin: 6mm;
+            }
+
+            body {
+                background: #ffffff !important;
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .no-imprimir {
+                display: none !important;
+            }
+
+            .reporte-contenedor {
+                width: 98% !important;
+                max-width: 98% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .encabezado-reporte {
+                width: 98% !important;
+                margin: 0 auto 10px auto !important;
+                padding-bottom: 8px !important;
+            }
+
+                .encabezado-reporte h2 {
+                    margin: 0 !important;
+                    font-size: 18px !important;
+                    line-height: 1.2 !important;
+                }
+
+                .encabezado-reporte h4 {
+                    margin: 5px 0 0 !important;
+                    font-size: 14px !important;
+                    line-height: 1.2 !important;
+                }
+
+            .fecha-generacion {
+                margin-top: 5px !important;
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+            }
+
+            .seccion-reporte {
+                width: 98% !important;
+                margin: 0 auto 10px auto !important;
+                padding: 8px !important;
+                font-size: 12px !important;
+                line-height: 1.3 !important;
+            }
+
+            .titulo-seccion {
+                margin-bottom: 5px !important;
+                font-size: 13px !important;
+                line-height: 1.2 !important;
+            }
+
+            .filtros-detalle {
+                font-size: 12px !important;
+                line-height: 1.3 !important;
+            }
+
+            .cards-reporte {
+                width: 98% !important;
+                margin: 0 auto 10px auto !important;
+            }
+
+            .resumen-reporte {
+                min-height: 65px !important;
+                padding: 7px 5px !important;
+            }
+
+                .resumen-reporte .icono {
+                    margin-bottom: 2px !important;
+                    font-size: 13px !important;
+                    line-height: 1.1 !important;
+                }
+
+                .resumen-reporte small {
+                    margin-bottom: 2px !important;
+                    font-size: 11px !important;
+                    line-height: 1.15 !important;
+                }
+
+                .resumen-reporte .cantidad {
+                    font-size: 13px !important;
+                    line-height: 1.15 !important;
+                }
+
+            .table-responsive {
+                width: 98% !important;
+                max-width: 98% !important;
+                margin: 0 auto !important;
+                overflow: visible !important;
+            }
+
+            .tabla-reporte {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+            }
+
+                .tabla-reporte thead {
+                    display: table-header-group !important;
+                }
+
+                .tabla-reporte tfoot {
+                    display: table-row-group !important;
+                }
+
+                .tabla-reporte tr {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+
+                .tabla-reporte th,
+                .tabla-reporte td {
+                    vertical-align: middle !important;
+                }
+
+                .tabla-reporte thead th {
+                    padding: 7px 4px !important;
+                    font-size: 12px !important;
+                    line-height: 1.2 !important;
+                    white-space: normal !important;
+                    overflow-wrap: anywhere !important;
+                }
+
+                .tabla-reporte tbody td {
+                    padding: 6px 4px !important;
+                    font-size: 12px !important;
+                    line-height: 1.25 !important;
+                    white-space: normal !important;
+                    overflow-wrap: anywhere !important;
+                }
+
+                .tabla-reporte tfoot td {
+                    padding: 7px 4px !important;
+                    font-size: 12px !important;
+                    line-height: 1.2 !important;
+                }
+
+            .texto-secundario {
+                font-size: 12px !important;
+            }
+
+            .badge-reporte {
+                min-width: 60px !important;
+                padding: 4px 6px !important;
+                font-size: 11px !important;
+                line-height: 1.1 !important;
+            }
+
+            .tabla-reporte th:nth-child(1),
+            .tabla-reporte td:nth-child(1) {
+                width: 22% !important;
+            }
+
+            .tabla-reporte th:nth-child(2),
+            .tabla-reporte td:nth-child(2) {
+                width: 48% !important;
+            }
+
+            .tabla-reporte th:nth-child(3),
+            .tabla-reporte td:nth-child(3) {
+                width: 12% !important;
+            }
+
+            .tabla-reporte th:nth-child(4),
+            .tabla-reporte td:nth-child(4) {
+                width: 18% !important;
+            }
+
+            .estado-resumen {
+                width: 98% !important;
+                margin: 10px auto 0 auto !important;
+                padding: 8px !important;
+            }
+
+                .estado-resumen h5 {
+                    margin-bottom: 7px !important;
+                    font-size: 13px !important;
+                    line-height: 1.2 !important;
+                }
+
+            .resumen-item {
+                padding: 6px !important;
+            }
+
+            .cantidad-resumen {
+                font-size: 13px !important;
+                line-height: 1.2 !important;
+            }
+
+            .nombre-resumen {
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+            }
+
+            .pie-reporte {
+                width: 98% !important;
+                margin: 10px auto 0 auto !important;
+                padding-top: 6px !important;
+                font-size: 10px !important;
+                line-height: 1.2 !important;
+            }
+        }
+
+    </style>
+
+</body>
+
+</html>

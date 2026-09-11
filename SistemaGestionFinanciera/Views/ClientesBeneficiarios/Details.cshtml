@@ -1,0 +1,408 @@
+﻿@model SistemaGestionFinanciera.Models.ClientesBeneficiario
+
+@{
+    ViewData["Title"] = "Detalles del cliente / beneficiario";
+
+    int totalCuentasPorCobrar = ViewBag.TotalCuentasPorCobrar ?? 0;
+    int cuentasPendientes = ViewBag.CuentasPendientes ?? 0;
+    int cuentasVencidas = ViewBag.CuentasVencidas ?? 0;
+    decimal saldoPendiente = ViewBag.SaldoPendiente ?? 0m;
+
+    int facturas = Model.Facturas?.Count ?? 0;
+    int ingresos = Model.Ingresos?.Count ?? 0;
+
+    var contactosAdicionales = Model.ContactosAdicionales?
+        .Where(c => c.Activo)
+        .OrderBy(c => c.TipoContacto)
+        .ThenByDescending(c => c.IdContactoCliente)
+        .ToList()
+        ?? new List<SistemaGestionFinanciera.Models.ContactoClienteBeneficiario>();
+}
+
+<div class="container-fluid mt-4">
+
+    <h2 class="fw-bold mb-0">Detalles del cliente / beneficiario</h2>
+    <small class="text-muted">Información general y relaciones financieras del registro.</small>
+
+    @*
+    <div class="row g-3 mt-2 mb-3">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body text-center">
+                    <small class="text-muted">Total CxC</small>
+                    <h4 class="fw-bold text-primary mb-0">
+                        @totalCuentasPorCobrar
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body text-center">
+                    <small class="text-muted">CxC pendientes</small>
+                    <h4 class="fw-bold text-warning mb-0">
+                        @cuentasPendientes
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-danger border-4 h-100">
+                <div class="card-body text-center">
+                    <small class="text-muted">CxC vencidas</small>
+                    <h4 class="fw-bold text-danger mb-0">
+                        @cuentasVencidas
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body text-center">
+                    <small class="text-muted">Saldo pendiente</small>
+                    <h4 class="fw-bold @(saldoPendiente > 0 ? "text-danger" : "text-success") mb-0">
+                        ₡@saldoPendiente.ToString("N2")
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-user me-1"></i> Información del cliente / beneficiario
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Nombre</small>
+                        <div class="fw-semibold">@Model.Nombre</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Tipo</small>
+                        <div class="fw-semibold">@Model.Tipo</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Estado</small>
+                        <div>
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Identificación</small>
+                        <div class="fw-semibold">@Model.Identificacion</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Teléfono principal</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Telefono) ? "No registrado" : Model.Telefono)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">Correo principal</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Email) ? "No registrado" : Model.Email)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="border rounded p-3 bg-light">
+                        <small class="text-muted">Dirección principal</small>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Direccion) ? "No registrada" : Model.Direccion)
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-3">
+
+            <div class="card-header bg-dark text-white fw-bold">
+                <i class="fas fa-address-book me-1"></i>
+                Otros datos de contacto
+            </div>
+
+            <div class="card-body">
+
+                @if (!contactosAdicionales.Any())
+                {
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-address-card fa-2x mb-2"></i>
+
+                        <div>
+                            No se registraron contactos adicionales para este cliente.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+
+                        @foreach (var contacto in contactosAdicionales)
+                        {
+                            string icono = contacto.TipoContacto switch
+                            {
+                                "Telefono" => "fas fa-phone",
+                                "Correo" => "fas fa-envelope",
+                                "Direccion" => "fas fa-map-marker-alt",
+                                _ => "fas fa-address-card"
+                            };
+
+                            string nombreTipo = contacto.TipoContacto switch
+                            {
+                                "Telefono" => "Teléfono adicional",
+                                "Correo" => "Correo adicional",
+                                "Direccion" => "Dirección adicional",
+                                _ => contacto.TipoContacto
+                            };
+
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 bg-light h-100">
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="@icono text-primary me-2"></i>
+
+                                        <span class="fw-bold">
+                                            @nombreTipo
+                                        </span>
+                                    </div>
+
+                                    <small class="text-muted">
+                                        @(string.IsNullOrWhiteSpace(contacto.Descripcion)
+                                            ? "Adicional"
+                                            : contacto.Descripcion)
+                                    </small>
+
+                                    <div class="fw-semibold text-break mt-1">
+                                        @contacto.Valor
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-chart-line me-1"></i>
+            Resumen financiero y relaciones
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Cuentas por cobrar registradas
+                        </small>
+
+                        <div class="fw-bold">
+                            @totalCuentasPorCobrar
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Cuentas pendientes
+                        </small>
+
+                        <div class="fw-bold text-warning">
+                            @cuentasPendientes
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Cuentas vencidas
+                        </small>
+
+                        <div class="fw-bold @(cuentasVencidas > 0 ? "text-danger" : "text-success")">
+                            @cuentasVencidas
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Saldo pendiente
+                        </small>
+
+                        <div class="fw-bold @(saldoPendiente > 0 ? "text-danger" : "text-success")">
+                            ₡@saldoPendiente.ToString("N2")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Facturas asociadas
+                        </small>
+
+                        <div class="fw-bold">
+                            @facturas
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <small class="text-muted">
+                            Ingresos asociados
+                        </small>
+
+                        <div class="fw-bold">
+                            @ingresos
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @if (cuentasVencidas > 0)
+            {
+                <div class="alert alert-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+
+                    Este cliente posee
+                    <strong>@cuentasVencidas cuenta(s) vencida(s)</strong>
+                    y requiere seguimiento de cobro.
+                </div>
+            }
+            else if (saldoPendiente > 0)
+            {
+                <div class="alert alert-warning mt-3 mb-0">
+                    <i class="fas fa-clock me-1"></i>
+
+                    El cliente mantiene un saldo pendiente de
+                    <strong>₡@saldoPendiente.ToString("N2")</strong>,
+                    pero actualmente no registra cuentas vencidas.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-success mt-3 mb-0">
+                    <i class="fas fa-check-circle me-1"></i>
+
+                    El cliente no registra saldos pendientes.
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <div class="alert alert-info shadow-sm">
+        <i class="fas fa-info-circle me-1"></i>
+        Este cliente o beneficiario puede estar asociado a facturación, ingresos y cuentas por cobrar.
+        Cuando posee registros financieros, algunos datos quedan protegidos para mantener la trazabilidad del sistema.
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+        </a>
+        @if (Model.Activo)
+        {
+            <a asp-action="Edit"
+               asp-route-id="@Model.IdClienteBeneficiario"
+               class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Modificar
+            </a>
+        }
+        else
+        {
+            <form asp-action="Reactivar"
+                  asp-route-id="@Model.IdClienteBeneficiario"
+                  method="post">
+                @Html.AntiForgeryToken()
+                <button type="button"
+                        class="btn btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalReactivarDetalle">
+                    <i class="fas fa-check me-1"></i> Reactivar
+                </button>
+            </form>
+        }
+
+
+    </div>
+    <div class="modal fade" id="modalReactivarDetalle" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Reactivar cliente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="mb-1">¿Desea reactivar este cliente/beneficiario?</p>
+                    <strong>@Model.Nombre</strong>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times-circle me-1"></i> Cancelar
+                    </button>
+
+                    <form asp-action="Reactivar"
+                          asp-route-id="@Model.IdClienteBeneficiario"
+                          method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            Sí, reactivar
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

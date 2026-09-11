@@ -1,0 +1,360 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasPorPagar
+
+@{
+    ViewData["Title"] = "Registrar Cuenta por Pagar";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Registrar Cuenta por Pagar</h2>
+        <small class="text-muted">Registro manual de obligaciones pendientes de pago</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white">
+            <small>Complete la información del nuevo pago pendiente</small>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-secondary mb-4">
+                El número de documento, la fecha de vencimiento, el subtotal y el saldo pendiente se calcularán automáticamente.
+            </div>
+
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <p class="text-primary fw-bold mt-3 mb-2">Información general</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-3 mb-2">
+                        <label asp-for="ProveedorId" class="form-label">Proveedor / Acreedor</label>
+                        <select asp-for="ProveedorId" class="form-control" asp-items="ViewBag.ProveedorId">
+                            <option value="">-- Seleccione un proveedor --</option>
+                        </select>
+                        <span asp-validation-for="ProveedorId" class="text-danger"></span>
+                    </div>                
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="CategoriaGastoId" class="form-label">
+                            Categoría de gasto
+                        </label>
+
+                        <select asp-for="CategoriaGastoId"
+                                class="form-control"
+                                asp-items="ViewBag.CategoriaGastoId">
+
+                            <option value="">-- Seleccione una categoría --</option>
+
+                        </select>
+
+                        <span asp-validation-for="CategoriaGastoId"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="CentroCostoId" class="form-label">
+                            Centro de costo
+                        </label>
+
+                        <select asp-for="CentroCostoId"
+                                class="form-control"
+                                asp-items="ViewBag.CentroCostoId">
+
+                            <option value="">-- Seleccione un centro de costo --</option>
+
+                        </select>
+
+                        <span asp-validation-for="CentroCostoId"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="PresupuestoMensualId"
+                               class="form-label">
+                            Proyecto / período presupuestario
+                        </label>
+
+                        <select asp-for="PresupuestoMensualId"
+                                class="form-control"
+                                asp-items="ViewBag.PresupuestosMensualId">
+
+                            <option value="">
+                                -- Seleccione un proyecto y período --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PresupuestoMensualId"
+                              class="text-danger"></span>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="TipoDocumento" class="form-label">Tipo de documento</label>
+                        <select asp-for="TipoDocumento" class="form-control" asp-items="ViewBag.TiposDocumento">
+                            <option value="">-- Seleccione el tipo --</option>
+                        </select>
+                        <span asp-validation-for="TipoDocumento" class="text-danger"></span>
+                        <small class="text-muted ayuda-campo">
+                            Ej: Factura recibida, convenio de pago u otra obligación.
+                        </small>
+                    </div>
+
+                </div>
+
+                <p class="text-primary fw-bold mt-3 mb-2">Datos del crédito</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="DiasCredito" class="form-label">Días de crédito</label>
+                        <select asp-for="DiasCredito" class="form-control" asp-items="ViewBag.DiasCredito">
+                            <option value="">-- Seleccione días --</option>
+                        </select>
+                        <span asp-validation-for="DiasCredito" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Fecha de emisión</label>
+                        <input class="form-control" value="@ViewBag.FechaEmision" readonly />
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Fecha de vencimiento</label>
+                        <input id="fechaVencimientoVista"
+                               class="form-control"
+                               value="Se calculará automáticamente"
+                               readonly />
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="NumeroFactura" class="form-label">N° factura proveedor</label>
+                        <input asp-for="NumeroFactura"
+                               class="form-control"
+                               placeholder="Ej: FAC-45879" />
+                        <span asp-validation-for="NumeroFactura" class="text-danger"></span>
+                        <small class="text-muted">Opcional.</small>
+                    </div>
+
+                </div>
+                <p class="text-primary fw-bold mt-3 mb-2">Resumen financiero</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="MontoOriginal" class="form-label">Monto original</label>
+                        <input asp-for="MontoOriginal" id="MontoOriginal" type="text"
+                               class="form-control" placeholder="Ej: ₡500 000"
+                               oninput="this.value = this.value.replace(',', '.')" />
+                        <span asp-validation-for="MontoOriginal" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="Descuento" class="form-label">Descuento</label>
+                        <input asp-for="Descuento" id="Descuento" type="text"
+                               class="form-control" placeholder="Ej: ₡10 000"
+                               oninput="this.value = this.value.replace(',', '.')" />
+                        <span asp-validation-for="Descuento" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="TipoImpuesto" class="form-label">Tipo de impuesto</label>
+                        <select asp-for="TipoImpuesto" id="TipoImpuesto"
+                                class="form-control" asp-items="ViewBag.TiposImpuesto">
+                        </select>
+                        <span asp-validation-for="TipoImpuesto" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Subtotal</label>
+                        <input id="SubTotalVista" class="form-control" value="₡0.00" readonly />
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Impuesto</label>
+                        <input id="ImpuestoVista" class="form-control" value="₡0.00" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Monto total</label>
+                        <input type="text"
+                               id="MontoTotalVista"
+                               class="form-control"
+                               value="₡0,00"
+                               readonly />
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Saldo pendiente</label>
+                        <input id="SaldoPendienteVista"
+                               class="form-control text-danger fw-bold"
+                               value="₡0.00" readonly />
+                    </div>
+
+                </div>
+                <p class="text-primary fw-bold mt-3 mb-2">Detalle del pago pendiente</p>
+                <hr />
+
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Concepto" class="form-label">Concepto</label>
+                        <input asp-for="Concepto"
+                               class="form-control"
+                               placeholder="Ej: Compra de materiales, servicios adquiridos, honorarios profesionales..." />
+                        <span asp-validation-for="Concepto" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Observacion" class="form-label">Observación</label>
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Observaciones del registro"></textarea>
+                        <span asp-validation-for="Observacion" class="text-danger"></span>
+                        <small class="text-muted ayuda-campo">
+                            Puede anotar acuerdos de pago, referencia de factura, notas o información adicional.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="d-flex  gap-2 mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    .field-validation-error + .ayuda-campo {
+        display: none;
+    }
+</style>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            document.querySelectorAll("select, input, textarea").forEach(function (campo) {
+                campo.addEventListener("change", function () {
+                    if (campo.value && campo.value.trim() !== "") {
+                        const contenedor = campo.closest(".mb-3");
+                        const mensaje = contenedor ? contenedor.querySelector(".text-danger") : null;
+
+                        if (mensaje) {
+                            mensaje.textContent = "";
+                        }
+
+                        campo.classList.remove("input-validation-error");
+                        campo.classList.add("valid");
+                    }
+                });
+
+                campo.addEventListener("input", function () {
+                    if (campo.value && campo.value.trim() !== "") {
+                        const contenedor = campo.parentElement;
+                        const mensaje = contenedor.querySelector(".text-danger");
+
+                        if (mensaje) {
+                            mensaje.textContent = "";
+                        }
+
+                        campo.classList.remove("input-validation-error");
+                        campo.classList.add("valid");
+                    }
+                });
+            });
+
+            const diasCredito = document.getElementById("DiasCredito");
+            const fechaVencimiento = document.getElementById("fechaVencimientoVista");
+
+            const montoOriginal = document.getElementById("MontoOriginal");
+            const descuento = document.getElementById("Descuento");
+            const tipoImpuesto = document.getElementById("TipoImpuesto");
+            const impuestoVista = document.getElementById("ImpuestoVista");
+            const subtotalVista = document.getElementById("SubTotalVista");
+            const montoTotalVista = document.getElementById("MontoTotalVista");
+            const saldoPendienteVista = document.getElementById("SaldoPendienteVista");
+
+            function formatoColones(valor) {
+                return "₡" + valor.toLocaleString("es-CR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function valorDecimal(input) {
+                const valor = parseFloat((input.value || "0").replace(",", "."));
+                return isNaN(valor) ? 0 : valor;
+            }
+
+            function calcularFechaVencimiento() {
+
+                if (!diasCredito.value) {
+                    fechaVencimiento.value = "Se calculará automáticamente";
+                    return;
+                }
+
+                const hoy = new Date();
+                hoy.setDate(hoy.getDate() + parseInt(diasCredito.value));
+
+                const dia = String(hoy.getDate()).padStart(2, "0");
+                const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+                const anio = hoy.getFullYear();
+
+                fechaVencimiento.value = `${dia}/${mes}/${anio}`;
+            }
+            function obtenerPorcentajeImpuesto() {
+                switch (tipoImpuesto.value) {
+                    case "IVA 13%":
+                        return 0.13;
+                    case "IVA 4%":
+                        return 0.04;
+                    case "IVA 2%":
+                        return 0.02;
+                    case "IVA 1%":
+                        return 0.01;
+                    default:
+                        return 0;
+                }
+            }
+            function calcularTotales() {
+                const monto = valorDecimal(montoOriginal);
+                const desc = valorDecimal(descuento);
+                const porcentaje = obtenerPorcentajeImpuesto();
+
+                const subtotal = monto - desc;
+                const impuesto = subtotal * porcentaje;
+                const montoTotal = subtotal + impuesto;
+                const saldo = montoTotal;
+
+                subtotalVista.value = formatoColones(subtotal < 0 ? 0 : subtotal);
+                impuestoVista.value = formatoColones(impuesto < 0 ? 0 : impuesto);
+                montoTotalVista.value = formatoColones(montoTotal < 0 ? 0 : montoTotal);
+                saldoPendienteVista.value = formatoColones(saldo < 0 ? 0 : saldo);
+            }
+
+            diasCredito.addEventListener("change", calcularFechaVencimiento);
+            montoOriginal.addEventListener("input", calcularTotales);
+            descuento.addEventListener("input", calcularTotales);
+            tipoImpuesto.addEventListener("change", calcularTotales);
+
+            calcularFechaVencimiento();
+            calcularTotales();
+        });
+    </script>
+}

@@ -1,0 +1,1416 @@
+﻿@using SistemaGestionFinanciera.Models
+@using SistemaGestionFinanciera.Controllers
+
+@{
+    ViewData["Title"] = "Cierre Contable Mensual";
+
+    int anio = ViewBag.Anio;
+    int mes = ViewBag.Mes;
+
+    string estado = ViewBag.EstadoPeriodo ?? "Abierto";
+    string nombreMes = ViewBag.NombreMes ?? "";
+    string nombrePeriodo = ViewBag.NombrePeriodo ?? $"{nombreMes} {anio}";
+
+    decimal totalIngresos = ViewBag.TotalIngresos ?? 0m;
+    decimal totalGastos = ViewBag.TotalGastos ?? 0m;
+    decimal resultado = ViewBag.ResultadoPeriodo ?? 0m;
+
+    decimal totalDebe = ViewBag.TotalDebe ?? 0m;
+    decimal totalHaber = ViewBag.TotalHaber ?? 0m;
+    decimal diferencia = ViewBag.Diferencia ?? 0m;
+
+    int cantidadMovimientos = ViewBag.CantidadMovimientos ?? 0;
+
+    bool puedeCerrar = ViewBag.PuedeCerrar ?? false;
+    bool esPeriodoActual = ViewBag.EsPeriodoActual ?? false;
+    bool esPeriodoFuturo = ViewBag.EsPeriodoFuturo ?? false;
+    bool esConsultaAnual = ViewBag.EsConsultaAnual ?? false;
+
+    string rol = ViewBag.Rol ?? "";
+
+    CierreContable? cierre =
+        ViewBag.Cierre as CierreContable;
+
+    var historial =
+        ViewBag.HistorialCierres as List<CierreContable>
+        ?? new List<CierreContable>();
+
+    var pendientes =
+        ViewBag.PeriodosPendientes as List<PeriodoPendienteCierre>
+        ?? new List<PeriodoPendienteCierre>();
+
+    int cantidadPendientes =
+        ViewBag.CantidadPeriodosPendientes ?? 0;
+
+    bool esAdministrador =
+        rol.Equals(
+            "Administrador",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool esContador =
+        rol.Equals(
+            "Contador",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool puedeEjecutarCierre =
+        puedeCerrar &&
+        (esAdministrador || esContador);
+
+    bool estaCerrado =
+        estado.Equals(
+            "Cerrado",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool estaReabierto =
+        estado.Equals(
+            "Reabierto",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool estaBalanceado =
+        diferencia == 0m;
+
+    string claseEstado =
+        esConsultaAnual
+            ? "bg-primary"
+            : estaCerrado
+                ? "bg-danger"
+                : estaReabierto
+                    ? "bg-warning text-dark"
+                    : "bg-success";
+}
+
+<div class="container-fluid py-3">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+    <div class="mb-4">
+
+        <h2 class="fw-bold mb-1">
+            <i class="fa-solid fa-lock me-2"></i>
+            Cierre Contable Mensual
+        </h2>
+
+        <p class="text-muted mb-0">
+            Consulta, cierre y control de los períodos contables mensuales.
+        </p>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- PERÍODOS PENDIENTES -->
+    <!-- ========================================================= -->
+    @if (cantidadPendientes > 0)
+    {
+        <div class="alert alert-warning shadow-sm mb-4">
+
+            <div class="d-flex align-items-start">
+
+                <div class="me-3 fs-4">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div class="flex-grow-1">
+
+                    <div class="fw-bold mb-2">
+
+                        @if (cantidadPendientes == 1)
+                        {
+                            <span>
+                                Existe 1 período anterior pendiente de cierre.
+                            </span>
+                        }
+                        else
+                        {
+                            <span>
+                                Existen @cantidadPendientes períodos anteriores pendientes de cierre.
+                            </span>
+                        }
+
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        @foreach (var pendiente in pendientes)
+                        {
+                            <a asp-action="Index"
+                               asp-route-anio="@pendiente.Anio"
+                               asp-route-mes="@pendiente.Mes"
+                               class="badge bg-warning text-dark border text-decoration-none p-2">
+
+                                <i class="fa-regular fa-calendar me-1"></i>
+
+                                @pendiente.NombrePeriodo
+
+                            </a>
+                        }
+
+                    </div>
+
+                    <div class="small mt-2">
+                        Los períodos permanecen abiertos hasta que la organización
+                        determine que la información está lista para su cierre.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ========================================================= -->
+    <!-- FILTRO -->
+    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white"
+             style="background-color:#0F5C64;">
+
+            <strong>
+                <i class="fa-solid fa-calendar-days me-2"></i>
+                Período contable
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get"
+                  class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-bold">
+                        <i class="fa-regular fa-calendar me-1"></i>
+                        Año
+                    </label>
+
+                    <select name="anio"
+                            class="form-select">
+
+                        @foreach (var item in ViewBag.Anios)
+                        {
+                            if ((int)item == anio)
+                            {
+                                <option value="@item" selected>
+                                    @item
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@item">
+                                    @item
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-bold">
+                        <i class="fa-regular fa-calendar-days me-1"></i>
+                        Mes
+                    </label>
+
+                    <select name="mes"
+                            class="form-select">
+
+                        @if (mes == 0)
+                        {
+                            <option value="0" selected>
+                                Todos los meses
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="0">
+                                Todos los meses
+                            </option>
+                        }
+
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            string nombre = i switch
+                            {
+                                1 => "Enero",
+                                2 => "Febrero",
+                                3 => "Marzo",
+                                4 => "Abril",
+                                5 => "Mayo",
+                                6 => "Junio",
+                                7 => "Julio",
+                                8 => "Agosto",
+                                9 => "Septiembre",
+                                10 => "Octubre",
+                                11 => "Noviembre",
+                                12 => "Diciembre",
+                                _ => ""
+                            };
+
+                            if (i == mes)
+                            {
+                                <option value="@i" selected>
+                                    @nombre
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@i">
+                                    @nombre
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button type="submit"
+                            class="btn btn-primary text-dark w-100">
+
+                        <i class="fa-solid fa-magnifying-glass me-1"></i>
+                        Consultar período
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ESTADO -->
+    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap
+                        justify-content-between
+                        align-items-center gap-3">
+
+                <div>
+
+                    <div class="fw-bold small">
+                        @if (esConsultaAnual)
+                        {
+                            <span>Resumen seleccionado</span>
+                        }
+                        else
+                        {
+                            <span>Período seleccionado</span>
+                        }
+                    </div>
+
+                    <h4 class="fw-bold mb-0">
+                        @nombrePeriodo
+                    </h4>
+
+                </div>
+
+                <div class="text-md-end">
+
+                    <div class="text-muted small mb-1">
+                        Estado
+                    </div>
+
+                    <span class="badge @claseEstado fs-6 px-3 py-2">
+
+                        @if (esConsultaAnual)
+                        {
+                            <i class="fa-solid fa-chart-column me-1"></i>
+                            <span>Consulta anual</span>
+                        }
+                        else if (estaCerrado)
+                        {
+                            <i class="fa-solid fa-lock me-1"></i>
+                            <span>Cerrado</span>
+                        }
+                        else if (estaReabierto)
+                        {
+                            <i class="fa-solid fa-lock-open me-1"></i>
+                            <span>Reabierto</span>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-lock-open me-1"></i>
+                            <span>Abierto</span>
+                        }
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- AVISOS -->
+    <!-- ========================================================= -->
+    @if (esConsultaAnual)
+    {
+        <div class="alert alert-info">
+
+            <i class="fa-solid fa-circle-info me-2"></i>
+
+            Esta es una consulta acumulada del año
+            <strong>@anio</strong>.
+
+            No representa un cierre anual y no permite cerrar
+            ni reabrir períodos.
+
+        </div>
+    }
+    else if (esPeriodoActual)
+    {
+        <div class="alert alert-info">
+
+            <i class="fa-solid fa-circle-info me-2"></i>
+
+            <strong>Período actual.</strong>
+
+            Este período permanece abierto y no puede cerrarse
+            hasta que finalice el mes.
+
+        </div>
+    }
+    else if (esPeriodoFuturo)
+    {
+        <div class="alert alert-secondary">
+
+            <i class="fa-solid fa-calendar-xmark me-2"></i>
+
+            <strong>Período futuro.</strong>
+
+            No es posible realizar un cierre contable
+            sobre un período futuro.
+
+        </div>
+    }
+    else if (estaReabierto)
+    {
+        <div class="alert alert-warning">
+
+            <i class="fa-solid fa-lock-open me-2"></i>
+
+            <strong>Período reabierto.</strong>
+
+            Se pueden realizar las correcciones financieras necesarias.
+            Cuando finalicen, el período deberá cerrarse nuevamente.
+
+        </div>
+    }
+
+    <!-- ========================================================= -->
+    <!-- RESUMEN FINANCIERO -->
+    <!-- ========================================================= -->
+    <div class="row g-3 mb-4">
+
+        <!-- INGRESOS -->
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-2">
+
+                        <i class="fa-solid fa-arrow-trend-up
+                                  text-success fs-4 me-2"></i>
+
+                        <div class="fw-bold small">
+                            @if (esConsultaAnual)
+                            {
+                                <span>Ingresos del año</span>
+                            }
+                            else
+                            {
+                                <span>Ingresos del período</span>
+                            }
+                        </div>
+
+                    </div>
+
+                    <h3 class="fw-bold text-success mb-0">
+                        ₡@totalIngresos.ToString("N2")
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- GASTOS -->
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-2">
+
+                        <i class="fa-solid fa-arrow-trend-down
+                                  text-danger fs-4 me-2"></i>
+
+                        <div class="fw-bold small">
+                            @if (esConsultaAnual)
+                            {
+                                <span>Gastos del año</span>
+                            }
+                            else
+                            {
+                                <span>Gastos del período</span>
+                            }
+                        </div>
+
+                    </div>
+
+                    <h3 class="fw-bold text-danger mb-0">
+                        ₡@totalGastos.ToString("N2")
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RESULTADO -->
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-2">
+
+                        <i class="fa-solid fa-chart-line
+                                  text-primary fs-4 me-2"></i>
+
+                        <div class="fw-bold small">
+                            @if (esConsultaAnual)
+                            {
+                                <span>Resultado del año</span>
+                            }
+                            else
+                            {
+                                <span>Resultado del período</span>
+                            }
+                        </div>
+
+                    </div>
+
+                    @if (resultado >= 0)
+                    {
+                        <h3 class="fw-bold text-primary mb-0">
+                            ₡@resultado.ToString("N2")
+                        </h3>
+                    }
+                    else
+                    {
+                        <h3 class="fw-bold text-danger mb-0">
+                            -₡@Math.Abs(resultado).ToString("N2")
+                        </h3>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    @if (!esConsultaAnual)
+    {
+        <div class="alert
+                @(resultado > 0
+                    ? "alert-success"
+                    : resultado < 0
+                        ? "alert-warning"
+                        : "alert-info")
+                shadow-sm mb-3 py-2">
+
+            <div class="d-flex align-items-start gap-2">
+
+                <i class="fa-solid fa-circle-info mt-1"></i>
+
+                <div>
+
+                    <strong>Resultado del período:</strong>
+                    @if (cantidadMovimientos == 0)
+                    {
+                        <span>
+                            No existen movimientos financieros registrados para
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else if (resultado > 0)
+                    {
+                        <span>
+                            Los ingresos superaron los gastos en
+                            <strong>₡@resultado.ToString("N2")</strong>,
+                            generando un resultado positivo durante
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else if (resultado < 0)
+                    {
+                        <span>
+                            Los gastos superaron los ingresos en
+                            <strong>₡@Math.Abs(resultado).ToString("N2")</strong>,
+                            generando un resultado negativo durante
+                            @nombrePeriodo.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            Los ingresos y los gastos fueron equivalentes durante
+                            @nombrePeriodo, por lo que el resultado del período
+                            fue de ₡0.00.
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+    <!-- ========================================================= -->
+    <!-- VALIDACIÓN CONTABLE -->
+    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white"
+             style="background-color:#0F5C64;">
+
+            <strong>
+                <i class="fa-solid fa-scale-balanced me-2"></i>
+                Validación contable
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <div class="fw-bold small">
+                        Total Debe
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        ₡@totalDebe.ToString("N2")
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="fw-bold small">
+                        Total Haber
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        ₡@totalHaber.ToString("N2")
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="fw-bold small">
+                        Diferencia
+                    </div>
+
+                    @if (estaBalanceado)
+                    {
+                        <div class="fs-5 fw-bold text-success">
+                            ₡0.00
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="fs-5 fw-bold text-danger">
+                            ₡@Math.Abs(diferencia).ToString("N2")
+                        </div>
+                    }
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="fw-bold small">
+                        Movimientos contables
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        @cantidadMovimientos
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="d-flex flex-wrap
+                        justify-content-between
+                        align-items-center gap-3">
+
+                <div>
+
+                    @if (cantidadMovimientos == 0)
+                    {
+                        <div class="text-muted">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            No existen movimientos contables para validar en este período.
+                        </div>
+                    }
+                    else if (estaBalanceado)
+                    {
+                        <div class="text-success">
+                            <i class="fa-solid fa-circle-check me-1"></i>
+                            El período se encuentra balanceado: el Debe y el Haber coinciden.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-danger">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            El período presenta una diferencia entre el Debe y el Haber y no puede cerrarse.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-action="Reporte"
+                       asp-route-anio="@anio"
+                       asp-route-mes="@mes"
+                       class="btn btn-reporte-pdf btn-sm">
+
+                        <i class="fa-solid fa-file-pdf me-1"></i>
+                        Vista previa PDF
+                    </a>
+                     
+                    <a asp-action="ExportarExcel"
+                       asp-route-anio="@anio"
+                       asp-route-mes="@mes"
+                       class="btn btn-excel-suave btn-sm">
+
+                        <i class="fa-solid fa-file-excel me-1"></i> 
+                        Exportar excel
+                    </a>
+                    <!-- VER MOVIMIENTOS -->
+                    @if (esConsultaAnual)
+                    {
+                        <a asp-controller="MovimientosContables"
+                           asp-action="Index"
+                           asp-route-anio="@anio"
+                           asp-route-estado="Registrado"
+                           asp-route-origen="CierreContable"
+                           class="btn btn-movimientos-suave btn-sm">
+
+                            <i class="fa-solid fa-book-open me-1"></i>
+                            Ver movimientos
+
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="MovimientosContables"
+                           asp-action="Index"
+                           asp-route-anio="@anio"
+                           asp-route-mes="@mes"
+                           asp-route-estado="Registrado"
+                           asp-route-origen="CierreContable"
+                           class="btn btn-movimientos-suave btn-sm">
+
+                            <i class="fa-solid fa-book-open me-1"></i>
+                            Ver movimientos
+
+                        </a>
+                    }
+
+                    <!-- CERRAR -->
+                    @if (!esConsultaAnual &&
+                         puedeEjecutarCierre &&
+                         estaBalanceado)
+                    {
+                        <form asp-action="Cerrar"
+                              method="post"
+                              id="formCerrar">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="anio"
+                                   value="@anio" />
+
+                            <input type="hidden"
+                                   name="mes"
+                                   value="@mes" />
+
+                            <button type="button"
+                                    class="btn btn-danger"
+                                    onclick="confirmarCierre()">
+
+                                <i class="fa-solid fa-lock me-1"></i>
+                                Cerrar período
+
+                            </button>
+
+                        </form>
+                    }
+
+                    <!-- REABRIR PERÍODO SELECCIONADO -->
+                    @if (!esConsultaAnual &&
+                         estaCerrado &&
+                         esAdministrador)
+                    {
+                        <button type="button"
+                                class="btn btn-warning"
+                                onclick="abrirModalReapertura(
+                                    @anio,
+                                    @mes,
+                                    '@nombrePeriodo')">
+
+                            <i class="fa-solid fa-lock-open me-1"></i>
+                            Reabrir período
+
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+            @if (!esConsultaAnual &&
+                 !estaCerrado &&
+                 !esPeriodoActual &&
+                 !esPeriodoFuturo &&
+                 !estaBalanceado)
+            {
+                <div class="alert alert-danger mt-3 mb-0">
+
+                    <i class="fa-solid fa-circle-xmark me-2"></i>
+
+                    El cierre no está disponible porque
+                    el período presenta una diferencia contable.
+
+                </div>
+            }
+
+            @if (!esConsultaAnual &&
+                 !estaCerrado &&
+                 !esPeriodoActual &&
+                 !esPeriodoFuturo &&
+                 estaBalanceado &&
+                 !(esAdministrador || esContador))
+            {
+                <div class="alert alert-warning mt-3 mb-0">
+
+                    <i class="fa-solid fa-shield-halved me-2"></i>
+
+                    Su rol puede consultar el período,
+                    pero no tiene autorización para cerrarlo.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DEL PERÍODO SELECCIONADO -->
+    <!-- ========================================================= -->
+    @if (!esConsultaAnual && cierre != null)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-light">
+
+                <strong>
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>
+                    Información del cierre seleccionado
+                </strong>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <div class="text-muted small">
+                            Último cierre
+                        </div>
+
+                        <div class="fw-semibold">
+                            @cierre.FechaCierre.ToString("dd/MM/yyyy hh:mm tt")
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="text-muted small">
+                            Cerrado por
+                        </div>
+
+                        <div class="fw-semibold">
+                            @(cierre.UsuarioCierre?.Nombre
+                                ?? $"Usuario #{cierre.UsuarioCierreId}")
+                        </div>
+
+                    </div>
+
+                    @if (cierre.FechaReapertura.HasValue)
+                    {
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Última reapertura
+                            </div>
+
+                            <div class="fw-semibold">
+                                @cierre.FechaReapertura.Value.ToString("dd/MM/yyyy hh:mm tt")
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Reabierto por
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @(cierre.UsuarioReapertura?.Nombre
+                                    ?? (cierre.UsuarioReaperturaId.HasValue
+                                        ? $"Usuario #{cierre.UsuarioReaperturaId}"
+                                        : "—"))
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-12">
+
+                            <div class="text-muted small mb-1">
+                                Motivo de la última reapertura
+                            </div>
+
+                            <div class="border rounded p-3 bg-light">
+                                @cierre.MotivoReapertura
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ========================================================= -->
+    <!-- HISTORIAL -->
+    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header text-white"
+             style="background-color:#0F5C64;">
+
+            <strong>
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>
+                Historial de cierres contables
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (historial.Any())
+            {
+                <div class="table-responsive">
+                  
+                    <table id="tablaCierres"
+                               class="table table-hover table-bordered align-middle tabla-sistema">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th><i class="fa-solid fa-calendar-days me-1"></i>Período</th>
+                                <th><i class="fa-solid fa-lock me-1"></i>Estado</th>
+                                <th><i class="fa-solid fa-arrow-trend-up me-1"></i>Ingresos</th>
+                                <th><i class="fa-solid fa-arrow-trend-down me-1"></i>Gastos</th>
+                                <th><i class="fa-solid fa-chart-line me-1"></i>Resultado</th>
+                                <th><i class="fa-solid fa-list me-1"></i>Movimientos</th>
+                                <th><i class="fa-solid fa-calendar-check me-1"></i>Fecha cierre</th>
+                                <th><i class="fa-solid fa-user me-1"></i>Cerrado por</th>
+                                <th class="col-acciones text-center">
+                                    <i class="fas fa-cogs me-1"></i>
+                                    Acciones
+                                </th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in historial)
+                            {
+                                string nombreMesHistorial =
+                                    item.Mes switch
+                                    {
+                                        1 => "Enero",
+                                        2 => "Febrero",
+                                        3 => "Marzo",
+                                        4 => "Abril",
+                                        5 => "Mayo",
+                                        6 => "Junio",
+                                        7 => "Julio",
+                                        8 => "Agosto",
+                                        9 => "Septiembre",
+                                        10 => "Octubre",
+                                        11 => "Noviembre",
+                                        12 => "Diciembre",
+                                        _ => ""
+                                    };
+
+                                string periodoHistorial =
+                                    $"{nombreMesHistorial} {item.Anio}";
+
+                                <tr>
+
+                                    <td data-order="@(item.Anio * 100 + item.Mes)">
+                                        <strong>
+                                            @periodoHistorial
+                                        </strong>
+                                    </td>
+
+                                    <td>
+
+                                        @if (item.Estado == "Cerrado")
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="fa-solid fa-lock me-1"></i>
+                                                Cerrado
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="fa-solid fa-lock-open me-1"></i>
+                                                Reabierto
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td data-order="@item.TotalIngresos">
+                                        ₡@item.TotalIngresos.ToString("N2")
+                                    </td>
+
+                                    <td data-order="@item.TotalGastos">
+                                        ₡@item.TotalGastos.ToString("N2")
+                                    </td>
+
+                                    <td data-order="@item.ResultadoPeriodo">
+
+                                        @if (item.ResultadoPeriodo >= 0)
+                                        {
+                                            <span class="text-success fw-semibold">
+                                                ₡@item.ResultadoPeriodo.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger fw-semibold">
+                                                -₡@Math.Abs(item.ResultadoPeriodo).ToString("N2")
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-center">
+                                        @item.CantidadMovimientos
+                                    </td>
+
+                                    <td data-order="@item.FechaCierre.ToString("yyyyMMddHHmmss")">
+
+                                        @item.FechaCierre.ToString("dd/MM/yyyy HH:mm")
+
+                                    </td>
+
+                                    <td>
+                                        @(item.UsuarioCierre?.Nombre
+                                            ?? $"Usuario #{item.UsuarioCierreId}")
+                                    </td>
+
+                                    <td class="col-acciones">
+                                        <div class="acciones-botones">
+
+                                            <!-- DETALLES -->
+                                            <a asp-action="Index"
+                                               asp-route-anio="@item.Anio"
+                                               asp-route-mes="@item.Mes"
+                                               class="btn btn-sm btn-primary text-white"
+                                               title="Consultar cierre">
+
+                                                <i class="fa-solid fa-eye me-1"></i>
+                                                Detalles
+                                            </a>
+
+                                            <!-- MOVIMIENTOS -->
+                                            <a asp-controller="MovimientosContables"
+                                               asp-action="Index"
+                                               asp-route-anio="@item.Anio"
+                                               asp-route-mes="@item.Mes"
+                                               class="btn btn-sm btn-warning"
+                                               title="Ver movimientos contables">
+
+                                                <i class="fa-solid fa-book-open me-1"></i>
+                                                Movimientos
+                                            </a>
+
+                                            <!-- REABRIR -->
+                                            @if (item.Estado == "Cerrado" &&
+                                           esAdministrador)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-danger"
+                                                        title="Reabrir período"
+                                                        onclick="abrirModalReapertura(
+                        @item.Anio,
+                        @item.Mes,
+                        '@periodoHistorial')">
+
+                                                    <i class="fa-solid fa-lock-open me-1"></i>
+                                                    Reabrir
+                                                </button>
+                                            }
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-4">
+
+                    <i class="fa-solid fa-clock-rotate-left fs-1 mb-3"></i>
+
+                    <p class="mb-0">
+                        Todavía no existen períodos contables cerrados.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ============================================================= -->
+<!-- MODAL ÚNICO DE REAPERTURA -->
+<!-- Sirve tanto para el período consultado como para la tabla -->
+<!-- ============================================================= -->
+@if (esAdministrador)
+{
+    <div class="modal fade"
+         id="modalReabrir"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <form asp-action="Reabrir"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           id="reabrirAnio"
+                           name="anio" />
+
+                    <input type="hidden"
+                           id="reabrirMes"
+                           name="mes" />
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title fw-bold">
+
+                            <i class="fa-solid fa-lock-open me-2"></i>
+                            Reabrir período
+
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="alert alert-warning">
+
+                            Está por reabrir el período:
+
+                            <strong id="nombrePeriodoReabrir">
+                            </strong>
+
+                            <br />
+
+                            Las operaciones financieras de este período
+                            podrán volver a modificarse.
+
+                        </div>
+
+                        <label for="motivoReapertura"
+                               class="form-label fw-semibold">
+
+                            Motivo de reapertura
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <textarea id="motivoReapertura"
+                                  name="motivoReapertura"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="500"
+                                  minlength="5"
+                                  required
+                                  placeholder="Indique claramente el motivo de la reapertura..."></textarea>
+
+                        <div class="form-text">
+
+                            <i class="fa-solid fa-clipboard-check me-1"></i>
+
+                            El motivo, usuario y fecha quedarán
+                            registrados en Auditoría.
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+
+                            <i class="fa-solid fa-xmark me-1"></i>
+                            Cancelar
+
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-warning">
+
+                            <i class="fa-solid fa-lock-open me-1"></i>
+                            Confirmar reapertura
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@section Scripts
+{
+    <script>
+
+        // =============================================================
+        // CONFIRMAR CIERRE - SWEETALERT2
+        // =============================================================
+        function confirmarCierre() {
+
+            const periodo = '@nombrePeriodo';
+
+            Swal.fire({
+                title: '¿Cerrar período contable?',
+                html:
+                    `Está por cerrar el período <strong>${periodo}</strong>.<br><br>` +
+                    `Una vez cerrado, las operaciones financieras del período ` +
+                    `quedarán protegidas y no podrán modificarse hasta que ` +
+                    `el período sea reabierto solo si lo considera necesario.`,
+                icon: 'warning',
+
+                showCancelButton: true,
+
+                confirmButtonText:
+                    '<i class="fa-solid fa-lock me-1"></i> Sí, cerrar período',
+
+                cancelButtonText:
+                    '<i class="fa-solid fa-xmark me-1"></i> Cancelar',
+
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+
+                reverseButtons: true,
+
+                focusCancel: true,
+
+                allowOutsideClick: false,
+                allowEscapeKey: true
+
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    document
+                        .getElementById('formCerrar')
+                        .submit();
+                }
+            });
+        }
+
+        // =============================================================
+        // ABRIR MODAL DE REAPERTURA
+        // =============================================================
+        function abrirModalReapertura(
+            anio,
+            mes,
+            periodo) {
+
+            document
+                .getElementById('reabrirAnio')
+                .value = anio;
+
+            document
+                .getElementById('reabrirMes')
+                .value = mes;
+
+            document
+                .getElementById('nombrePeriodoReabrir')
+                .textContent = periodo;
+
+            document
+                .getElementById('motivoReapertura')
+                .value = '';
+
+            const modal =
+                new bootstrap.Modal(
+                    document.getElementById(
+                        'modalReabrir'));
+
+            modal.show();
+        }
+
+        // =============================================================
+        // DATATABLES - HISTORIAL
+        // =============================================================
+        $(document).ready(function () {
+
+            if ($('#tablaCierres').length &&
+                $.fn.DataTable) {
+
+                $('#tablaCierres').DataTable({
+
+                    pageLength: 10,
+
+                    lengthMenu: [10, 25, 50, 100],
+
+                    // Por defecto:
+                    // cierre realizado más recientemente primero.
+                    order: [[6, 'desc']],
+
+                    columnDefs: [
+                        {
+                            targets: 8,
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+
+                    language: {
+
+                        decimal: ",",
+                        thousands: ".",
+
+                        search:
+                            "Buscar:",
+
+                        lengthMenu:
+                            "Mostrar _MENU_ registros",
+
+                        info:
+                            "Mostrando _START_ a _END_ de _TOTAL_ registros",
+
+                        infoEmpty:
+                            "No hay registros disponibles",
+
+                        infoFiltered:
+                            "(filtrado de _MAX_ registros)",
+
+                        zeroRecords:
+                            "No se encontraron cierres contables",
+
+                        emptyTable:
+                            "No existen cierres contables registrados",
+
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        }
+                    }
+                });
+            }
+        });
+
+    </script>
+}

@@ -1,0 +1,420 @@
+﻿@model SistemaGestionFinanciera.Models.CuentasPorCobrar
+
+@{
+    ViewData["Title"] = "Detalle de Cuenta por Cobrar";
+}
+@{
+    var origen = Context.Request.Query["origen"].ToString();
+    var retorno = Context.Request.Query["retorno"].ToString();
+    var pagoId = Context.Request.Query["pagoId"].ToString();
+}
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="mb-0">Detalle de Cuenta por Cobrar</h2>
+        <small class="text-muted">Consulta de la información registrada del cobro pendiente</small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white fw-bold">
+            Información de la cuenta por cobrar
+        </div>
+
+        <div class="card-body">
+
+            <p class="text-primary fw-bold mb-2">Información general</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>N° Documento</strong>
+                    <div>@Model.NumeroDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Tipo de documento</strong>
+                    <div>@Model.TipoDocumento</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Cliente / Beneficiario</strong>
+                    <div>@Model.ClienteBeneficiario?.Nombre</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Proyecto</strong>
+                    <div>
+                        @if (Model.Proyecto != null)
+                        {
+                            @Model.Proyecto.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin proyecto</span>
+                        }
+                    </div>
+                </div>
+
+            </div>
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <strong>Origen</strong>
+                    <div>
+                        @if (Model.Origen == "Factura")
+                        {
+                            <span class="badge bg-info text-dark">Factura</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Manual</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado autorización</strong>
+                    <div>
+                        @if (Model.EstadoAutorizacion == "Aprobado")
+                        {
+                            <span class="badge bg-success">Aprobado</span>
+                        }
+                        else if (Model.EstadoAutorizacion == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else if (Model.EstadoAutorizacion == "Rechazado")
+                        {
+                            <span class="badge bg-danger">Rechazado</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No aplica</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <strong>Período presupuestario</strong>
+                    <div>
+                        @if (Model.PresupuestoMensualRegistro != null)
+                        {
+                            string nombreMes = new DateTime(
+                            Model.PresupuestoMensualRegistro.Anio,
+                            Model.PresupuestoMensualRegistro.Mes,
+                            1)
+                            .ToString(
+                            "MMMM",
+                            new System.Globalization.CultureInfo("es-CR"));
+
+                            nombreMes =
+                            char.ToUpper(nombreMes[0]) +
+                            nombreMes.Substring(1);
+
+                            <div>
+                                @nombreMes @Model.PresupuestoMensualRegistro.Anio
+                            </div>
+
+                            @if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Aprobado")
+                            {
+                                <span class="badge bg-success mt-1">
+                                    Aprobado
+                                </span>
+                            }
+                            else if (Model.PresupuestoMensualRegistro.EstadoAprobacion == "Borrador")
+                            {
+                                <span class="badge bg-secondary mt-1">
+                                    Borrador
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger mt-1">
+                                    @Model.PresupuestoMensualRegistro.EstadoAprobacion
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Sin período presupuestario
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <p class="text-primary fw-bold mt-4 mb-2">Datos del crédito</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Fecha de emisión</strong>
+                    <div>@Model.FechaEmision.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Fecha de vencimiento</strong>
+                    <div>@Model.FechaVencimiento.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Días de crédito</strong>
+                    <div>@Model.DiasCredito</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado</strong>
+                    <div>
+                        @* Aqui muestro el estado con color para identificarlo rapido *@
+                        @if (Model.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else if (Model.Estado == "Parcial")
+                        {
+                            <span class="badge text-white" style="background-color:#0FB7C9;">
+                                Parcial
+                            </span>
+                        }
+                        else if (Model.Estado == "Cancelada")
+                        {
+                            <span class="badge bg-success">Cancelada</span>
+                        }
+                        else if (Model.Estado == "Vencida")
+                        {
+                            <span class="badge bg-danger">Vencida</span>
+                        }
+                        else if (Model.Estado == "Anulada")
+                        {
+                            <span class="badge bg-secondary">Anulada</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">@Model.Estado</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Resumen financiero</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <strong>Monto original</strong>
+                    <div>₡@((Model.MontoOriginal ?? 0).ToString("N2"))</div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Monto pagado</strong>
+                    <div>
+                        @if ((Model.MontoPagado ?? 0) > 0)
+                        {
+                            <span class="fw-bold text-success">
+                                ₡@((Model.MontoPagado ?? 0).ToString("N2"))
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">₡0.00</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Anticipo aplicado</strong>
+
+                    @if ((Model.AnticipoAplicado ?? 0) > 0)
+                    {
+                        <div class="fw-bold text-success">
+                            ₡@((Model.AnticipoAplicado ?? 0).ToString("N2"))
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">
+                            No hay anticipos registrados.
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Saldo pendiente</strong>
+                    <div class="fw-bold text-danger">
+                        ₡@Model.SaldoPendiente.ToString("N2")
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-primary fw-bold mt-4 mb-2">Detalle del cobro</p>
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Concepto</strong>
+                    <div>@Model.Concepto</div>
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Observación</strong>
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+                        {
+                            @Model.Observacion
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin observaciones</span>
+                        }
+                    </div>
+                </div>
+                @if (Model.Estado == "Anulada")
+                {
+                    <div class="col-md-6">
+                        <strong>Motivo de anulación</strong>
+                        <div>
+                            @if (!string.IsNullOrWhiteSpace(Model.MotivoAnulacion))
+                            {
+                                @Model.MotivoAnulacion
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    No registrado
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="text-primary fw-bold mt-4 mb-2">Historial de pagos aplicados</p>
+            <hr />
+
+            @if (Model.PagosCuentaPorCobrars != null && Model.PagosCuentaPorCobrars.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-hover align-middle">
+                        <thead style="background-color:#D9F0F3; color:#00798C;">
+                            <tr>
+                                <th>Fecha pago</th>
+                                <th>Monto</th>
+                                <th>Método</th>
+                                <th>Referencia</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                              
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var pago in Model.PagosCuentaPorCobrars.OrderByDescending(p => p.FechaPago))
+                            {
+                                <tr>
+                                    <td>@pago.FechaPago.ToString("dd/MM/yyyy")</td>
+
+                                    <td class="fw-bold">
+                                        ₡@(pago.Monto?.ToString("N2") ?? "0.00")
+                                    </td>
+
+                                    <td>@(pago.MetodoPago ?? "No registrado")</td>
+
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(pago.Referencia))
+                                        {
+                                            @pago.Referencia
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin referencia</span>
+                                        }
+                                    </td>
+                                    <td class="small">
+                                        @if (pago.Anulado && !string.IsNullOrWhiteSpace(pago.MotivoAnulacion))
+                                        {
+                                            @pago.MotivoAnulacion
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No aplica</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (pago.Anulado)
+                                        {
+                                            <span class="badge bg-secondary">Anulado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Registrado</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+                    No hay pagos registrados para esta cuenta por cobrar.
+                </div>
+            }
+            <div class="d-flex justify-content-between mt-4">
+
+                <div>
+
+
+                    @if (origen == "PagosCxC")
+                    {
+                        <a asp-controller="PagosCuentasPorCobrar"
+                           asp-action="@retorno"
+                           asp-route-cuentaPorCobrarId="@Model.IdCuentaPorCobrar"
+                           class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar al registro de pago
+                        </a>
+                    }
+                    else if (origen == "DetallePagoCxC")
+                    {
+                        <a asp-controller="PagosCuentasPorCobrar"
+                           asp-action="Details"
+                           asp-route-id="@pagoId"
+                           class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar al detalle del pago
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                        </a>
+                    }
+                </div>
+
+                <div>
+                    @{
+                        bool puedeModificar =
+                        Model.Activo == true &&
+                        Model.Origen == "Manual" &&
+                        Model.EstadoAutorizacion == "Pendiente" &&
+                        Model.Estado != "Anulada" &&
+                        Model.Estado != "Cancelada" &&
+                        (Model.MontoPagado ?? 0) == 0;
+                    }
+
+                    @if (origen != "PagosCxC" &&
+                    origen != "DetallePagoCxC" &&
+                    puedeModificar)
+                    {
+                        <a asp-action="Edit"
+                           asp-route-id="@Model.IdCuentaPorCobrar"
+                           class="btn btn-warning">
+                            <i class="fas fa-pen-to-square me-1"></i>  Modificar
+                        </a>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

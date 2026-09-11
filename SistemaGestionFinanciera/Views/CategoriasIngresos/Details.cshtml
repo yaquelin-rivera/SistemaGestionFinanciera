@@ -1,0 +1,116 @@
+﻿@model SistemaGestionFinanciera.Models.CategoriasIngreso
+
+@{
+    ViewData["Title"] = "Detalle de categoría de ingreso";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">Detalle de categoría de ingreso</h2>
+        <small class="text-muted">
+            Consulta de la información registrada para la categoría seleccionada.
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            Datos de la categoría de ingreso
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">
+                    Nombre
+                </div>
+                <div class="col-md-9">
+                    @Model.Nombre
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">
+                    Descripción
+                </div>
+                <div class="col-md-9">
+                    @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+                    {
+                        @Model.Descripcion
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin descripción registrada</span>
+                    }
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">
+                    Cuenta contable asociada
+                </div>
+                <div class="col-md-9">
+                    @if (Model.CuentaContable != null)
+                    {
+                        <span class="badge bg-light text-dark border">
+                            @Model.CuentaContable.Codigo - @Model.CuentaContable.Nombre
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">
+                            Sin cuenta contable asociada
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">
+                    Estado
+                </div>
+                <div class="col-md-9">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactivo</span>
+                    }
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="d-flex gap-2">
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>  Volver al listado
+                </a>
+
+                @if (Model.Activo)
+                {
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.IdCategoriaIngreso"
+                       class="btn btn-warning">
+                        <i class="fas fa-pen-to-square me-1"></i>   Modificar
+                    </a>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn btn-warning"
+                            disabled
+                            title="Primero debe activar la categoría para poder modificarla.">
+                        <i class="fas fa-pen-to-square me-1"></i>  Modificar
+                    </button>
+                }
+
+               
+            </div>
+
+        </div>
+    </div>
+
+</div>

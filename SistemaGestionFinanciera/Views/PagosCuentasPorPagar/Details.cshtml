@@ -1,0 +1,142 @@
+﻿@model SistemaGestionFinanciera.Models.PagosCuentaPorPagar
+
+@{
+    ViewData["Title"] = "Detalle de Pago CxP";
+}
+
+<div class="container-fluid mt-4 px-4">
+
+    <div class="mb-3">
+        <h2 class="fw-bold mb-0">
+            Detalle de pago de cuenta por pagar
+        </h2>
+
+        <small class="text-muted">
+            Consulta de la información registrada del pago aplicado a una cuenta por pagar
+        </small>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header text-white fw-bold">
+            <i class="fas fa-file-invoice-dollar me-2"></i>
+            Información del pago registrado
+        </div>
+
+        <div class="card-body">
+
+            <h5 class="text-primary fw-bold mb-3">Información general</h5>
+            <hr />
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <strong>N° Documento</strong><br />
+                    @(Model.CuentaPorPagar?.NumeroDocumento ?? "Sin documento")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Tipo de documento</strong><br />
+                    @(Model.CuentaPorPagar?.TipoDocumento ?? "No registrado")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Proveedor</strong><br />
+                    @(Model.CuentaPorPagar?.Proveedor?.Nombre ?? "No registrado")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Estado</strong><br />
+                    @if (Model.Anulado)
+                    {
+                        <span class="badge bg-secondary">Anulado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                </div>
+            </div>
+
+            <h5 class="text-primary fw-bold mb-3">Detalle de pago</h5>
+            <hr />
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <strong>Fecha de pago</strong><br />
+                    @Model.FechaPago.ToString("dd/MM/yyyy")
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Monto pagado</strong><br />
+                    <span class="fw-bold text-success">
+                        ₡@(Model.Monto?.ToString("N2") ?? "0.00")
+                    </span>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Método de pago</strong><br />
+                    @Model.MetodoPago
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Referencia</strong><br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Referencia))
+                    {
+                        @Model.Referencia
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin referencia registrada.</span>
+                    }
+                </div>
+            </div>
+
+            <h5 class="text-primary fw-bold mb-3">Observación</h5>
+            <hr />
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <strong>Observación</strong><br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+                    {
+                        @Model.Observacion
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin observación registrada.</span>
+                    }
+                </div>
+            </div>
+
+            @if (Model.Anulado && !string.IsNullOrWhiteSpace(Model.MotivoAnulacion))
+            {
+                <h5 class="text-primary fw-bold mt-3">Motivo de anulación</h5>
+                <hr />
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <strong>Motivo</strong><br />
+                        @Model.MotivoAnulacion
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index"
+                   class="btn btn-secondary fw-bold">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                </a>
+                <a asp-controller="CuentasPorPagar"
+                   asp-action="Details"
+                   asp-route-id="@Model.CuentaPorPagarId"
+                   asp-route-origen="DetallePagoCxP"
+                   asp-route-pagoId="@Model.IdPagoCuentaPorPagar"
+                   class="btn btn-primary">
+                    <i class="fas fa-eye"></i>  Ver detalles generales de cuenta por pagar
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+<</div>

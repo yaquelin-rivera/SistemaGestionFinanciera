@@ -1,0 +1,216 @@
+﻿@model SistemaGestionFinanciera.Models.Ingreso
+
+@{
+    ViewData["Title"] = "Crear Ingreso";
+}
+
+<h1>Crear Ingreso</h1>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        DATOS DEL NUEVO INGRESO
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-primary border-bottom pb-2">Información General</h5>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Fecha"></label>
+                        <input asp-for="Fecha" type="date" class="form-control" />
+                        <span asp-validation-for="Fecha" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Fuente"></label>
+                        <input asp-for="Fuente" class="form-control" />
+                        <span asp-validation-for="Fuente" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Descripcion"></label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Observaciones"></label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Observaciones" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="text-primary border-bottom pb-2">Clasificación</h5>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="TipoIngreso"></label>
+                        <select asp-for="TipoIngreso" class="form-control">
+                            <option value="">Seleccione un tipo de ingreso</option>
+                            @foreach (var tipo in ViewBag.TiposIngreso)
+                            {
+                                <option value="@tipo">@tipo</option>
+                            }
+                        </select>
+                        <span asp-validation-for="TipoIngreso" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label asp-for="CategoriaIngresoId"></label>
+                        <select asp-for="CategoriaIngresoId" class="form-control" asp-items="ViewBag.CategoriaIngresoId">
+                            <option value="">Seleccione una categoría</option>
+                        </select>
+                        <span asp-validation-for="CategoriaIngresoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">
+                            Proyecto / período presupuestario
+                        </label>
+
+                        <select id="SeleccionProyectoPeriodo"
+                                name="SeleccionProyectoPeriodo"
+                                class="form-control"
+                                asp-items="ViewBag.OpcionesProyectoPeriodo">
+
+                            <option value="">
+                                Seleccione un proyecto y período
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="ProyectoId"
+                              class="text-danger"></span>
+
+                        <small class="text-muted d-block mt-1">
+                            Puede seleccionar un período aprobado o en borrador.
+                            Los proyectos que aún no poseen un período disponible
+                            aparecen como "Sin período presupuestario".
+                        </small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ClienteBeneficiarioId"></label>
+                        <select asp-for="ClienteBeneficiarioId" class="form-control" asp-items="ViewBag.ClienteBeneficiarioId">
+                            <option value="">Seleccione un cliente o beneficiario</option>
+                        </select>
+                        <span asp-validation-for="ClienteBeneficiarioId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="CentroCostoId"></label>
+                        <select asp-for="CentroCostoId" class="form-control" asp-items="ViewBag.CentroCostoId">
+                            <option value="">Seleccione un centro de costo</option>
+                        </select>
+                        <span asp-validation-for="CentroCostoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Comprobante"></label>
+                        <input asp-for="Comprobante" class="form-control" placeholder="Ejemplo: recibo, factura, transferencia" />
+                        <span asp-validation-for="Comprobante" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-primary border-bottom pb-2">Información Financiera</h5>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="MontoEsperado"></label>
+                        <input asp-for="MontoEsperado" type="text" class="form-control" inputmode="numeric" pattern="[0-9]*" />
+                        <span asp-validation-for="MontoEsperado" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="MontoReal"></label>
+                        <input asp-for="MontoReal" type="text" class="form-control" inputmode="numeric" pattern="[0-9]*" />
+                        <span asp-validation-for="MontoReal" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="EsAnticipo"></label>
+                        <select asp-for="EsAnticipo" class="form-control">
+                            <option value="false">No</option>
+                            <option value="true">Sí</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="text-primary border-bottom pb-2">Cálculos Automáticos</h5>
+
+                    <div class="form-group mb-3">
+                        <label>Diferencia</label>
+                        <input name="Diferencia" class="form-control" value="0.00" readonly />
+                        <small class="text-muted">Monto calculado automáticamente al guardar.</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Estado</label>
+                        <input name="EstadoVista" class="form-control" value="Pendiente" readonly />
+                        <small class="text-muted">Pendiente, Parcial o Pagado según el monto recibido.</small>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+            <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i> Volver al listado</a>
+            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+           
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+<script>
+    function calcularIngreso() {
+        const esperadoInput = document.querySelector("input[name='MontoEsperado']");
+        const realInput = document.querySelector("input[name='MontoReal']");
+        const diferenciaInput = document.querySelector("input[name='Diferencia']");
+        const estadoInput = document.querySelector("input[name='EstadoVista'], select[name='Estado']");
+
+        let esperado = parseFloat(esperadoInput?.value || 0);
+        let real = parseFloat(realInput?.value || 0);
+        let diferencia = esperado - real;
+
+        if (diferenciaInput) {
+            diferenciaInput.value = diferencia.toFixed(2);
+        }
+
+        let estado = "Pendiente";
+
+        if (real === 0) {
+            estado = "Pendiente";
+        } else if (real < esperado) {
+            estado = "Parcial";
+        } else {
+            estado = "Pagado";
+        }
+
+        if (estadoInput) {
+            estadoInput.value = estado;
+        }
+    }
+
+    document.querySelectorAll("input[name='MontoEsperado'], input[name='MontoReal']").forEach(function (input) {
+        input.addEventListener("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, "");
+            calcularIngreso();
+        });
+    });
+
+    calcularIngreso();
+</script>
+}
